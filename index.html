@@ -109,12 +109,12 @@
 <body>
 <div class="app" id="app">
   <div class="header">
-    <h1>Coffee tracker</h1>
+    <h1>Coffee Tracker</h1>
     <button class="add-btn" onclick="openAddForm('new')"><i class="ti ti-plus"></i> Add coffee</button>
   </div>
   <div class="stats">
     <div class="stat"><div class="stat-label">Total coffees</div><div class="stat-value" id="stat-total">—</div></div>
-    <div class="stat"><div class="stat-label">Ready to brew</div><div class="stat-value" id="stat-ready">—</div></div>
+    <div class="stat"><div class="stat-label">Ready</div><div class="stat-value" id="stat-ready">—</div></div>
     <div class="stat"><div class="stat-label">Still resting</div><div class="stat-value" id="stat-resting">—</div></div>
   </div>
   <div class="tabs-main">
@@ -310,7 +310,7 @@ function brewFormHtml(coffeeIdx, entryIdx, existing){
       <div class="ff"><label>Water temp (°C)</label><input type="number" id="b-temp" value="${b.temp||''}" placeholder="93" min="50" max="100"></div>
       <div class="ff"><label>Water TDS (ppm)</label><input type="number" id="b-tds" value="${b.tds||''}" placeholder="150" min="0"></div>
       <div class="ff"><label>Dose (g)</label><input type="number" id="b-dose" value="${b.dose||''}" placeholder="18" min="1"></div>
-      <div class="ff"><label>Recipe</label><input type="text" id="b-ratio" value="${b.ratio||''}" placeholder="e.g. 15g / 250ml / 93°C"></div>
+      <div class="ff"><label>Recipe</label><input type="text" id="b-ratio" value="${b.ratio||''}" placeholder="e.g. 30/120/225"></div>
       <div class="ff"><label>Brew time</label><input type="text" id="b-time" value="${b.time||''}" placeholder="3:30"></div>
       <div class="ff full"><label>Taste notes</label><textarea id="b-notes" placeholder="Blueberry, bright acidity...">${b.notes||''}</textarea></div>
     </div>
