@@ -246,7 +246,7 @@ function cardHtml(c,i){
         </button>
         ${(brewOpen||isBrewEditing)?`<div class="brew-body">
           ${brewEntriesHtml}
-          ${(!isBrewEditing||brewEditEntryIdx!==null)?`<button class="brew-add-btn" onclick="openBrewForm(${i})" style="margin-top:8px;"><i class="ti ti-plus"></i> Add brew entry</button>`:''}
+          ${isBrewEditing&&brewEditEntryIdx===null?brewFormHtml(i,null,null):`<button class="brew-add-btn" onclick="openBrewForm(${i})" style="margin-top:8px;"><i class="ti ti-plus"></i> Add brew entry</button>`}
         </div>`:''}
       </div>
       ${isEditing?`<div class="inline-modal">${editFormHtml(c)}</div>`:''}
