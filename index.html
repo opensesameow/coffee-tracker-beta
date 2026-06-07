@@ -29,8 +29,9 @@
     .ccard-photo-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
     .ccard-photo-ph{width:100%;display:flex;align-items:center;justify-content:center;font-size:11px;text-align:center;padding:12px;line-height:1.6;color:#aaa;}
     .ccard-right{display:flex;flex-direction:column;flex:1;min-width:0;}
-    .ccard-info{padding:.75rem 1rem;display:flex;flex-direction:column;gap:3px;position:relative;flex:1;}
-    .ccard-name{font-size:15px;font-weight:500;padding-right:62px;}
+    .ccard-info{padding:.75rem 1rem;display:flex;flex-direction:column;gap:3px;flex:1;}
+    .ccard-name-row{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;}
+    .ccard-name{font-size:15px;font-weight:500;flex:1;min-width:0;word-break:break-word;}
     .ccard-sub{font-size:12px;color:#888;}
     .ccard-taste{font-size:12px;color:#888;margin-top:3px;line-height:1.4;}
     .ccard-badge-row{margin-top:6px;}
@@ -40,7 +41,7 @@
     .badge-expired{background:#FCEBEB;color:#A32D2D;}
     .rest-bar{height:3px;background:#e5e5e3;border-radius:2px;overflow:hidden;margin:.4rem 0 0;}
     .rest-bar-fill{height:100%;border-radius:2px;}
-    .card-top-actions{position:absolute;top:.5rem;right:.6rem;display:flex;gap:4px;}
+    .card-top-actions{display:flex;gap:4px;margin-left:auto;flex-shrink:0;}
     .btn-icon{width:26px;height:26px;border-radius:6px;border:0.5px solid #d5d5d3;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:#888;}
     .btn-icon:hover{background:#f0f0ee;}
     .btn-icon.danger:hover{background:#FCEBEB;color:#A32D2D;}
@@ -61,6 +62,7 @@
     .brew-notes{font-size:12px;color:#888;line-height:1.5;}
     .brew-add-btn{width:100%;padding:7px;border:0.5px dashed #d5d5d3;border-radius:8px;background:transparent;color:#888;font-size:12px;cursor:pointer;}
     .brew-add-btn:hover{background:#f0f0ee;}
+    .brew-entry-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:0.5px solid #e5e5e3;}
     .inline-modal{background:#f8f8f6;border-top:0.5px solid #e5e5e3;padding:1.1rem;}
     .modal-title{font-size:15px;font-weight:500;margin-bottom:.85rem;}
     .modal-tabs{display:flex;border:0.5px solid #d5d5d3;border-radius:8px;overflow:hidden;margin-bottom:.85rem;width:fit-content;}
@@ -80,14 +82,14 @@
     .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:.9rem;}
     .btn-primary{font-size:13px;padding:7px 16px;border-radius:8px;border:0.5px solid #d5d5d3;background:#1a1a1a;color:#fff;cursor:pointer;}
     .btn-cancel{font-size:13px;padding:7px 16px;border-radius:8px;border:0.5px solid #d5d5d3;background:transparent;cursor:pointer;}
-    .cal-wrap{background:#fff;border:0.5px solid #e5e5e3;border-radius:12px;padding:1rem 1.25rem;}
+    .cal-wrap{background:#fff;border:0.5px solid #e5e5e3;border-radius:12px;padding:1rem .75rem;overflow:hidden;}
     .cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;}
     .cal-nav button{background:transparent;border:0.5px solid #d5d5d3;border-radius:8px;padding:4px 12px;cursor:pointer;font-size:13px;}
     .cal-nav button:hover{background:#f0f0ee;}
     .cal-month{font-size:15px;font-weight:500;}
-    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;width:100%;overflow:hidden;}
     .cal-dow{font-size:10px;color:#aaa;text-align:center;padding:3px 0;text-transform:uppercase;}
-    .cal-day{min-height:64px;padding:3px;border-radius:4px;}
+    .cal-day{min-height:64px;padding:3px;border-radius:4px;overflow:hidden;min-width:0;}
     .cal-day.has-events{background:#f8f8f6;}
     .cal-day.today{outline:1px solid #1a1a1a;}
     .cal-day-num{font-size:11px;font-weight:500;color:#aaa;margin-bottom:2px;}
@@ -96,7 +98,7 @@
     .cal-strip{height:5px;border-radius:2px;margin-bottom:2px;width:100%;}
     .cal-dot-row{display:flex;align-items:center;gap:3px;margin-bottom:1px;}
     .cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-    .cal-dot-label{font-size:9px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .cal-dot-label{font-size:9px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
     .cal-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:.85rem;padding-top:.75rem;border-top:0.5px solid #e5e5e3;}
     .cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#888;}
     .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-size:13px;padding:8px 18px;border-radius:8px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
@@ -134,101 +136,38 @@
 </div>
 <div class="toast" id="toast"></div>
 <script>
-// ── Supabase config ──────────────────────────────────────────────
-const SB_URL = 'https://nqlqvtjponqmanvlhkoq.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xbHF2dGpwb25xbWFudmxoa29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDAwNTAsImV4cCI6MjA5NTk3NjA1MH0.rVjohQyka7l0wkQVANLAj6oymj1OFbu55Vxkh8RVUTw';
-const HEADERS = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+const SB_URL='https://nqlqvtjponqmanvlhkoq.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xbHF2dGpwb25xbWFudmxoa29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDAwNTAsImV4cCI6MjA5NTk3NjA1MH0.rVjohQyka7l0wkQVANLAj6oymj1OFbu55Vxkh8RVUTw';
+const HEADERS={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
 
-async function dbGet(){
-  const r=await fetch(SB_URL+'/rest/v1/coffees?order=created_at.desc',{headers:{...HEADERS,'Prefer':'return=representation'}});
-  if(!r.ok)throw new Error(await r.text());
-  return r.json();
-}
-async function dbInsert(row){
-  const r=await fetch(SB_URL+'/rest/v1/coffees',{method:'POST',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});
-  if(!r.ok)throw new Error(await r.text());
-  return (await r.json())[0];
-}
-async function dbUpdate(id,row){
-  const r=await fetch(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});
-  if(!r.ok)throw new Error(await r.text());
-  return (await r.json())[0];
-}
-async function dbDelete(id){
-  const r=await fetch(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS});
-  if(!r.ok)throw new Error(await r.text());
-}
+async function dbGet(){const r=await fetch(SB_URL+'/rest/v1/coffees?order=created_at.desc',{headers:{...HEADERS,'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function dbInsert(row){const r=await fetch(SB_URL+'/rest/v1/coffees',{method:'POST',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
+async function dbUpdate(id,row){const r=await fetch(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
+async function dbDelete(id){const r=await fetch(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS});if(!r.ok)throw new Error(await r.text());}
 
-// Map DB row (snake_case) <-> app object (camelCase)
-function fromDB(row){
-  return {
-    id:row.id, name:row.name||'', roaster:row.roaster||'',
-    origin:row.origin||'', tasteNotes:row.taste_notes||'',
-    roastDate:row.roast_date||'', restDays:row.rest_days?String(row.rest_days):'',
-    readyDate:row.ready_date||'', openDate:row.open_date||'',
-    bestby:row.best_by||'', photo:row.photo||null,
-    brewLog:row.brew_log||[],
-  };
-}
-function toDB(c){
-  return {
-    name:c.name||null, roaster:c.roaster||null, origin:c.origin||null,
-    taste_notes:c.tasteNotes||null, roast_date:c.roastDate||null,
-    rest_days:c.restDays?parseInt(c.restDays):null,
-    ready_date:c.readyDate||null, open_date:c.openDate||null,
-    best_by:c.bestby||null, photo:c.photo||null,
-    brew_log:c.brewLog||[],
-  };
-}
+function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',photo:row.photo||null,brewLog:row.brew_log||[]};}
+function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[]};}
 
-// ── App state ────────────────────────────────────────────────────
-const PALETTE=[
-  {bg:'#EEF4FC',strip:'#85B7EB'},{bg:'#FEF9EC',strip:'#FAC775'},
-  {bg:'#EAF3DE',strip:'#97C459'},{bg:'#FBEAF0',strip:'#ED93B1'},
-  {bg:'#E1F5EE',strip:'#5DCAA5'},{bg:'#EEEDFE',strip:'#AFA9EC'},
-  {bg:'#FAECE7',strip:'#F0997B'},{bg:'#F1EFE8',strip:'#B4B2A9'},
-];
+const PALETTE=[{bg:'#EEF4FC',strip:'#85B7EB'},{bg:'#FEF9EC',strip:'#FAC775'},{bg:'#EAF3DE',strip:'#97C459'},{bg:'#FBEAF0',strip:'#ED93B1'},{bg:'#E1F5EE',strip:'#5DCAA5'},{bg:'#EEEDFE',strip:'#AFA9EC'},{bg:'#FAECE7',strip:'#F0997B'},{bg:'#F1EFE8',strip:'#B4B2A9'}];
 const pal=i=>PALETTE[i%PALETTE.length];
-let coffees=[];
-let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
-let openBrewIdx={},editingIdx=null,brewEditIdx=null,photoDataUrl=null;
+let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+let openBrewIdx={},editingIdx=null,brewEditIdx=null,brewEditEntryIdx=null,photoDataUrl=null;
 
 function today(){return new Date().toISOString().split('T')[0];}
 function addDays(ds,n){if(!ds||n==='')return '';const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+parseInt(n));return d.toISOString().split('T')[0];}
 function fmtShort(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-SG',{day:'numeric',month:'short'});}
 function fmtFull(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});}
-function getStatus(c){
-  const t=today();
-  if(c.bestby&&t>c.bestby)return'expired';
-  if(c.readyDate&&t>=c.readyDate)return'ready';
-  if(c.readyDate&&t<c.readyDate)return'resting';
-  return'ready';
-}
-function restProg(c){
-  if(!c.roastDate||!c.restDays)return 100;
-  const done=Math.round((new Date(today()+'T12:00:00')-new Date(c.roastDate+'T12:00:00'))/86400000);
-  return Math.min(100,Math.max(0,Math.round(done/parseInt(c.restDays)*100)));
-}
-
-function toast(msg){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),2500);
-}
+function getStatus(c){const t=today();if(c.bestby&&t>c.bestby)return'expired';if(c.readyDate&&t>=c.readyDate)return'ready';if(c.readyDate&&t<c.readyDate)return'resting';return'ready';}
+function restProg(c){if(!c.roastDate||!c.restDays)return 100;const done=Math.round((new Date(today()+'T12:00:00')-new Date(c.roastDate+'T12:00:00'))/86400000);return Math.min(100,Math.max(0,Math.round(done/parseInt(c.restDays)*100)));}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
 
 function switchMain(tab,btn){
-  document.querySelectorAll('.tab-main').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
+  document.querySelectorAll('.tab-main').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
   document.getElementById('view-list').style.display=tab==='list'?'':'none';
   document.getElementById('view-calendar').style.display=tab==='calendar'?'':'none';
   if(tab==='calendar')renderCalendar();
 }
-function renderStats(){
-  const s=coffees.map(getStatus);
-  document.getElementById('stat-total').textContent=coffees.length;
-  document.getElementById('stat-ready').textContent=s.filter(x=>x==='ready').length;
-  document.getElementById('stat-resting').textContent=s.filter(x=>x==='resting').length;
-}
+function renderStats(){const s=coffees.map(getStatus);document.getElementById('stat-total').textContent=coffees.length;document.getElementById('stat-ready').textContent=s.filter(x=>x==='ready').length;document.getElementById('stat-resting').textContent=s.filter(x=>x==='resting').length;}
 function renderList(){
   const el=document.getElementById('coffee-list');
   let html='';
@@ -237,10 +176,9 @@ function renderList(){
   html+=coffees.map((c,i)=>cardHtml(c,i)).join('');
   el.innerHTML=html;
 }
+
 function cardHtml(c,i){
-  const p=pal(i);
-  const status=getStatus(c);
-  const prog=restProg(c);
+  const p=pal(i),status=getStatus(c),prog=restProg(c);
   const barCol=status==='ready'?'#639922':status==='expired'?'#E24B4A':'#EF9F27';
   const badgeCls=status==='ready'?'badge-ready':status==='expired'?'badge-expired':'badge-resting';
   const daysLeft=c.readyDate?Math.max(0,Math.round((new Date(c.readyDate+'T12:00:00')-new Date(today()+'T12:00:00'))/86400000)):0;
@@ -250,17 +188,44 @@ function cardHtml(c,i){
   const brews=c.brewLog||[];
   const isEditing=editingIdx===i;
   const isBrewEditing=brewEditIdx===i;
+
+  const brewEntriesHtml=brews.length?brews.map((b,bi)=>{
+    const realIdx=brews.length-1-bi;
+    const isEditingThis=isBrewEditing&&brewEditEntryIdx===realIdx;
+    if(isEditingThis)return brewFormHtml(i,realIdx,b);
+    return `<div class="brew-entry">
+      <div class="brew-entry-header">
+        <div style="font-size:12px;font-weight:500;">${[b.filter,b.method].filter(Boolean).join(' · ')||'Brew'}</div>
+        <div style="font-size:11px;color:#888;">${fmtFull(b.date)}</div>
+      </div>
+      <div class="brew-meta-row">
+        ${b.temp?`<div class="brew-meta-item">Temp<span>${b.temp}°C</span></div>`:''}
+        ${b.tds?`<div class="brew-meta-item">TDS<span>${b.tds}ppm</span></div>`:''}
+        ${b.dose?`<div class="brew-meta-item">Dose<span>${b.dose}g</span></div>`:''}
+        ${b.ratio?`<div class="brew-meta-item">Ratio<span>${b.ratio}</span></div>`:''}
+        ${b.time?`<div class="brew-meta-item">Time<span>${b.time}</span></div>`:''}
+      </div>
+      ${b.notes?`<div class="brew-notes">${b.notes}</div>`:''}
+      <div class="brew-entry-actions">
+        <button class="btn-icon" title="Edit brew" onclick="openBrewEdit(${i},${realIdx})"><i class="ti ti-edit"></i></button>
+        <button class="btn-icon danger" title="Delete brew" onclick="deleteBrewEntry(${i},${realIdx})"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`;
+  }).reverse().join(''):'<div style="font-size:13px;color:#aaa;text-align:center;padding:.5rem 0;">No brew entries yet</div>';
+
   return `<div class="ccard" style="border-top:3px solid ${p.strip};" id="ccard-${i}">
     <div class="ccard-inner">
       <div class="ccard-top">
         <div class="ccard-photo-wrap" style="background:${p.bg};">${iconHtml}</div>
         <div class="ccard-right">
           <div class="ccard-info">
-            <div class="card-top-actions">
-              <button class="btn-icon" title="Edit" onclick="openAddForm(${i})"><i class="ti ti-edit"></i></button>
-              <button class="btn-icon danger" title="Delete" onclick="deleteCoffee(${i})"><i class="ti ti-trash"></i></button>
+            <div class="ccard-name-row">
+              <div class="ccard-name">${c.name||'Unnamed coffee'}</div>
+              <div class="card-top-actions">
+                <button class="btn-icon" title="Edit" onclick="openAddForm(${i})"><i class="ti ti-edit"></i></button>
+                <button class="btn-icon danger" title="Delete" onclick="deleteCoffee(${i})"><i class="ti ti-trash"></i></button>
+              </div>
             </div>
-            <div class="ccard-name">${c.name||'Unnamed coffee'}</div>
             <div class="ccard-sub">${[c.roaster,c.origin].filter(Boolean).join(' · ')||'—'}</div>
             ${c.tasteNotes?`<div class="ccard-taste">${c.tasteNotes}</div>`:''}
             <div class="ccard-badge-row"><span class="badge ${badgeCls}">${badgeTxt}</span></div>
@@ -280,22 +245,8 @@ function cardHtml(c,i){
           <i class="ti ${brewOpen||isBrewEditing?'ti-chevron-up':'ti-chevron-down'}" style="font-size:13px;"></i>
         </button>
         ${(brewOpen||isBrewEditing)?`<div class="brew-body">
-          ${brews.length?brews.slice().reverse().map(b=>`
-            <div class="brew-entry">
-              <div class="brew-entry-header">
-                <div style="font-size:12px;font-weight:500;">${[b.filter,b.method].filter(Boolean).join(' · ')||'Brew'}</div>
-                <div style="font-size:11px;color:#888;">${fmtFull(b.date)}</div>
-              </div>
-              <div class="brew-meta-row">
-                ${b.temp?`<div class="brew-meta-item">Temp<span>${b.temp}°C</span></div>`:''}
-                ${b.tds?`<div class="brew-meta-item">TDS<span>${b.tds}ppm</span></div>`:''}
-                ${b.dose?`<div class="brew-meta-item">Dose<span>${b.dose}g</span></div>`:''}
-                ${b.ratio?`<div class="brew-meta-item">Ratio<span>${b.ratio}</span></div>`:''}
-                ${b.time?`<div class="brew-meta-item">Time<span>${b.time}</span></div>`:''}
-              </div>
-              ${b.notes?`<div class="brew-notes">${b.notes}</div>`:''}
-            </div>`).join(''):'<div style="font-size:13px;color:#aaa;text-align:center;padding:.5rem 0;">No brew entries yet</div>'}
-          ${isBrewEditing?brewFormHtml(i):`<button class="brew-add-btn" onclick="openBrewForm(${i})"><i class="ti ti-plus"></i> Add brew entry</button>`}
+          ${brewEntriesHtml}
+          ${!isBrewEditing||brewEditEntryIdx!==null?`<button class="brew-add-btn" onclick="openBrewForm(${i})" style="margin-top:8px;"><i class="ti ti-plus"></i> Add brew entry</button>`:''}
         </div>`:''}
       </div>
       ${isEditing?`<div class="inline-modal">${editFormHtml(c)}</div>`:''}
@@ -339,37 +290,42 @@ function editFormHtml(c){
     <button class="btn-primary" onclick="saveCoffee()">Save coffee</button>
   </div>`;
 }
-function brewFormHtml(i){
-  return `<div style="border-top:0.5px solid #e5e5e3;padding-top:.75rem;margin-top:.75rem;">
-    <div style="font-size:13px;font-weight:500;margin-bottom:.75rem;">New brew entry</div>
+
+function brewFormHtml(coffeeIdx, entryIdx, existing){
+  const b=existing||{};
+  const isEdit=entryIdx!==null&&entryIdx!==undefined;
+  return `<div class="brew-entry" style="border:0.5px solid #85B7EB;background:#f8fbff;">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.75rem;">${isEdit?'Edit brew entry':'New brew entry'}</div>
     <div class="form-grid">
-      <div class="ff"><label>Date</label><input type="date" id="b-date" value="${today()}"></div>
+      <div class="ff"><label>Date</label><input type="date" id="b-date" value="${b.date||today()}"></div>
       <div class="ff"><label>Method</label>
-        <select id="b-method"><option value="">Select...</option>${['Espresso','Filter / pour over','French press','AeroPress','Moka pot','Cold brew','Other'].map(m=>`<option>${m}</option>`).join('')}</select>
+        <select id="b-method"><option value="">Select...</option>${['Espresso','Filter / pour over','French press','AeroPress','Moka pot','Cold brew','Other'].map(m=>`<option ${b.method===m?'selected':''}>${m}</option>`).join('')}</select>
       </div>
       <div class="ff"><label>Filter</label>
-        <select id="b-filter" onchange="toggleFilterOther()"><option value="">Select...</option>${['V60','Neo','Switch','Torch','Other'].map(f=>`<option>${f}</option>`).join('')}</select>
+        <select id="b-filter" onchange="toggleFilterOther()"><option value="">Select...</option>${['V60','Neo','Switch','Torch','Other'].map(f=>`<option ${b.filter===f?'selected':''}>${f}</option>`).join('')}</select>
       </div>
-      <div class="ff" id="b-filter-other-wrap" style="display:none;"><label>Specify filter</label><input type="text" id="b-filter-other" placeholder="e.g. Origami"></div>
-      <div class="ff"><label>Water temp (°C)</label><input type="number" id="b-temp" placeholder="93" min="50" max="100"></div>
-      <div class="ff"><label>Water TDS (ppm)</label><input type="number" id="b-tds" placeholder="150" min="0"></div>
-      <div class="ff"><label>Dose (g)</label><input type="number" id="b-dose" placeholder="18" min="1"></div>
-      <div class="ff"><label>Ratio</label><input type="text" id="b-ratio" placeholder="1:15"></div>
-      <div class="ff"><label>Brew time</label><input type="text" id="b-time" placeholder="3:30"></div>
-      <div class="ff full"><label>Taste notes</label><textarea id="b-notes" placeholder="Blueberry, bright acidity..."></textarea></div>
+      <div class="ff" id="b-filter-other-wrap" style="display:${b.filter&&!['V60','Neo','Switch','Torch'].includes(b.filter)&&b.filter!==''?'flex':'none'};flex-direction:column;gap:4px;">
+        <label>Specify filter</label><input type="text" id="b-filter-other" value="${b.filter&&!['V60','Neo','Switch','Torch'].includes(b.filter)?b.filter:''}" placeholder="e.g. Origami">
+      </div>
+      <div class="ff"><label>Water temp (°C)</label><input type="number" id="b-temp" value="${b.temp||''}" placeholder="93" min="50" max="100"></div>
+      <div class="ff"><label>Water TDS (ppm)</label><input type="number" id="b-tds" value="${b.tds||''}" placeholder="150" min="0"></div>
+      <div class="ff"><label>Dose (g)</label><input type="number" id="b-dose" value="${b.dose||''}" placeholder="18" min="1"></div>
+      <div class="ff"><label>Ratio (in:out g)</label><input type="text" id="b-ratio" value="${b.ratio||''}" placeholder="e.g. 30/120/225"></div>
+      <div class="ff"><label>Brew time</label><input type="text" id="b-time" value="${b.time||''}" placeholder="3:30"></div>
+      <div class="ff full"><label>Taste notes</label><textarea id="b-notes" placeholder="Blueberry, bright acidity...">${b.notes||''}</textarea></div>
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeBrewForm(${i})">Cancel</button>
-      <button class="btn-primary" onclick="saveBrewEntry(${i})">Save entry</button>
+      <button class="btn-cancel" onclick="cancelBrewForm(${coffeeIdx})">${isEdit?'Cancel':'Cancel'}</button>
+      <button class="btn-primary" onclick="${isEdit?`saveBrewEdit(${coffeeIdx},${entryIdx})`:`saveBrewEntry(${coffeeIdx})`}">${isEdit?'Update entry':'Save entry'}</button>
     </div>
   </div>`;
 }
-function toggleFilterOther(){const v=document.getElementById('b-filter').value;document.getElementById('b-filter-other-wrap').style.display=v==='Other'?'':'none';}
+
+function toggleFilterOther(){const v=document.getElementById('b-filter').value;document.getElementById('b-filter-other-wrap').style.display=v==='Other'?'flex':'none';}
 function showFTab(tab,btn){
   document.getElementById('ftab-details').style.display=tab==='details'?'':'none';
   document.getElementById('ftab-dates').style.display=tab==='dates'?'':'none';
-  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
 }
 function autoReady(){const r=document.getElementById('f-roast').value;const d=document.getElementById('f-rest').value;document.getElementById('f-ready').value=addDays(r,d);}
 function autoBestBy(){const o=document.getElementById('f-open').value;document.getElementById('f-bestby').value=addDays(o,14);}
@@ -380,7 +336,7 @@ function handlePhoto(e){
   reader.readAsDataURL(file);
 }
 function openAddForm(idx){
-  editingIdx=idx==='new'?'new':idx;brewEditIdx=null;
+  editingIdx=idx==='new'?'new':idx;brewEditIdx=null;brewEditEntryIdx=null;
   photoDataUrl=editingIdx!=='new'?coffees[editingIdx].photo||null:null;
   renderList();
   setTimeout(()=>{const target=editingIdx==='new'?document.querySelector('.coffee-list .ccard'):document.getElementById('ccard-'+editingIdx);if(target)target.scrollIntoView({behavior:'smooth',block:'nearest'});},50);
@@ -405,43 +361,54 @@ async function saveCoffee(){
     brewLog:existing.brewLog||[],
   };
   try{
-    if(isNew){
-      const row=await dbInsert(toDB(c));
-      coffees.unshift(fromDB(row));
-    } else {
-      const row=await dbUpdate(existing.id,toDB(c));
-      coffees[editingIdx]=fromDB(row);
-    }
+    if(isNew){const row=await dbInsert(toDB(c));coffees.unshift(fromDB(row));}
+    else{const row=await dbUpdate(existing.id,toDB(c));coffees[editingIdx]=fromDB(row);}
     toast(isNew?'Coffee added!':'Coffee updated!');
-  } catch(e){toast('Error saving: '+e.message);console.error(e);}
+  }catch(e){toast('Error saving: '+e.message);console.error(e);}
   editingIdx=null;photoDataUrl=null;render();
 }
 
 async function deleteCoffee(i){
   if(!confirm('Remove this coffee?'))return;
-  try{
-    await dbDelete(coffees[i].id);
-    coffees.splice(i,1);
-    toast('Coffee removed.');
-    render();
-  } catch(e){toast('Error deleting: '+e.message);}
+  try{await dbDelete(coffees[i].id);coffees.splice(i,1);toast('Coffee removed.');render();}
+  catch(e){toast('Error deleting: '+e.message);}
 }
 
-function toggleBrew(i){openBrewIdx[i]=!openBrewIdx[i];brewEditIdx=null;renderList();}
-function openBrewForm(i){brewEditIdx=i;openBrewIdx[i]=true;renderList();setTimeout(()=>{const c=document.getElementById('ccard-'+i);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
-function closeBrewForm(i){brewEditIdx=null;renderList();}
+function toggleBrew(i){openBrewIdx[i]=!openBrewIdx[i];brewEditIdx=null;brewEditEntryIdx=null;renderList();}
+function openBrewForm(i){brewEditIdx=i;brewEditEntryIdx=null;openBrewIdx[i]=true;renderList();setTimeout(()=>{const c=document.getElementById('ccard-'+i);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
+function openBrewEdit(coffeeIdx,entryIdx){brewEditIdx=coffeeIdx;brewEditEntryIdx=entryIdx;openBrewIdx[coffeeIdx]=true;renderList();setTimeout(()=>{const c=document.getElementById('ccard-'+coffeeIdx);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
+function cancelBrewForm(i){brewEditIdx=null;brewEditEntryIdx=null;renderList();}
 
-async function saveBrewEntry(i){
+function getBrewEntry(){
   const filterVal=document.getElementById('b-filter').value;
   const filterOther=document.getElementById('b-filter-other')?document.getElementById('b-filter-other').value:'';
-  const entry={date:document.getElementById('b-date').value,method:document.getElementById('b-method').value,filter:filterVal==='Other'?filterOther||'Other':filterVal,temp:document.getElementById('b-temp').value,tds:document.getElementById('b-tds').value,dose:document.getElementById('b-dose').value,ratio:document.getElementById('b-ratio').value,time:document.getElementById('b-time').value,notes:document.getElementById('b-notes').value.trim()};
+  return{date:document.getElementById('b-date').value,method:document.getElementById('b-method').value,filter:filterVal==='Other'?filterOther||'Other':filterVal,temp:document.getElementById('b-temp').value,tds:document.getElementById('b-tds').value,dose:document.getElementById('b-dose').value,ratio:document.getElementById('b-ratio').value,time:document.getElementById('b-time').value,notes:document.getElementById('b-notes').value.trim()};
+}
+
+async function saveBrewEntry(i){
+  const entry=getBrewEntry();
   if(!coffees[i].brewLog)coffees[i].brewLog=[];
   coffees[i].brewLog.push(entry);
-  try{
-    await dbUpdate(coffees[i].id,{brew_log:coffees[i].brewLog});
-    toast('Brew entry saved!');
-  } catch(e){toast('Error saving brew: '+e.message);coffees[i].brewLog.pop();}
-  openBrewIdx[i]=true;brewEditIdx=null;render();
+  try{await dbUpdate(coffees[i].id,{brew_log:coffees[i].brewLog});toast('Brew entry saved!');}
+  catch(e){toast('Error saving brew: '+e.message);coffees[i].brewLog.pop();}
+  openBrewIdx[i]=true;brewEditIdx=null;brewEditEntryIdx=null;render();
+}
+
+async function saveBrewEdit(coffeeIdx,entryIdx){
+  const entry=getBrewEntry();
+  const prev=coffees[coffeeIdx].brewLog[entryIdx];
+  coffees[coffeeIdx].brewLog[entryIdx]=entry;
+  try{await dbUpdate(coffees[coffeeIdx].id,{brew_log:coffees[coffeeIdx].brewLog});toast('Brew entry updated!');}
+  catch(e){toast('Error updating brew: '+e.message);coffees[coffeeIdx].brewLog[entryIdx]=prev;}
+  openBrewIdx[coffeeIdx]=true;brewEditIdx=null;brewEditEntryIdx=null;render();
+}
+
+async function deleteBrewEntry(coffeeIdx,entryIdx){
+  if(!confirm('Delete this brew entry?'))return;
+  const removed=coffees[coffeeIdx].brewLog.splice(entryIdx,1);
+  try{await dbUpdate(coffees[coffeeIdx].id,{brew_log:coffees[coffeeIdx].brewLog});toast('Brew entry deleted.');}
+  catch(e){toast('Error deleting brew: '+e.message);coffees[coffeeIdx].brewLog.splice(entryIdx,0,...removed);}
+  openBrewIdx[coffeeIdx]=true;render();
 }
 
 function renderCalendar(){
@@ -450,15 +417,14 @@ function renderCalendar(){
   const grid=document.getElementById('cal-grid');
   const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   let html=dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
-  const t=today();
-  const firstDay=new Date(calYear,calMonth,1).getDay();
-  const dim=new Date(calYear,calMonth+1,0).getDate();
-  const diPrev=new Date(calYear,calMonth,0).getDate();
+  const t=today(),firstDay=new Date(calYear,calMonth,1).getDay(),dim=new Date(calYear,calMonth+1,0).getDate(),diPrev=new Date(calYear,calMonth,0).getDate();
   const stripMap={},labelMap={};
   coffees.forEach((c,i)=>{
-    const p=pal(i);const name=c.name||'Coffee '+(i+1);
+    const p=pal(i);
+    // Use roaster if available, fall back to name
+    const label=c.roaster||c.name||'Coffee '+(i+1);
     if(c.roastDate&&c.readyDate){let cur=c.roastDate;while(cur<c.readyDate){if(!stripMap[cur])stripMap[cur]=[];stripMap[cur].push(p.strip);const d=new Date(cur+'T12:00:00');d.setDate(d.getDate()+1);cur=d.toISOString().split('T')[0];}}
-    [{ds:c.readyDate,lbl:'ready'},{ds:c.openDate,lbl:'opened'},{ds:c.bestby,lbl:'best-by'}].forEach(({ds,lbl})=>{if(ds){if(!labelMap[ds])labelMap[ds]=[];labelMap[ds].push({color:p.strip,label:name+' '+lbl});}});
+    [{ds:c.readyDate,lbl:'ready'},{ds:c.openDate,lbl:'opened'},{ds:c.bestby,lbl:'best-by'}].forEach(({ds,lbl})=>{if(ds){if(!labelMap[ds])labelMap[ds]=[];labelMap[ds].push({color:p.strip,label:label+' '+lbl});}});
   });
   let cells=[];
   for(let i=0;i<firstDay;i++)cells.push({day:diPrev-firstDay+1+i,thisMonth:false,ds:null});
@@ -475,22 +441,14 @@ function renderCalendar(){
   }).join('');
   grid.innerHTML=html;
   const leg=document.getElementById('cal-legend');
-  leg.innerHTML=coffees.map((c,i)=>{const p=pal(i);return`<div class="cal-legend-item"><div style="width:12px;height:12px;border-radius:2px;background:${p.strip};"></div><span>${c.name||'Coffee '+(i+1)}</span></div>`;}).join('')+(coffees.length?`<div class="cal-legend-item" style="margin-left:auto;"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;"></div> Resting</div>`:'');
+  leg.innerHTML=coffees.map((c,i)=>{const p=pal(i);const label=c.roaster||c.name||'Coffee '+(i+1);return`<div class="cal-legend-item"><div style="width:12px;height:12px;border-radius:2px;background:${p.strip};"></div><span>${label}</span></div>`;}).join('')+(coffees.length?`<div class="cal-legend-item" style="margin-left:auto;"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;"></div> Resting</div>`:'');
 }
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
-
 function render(){renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();}
 
-// ── Boot: load from Supabase ─────────────────────────────────────
 async function init(){
-  try{
-    const rows=await dbGet();
-    coffees=rows.map(fromDB);
-    render();
-  } catch(e){
-    document.getElementById('coffee-list').innerHTML='<div style="text-align:center;padding:2rem;color:#A32D2D;font-size:14px;">Could not connect to database. Check your internet connection.</div>';
-    console.error(e);
-  }
+  try{const rows=await dbGet();coffees=rows.map(fromDB);render();}
+  catch(e){document.getElementById('coffee-list').innerHTML='<div style="text-align:center;padding:2rem;color:#A32D2D;font-size:14px;">Could not connect to database. Check your internet connection.</div>';console.error(e);}
 }
 init();
 </script>
