@@ -204,7 +204,6 @@ function cardHtml(c,i){
         ${b.dose?`<div class="brew-meta-item">Dose<span>${b.dose}g</span></div>`:''}
         ${b.grind?`<div class="brew-meta-item">Grind<span>${b.grind}</span></div>`:''}
         ${b.ratio?`<div class="brew-meta-item">Recipe<span>${b.ratio}</span></div>`:''}
-        ${b.time?`<div class="brew-meta-item">Time<span>${b.time}</span></div>`:''}
       </div>
       ${b.notes?`<div class="brew-notes">${b.notes}</div>`:''}
       <div class="brew-entry-actions">
@@ -313,7 +312,6 @@ function brewFormHtml(coffeeIdx, entryIdx, existing){
       <div class="ff"><label>Dose (g)</label><input type="number" id="b-dose" value="${b.dose||''}" placeholder="18" min="1"></div>
       <div class="ff"><label>Recipe</label><input type="text" id="b-ratio" value="${b.ratio||''}" placeholder="e.g. 30/120/225"></div>
       <div class="ff"><label>Grind</label><input type="text" id="b-grind" value="${b.grind||''}" placeholder="C40 25"></div>
-      <div class="ff"><label>Brew time</label><input type="text" id="b-time" value="${b.time||''}" placeholder="3:30"></div>
       <div class="ff full"><label>Taste notes</label><textarea id="b-notes" placeholder="Blueberry, bright acidity...">${b.notes||''}</textarea></div>
     </div>
     <div class="modal-actions">
@@ -384,7 +382,7 @@ function cancelBrewForm(i){brewEditIdx=null;brewEditEntryIdx=null;renderList();}
 function getBrewEntry(){
   const filterVal=document.getElementById('b-filter').value;
   const filterOther=document.getElementById('b-filter-other')?document.getElementById('b-filter-other').value:'';
-  return{date:document.getElementById('b-date').value,method:document.getElementById('b-method').value,filter:filterVal==='Other'?filterOther||'Other':filterVal,temp:document.getElementById('b-temp').value,tds:document.getElementById('b-tds').value,dose:document.getElementById('b-dose').value,ratio:document.getElementById('b-ratio').value,grind:document.getElementById('b-grind').value,time:document.getElementById('b-time').value,notes:document.getElementById('b-notes').value.trim()};
+  return{date:document.getElementById('b-date').value,method:document.getElementById('b-method').value,filter:filterVal==='Other'?filterOther||'Other':filterVal,temp:document.getElementById('b-temp').value,tds:document.getElementById('b-tds').value,dose:document.getElementById('b-dose').value,ratio:document.getElementById('b-ratio').value,grind:document.getElementById('b-grind').value,notes:document.getElementById('b-notes').value.trim()};
 }
 
 async function saveBrewEntry(i){
