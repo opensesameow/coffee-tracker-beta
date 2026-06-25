@@ -76,6 +76,8 @@
       .brew-meta-item:nth-child(-n+2){border-top:none;}
       .brew-form-grid{grid-template-columns:1fr 1fr;width:100%;max-width:100%;}
       .brew-form-grid .brew-full{grid-column:1/-1;}
+      .dates-form-grid{grid-template-columns:1fr;}
+      .dates-form-grid .dates-full{grid-column:1/-1;}
       .ccard-name{padding-right:0;}
       input[type="date"]{min-width:0;width:100%;font-size:13px;-webkit-appearance:none;appearance:none;}
       .card-top-actions{position:static;display:flex;justify-content:flex-end;margin-bottom:4px;}
@@ -132,8 +134,10 @@
   <div class="tabs-main">
     <button class="tab-main active" onclick="switchMain('list',this)">List</button>
     <button class="tab-main" onclick="switchMain('calendar',this)">Calendar</button>
+    <button class="tab-main" onclick="switchMain('archive',this)">Archive</button>
   </div>
   <div id="view-list"><div class="coffee-list" id="coffee-list"><div class="loading">Loading your coffees...</div></div></div>
+  <div id="view-archive" style="display:none;"><div class="coffee-list" id="archive-list"></div></div>
   <div id="view-calendar" style="display:none;">
     <div class="cal-wrap">
       <div class="cal-nav">
@@ -157,9 +161,8 @@ async function dbInsert(row){const r=await fetch(SB_URL+'/rest/v1/coffees',{meth
 async function dbUpdate(id,row){const r=await fetch(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
 async function dbDelete(id){const r=await fetch(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS});if(!r.ok)throw new Error(await r.text());}
 
-function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',photo:row.photo||null,brewLog:row.brew_log||[]};}
-function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[]};}
-
+function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',process:row.process||'',producer:row.producer||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',photo:row.photo||null,brewLog:row.brew_log||[],archived:row.archived||false};}
+function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false};}
 const PALETTE=[{bg:'#EEF4FC',strip:'#85B7EB'},{bg:'#FEF9EC',strip:'#FAC775'},{bg:'#EAF3DE',strip:'#97C459'},{bg:'#FBEAF0',strip:'#ED93B1'},{bg:'#E1F5EE',strip:'#5DCAA5'},{bg:'#EEEDFE',strip:'#AFA9EC'},{bg:'#FAECE7',strip:'#F0997B'},{bg:'#F1EFE8',strip:'#B4B2A9'}];
 const pal=i=>PALETTE[i%PALETTE.length];
 let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
@@ -177,16 +180,73 @@ function switchMain(tab,btn){
   document.querySelectorAll('.tab-main').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
   document.getElementById('view-list').style.display=tab==='list'?'':'none';
   document.getElementById('view-calendar').style.display=tab==='calendar'?'':'none';
+  document.getElementById('view-archive').style.display=tab==='archive'?'':'none';
   if(tab==='calendar')renderCalendar();
+  if(tab==='archive')renderArchive();
 }
-function renderStats(){const s=coffees.map(getStatus);document.getElementById('stat-total').textContent=coffees.length;document.getElementById('stat-ready').textContent=s.filter(x=>x==='ready').length;document.getElementById('stat-resting').textContent=s.filter(x=>x==='resting').length;}
+function renderStats(){
+  const active=coffees.filter(c=>!c.archived);
+  const s=active.map(getStatus);
+  document.getElementById('stat-total').textContent=active.length;
+  document.getElementById('stat-ready').textContent=s.filter(x=>x==='ready').length;
+  document.getElementById('stat-resting').textContent=s.filter(x=>x==='resting').length;
+}
 function renderList(){
   const el=document.getElementById('coffee-list');
   let html='';
   if(editingIdx==='new')html=`<div class="ccard"><div class="inline-modal">${editFormHtml({})}</div></div>`;
-  if(!coffees.length){el.innerHTML=html+'<div style="text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;">No coffees yet — add your first bag!</div>';return;}
-  html+=coffees.map((c,i)=>cardHtml(c,i)).join('');
+  const active=coffees.filter(c=>!c.archived);
+  if(!active.length){el.innerHTML=html+'<div style="text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;">No coffees yet — add your first bag!</div>';return;}
+  html+=active.map((c,i)=>cardHtml(c,coffees.indexOf(c))).join('');
   el.innerHTML=html;
+}
+function renderArchive(){
+  const el=document.getElementById('archive-list');
+  const archived=coffees.filter(c=>c.archived);
+  if(!archived.length){el.innerHTML='<div style="text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;">No archived coffees yet.</div>';return;}
+  el.innerHTML=archived.map((c,i)=>archiveCardHtml(c,coffees.indexOf(c))).join('');
+}
+function archiveCardHtml(c,i){
+  const p=PALETTE[i%PALETTE.length];
+  const iconHtml=c.photo?`<img src="${c.photo}" alt="">`:(`<div class="ccard-photo-ph" style="color:`+p.strip+`;">Photo / icon</div>`);
+  return `<div class="ccard" style="border-top:3px solid ${p.strip};opacity:0.75;" id="ccard-${i}">
+    <div class="ccard-inner">
+      <div class="ccard-top">
+        <div class="ccard-photo-wrap" style="background:${p.bg};">${iconHtml}</div>
+        <div class="ccard-right">
+          <div class="ccard-info">
+            <div class="card-top-actions">
+              <button class="btn-icon" title="Unarchive" onclick="unarchiveCoffee(${i})"><i class="ti ti-archive-off"></i></button>
+              <button class="btn-icon danger" title="Delete" onclick="deleteCoffee(${i})"><i class="ti ti-trash"></i></button>
+            </div>
+            <div class="ccard-name">${c.name||'Unnamed coffee'}</div>
+            <div class="ccard-sub">${[c.roaster,c.origin].filter(Boolean).join(' · ')||'—'}</div>
+            ${[c.process,c.producer].filter(Boolean).length?`<div class="ccard-sub">${[c.process,c.producer].filter(Boolean).join(' · ')}</div>`:''}
+            ${c.tasteNotes?`<div class="ccard-taste">${c.tasteNotes}</div>`:''}
+            <div class="ccard-badge-row"><span class="badge badge-expired">Archived</span></div>
+          </div>
+          <div class="ccard-dates">
+            <div class="date-cell"><div class="date-label">Roasted</div><div class="date-val">${fmtShort(c.roastDate)}</div></div>
+            <div class="date-cell"><div class="date-label">Ready</div><div class="date-val">${fmtShort(c.readyDate)}</div></div>
+            <div class="date-cell"><div class="date-label">Opened</div><div class="date-val">${fmtShort(c.openDate)}</div></div>
+            <div class="date-cell"><div class="date-label">Best-by</div><div class="date-val">${fmtShort(c.bestby)}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+async function archiveCoffee(i){
+  coffees[i].archived=true;
+  try{await dbUpdate(coffees[i].id,{archived:true});toast('Coffee archived.');}
+  catch(e){coffees[i].archived=false;toast('Error: '+e.message);}
+  render();
+}
+async function unarchiveCoffee(i){
+  coffees[i].archived=false;
+  try{await dbUpdate(coffees[i].id,{archived:false});toast('Coffee restored.');}
+  catch(e){coffees[i].archived=true;toast('Error: '+e.message);}
+  render();renderArchive();
 }
 
 function cardHtml(c,i){
@@ -234,11 +294,13 @@ function cardHtml(c,i){
             <div class="ccard-name-row">
               <div class="ccard-name">${c.name||'Unnamed coffee'}</div>
               <div class="card-top-actions">
+                <button class="btn-icon" title="Archive" onclick="archiveCoffee(${i})"><i class="ti ti-archive"></i></button>
                 <button class="btn-icon" title="Edit" onclick="openAddForm(${i})"><i class="ti ti-edit"></i></button>
                 <button class="btn-icon danger" title="Delete" onclick="deleteCoffee(${i})"><i class="ti ti-trash"></i></button>
               </div>
             </div>
             <div class="ccard-sub">${[c.roaster,c.origin].filter(Boolean).join(' · ')||'—'}</div>
+            ${[c.process,c.producer].filter(Boolean).length?`<div class="ccard-sub">${[c.process,c.producer].filter(Boolean).join(' · ')}</div>`:''}
             ${c.tasteNotes?`<div class="ccard-taste">${c.tasteNotes}</div>`:''}
             <div class="ccard-badge-row"><span class="badge ${badgeCls}">${badgeTxt}</span></div>
             ${c.roastDate&&c.restDays?`<div class="rest-bar"><div class="rest-bar-fill" style="width:${prog}%;background:${barCol};"></div></div>`:''}
@@ -281,13 +343,15 @@ function editFormHtml(c){
       <div class="ff"><label>Coffee name</label><input type="text" id="f-name" value="${c.name||''}" placeholder="Ethiopia Yirgacheffe"></div>
       <div class="ff"><label>Roaster</label><input type="text" id="f-roaster" value="${c.roaster||''}" placeholder="Ona Coffee"></div>
       <div class="ff full"><label>Origin</label><input type="text" id="f-origin" value="${c.origin||''}" placeholder="Ethiopia"></div>
+      <div class="ff"><label>Process</label><input type="text" id="f-process" value="${c.process||''}" placeholder="Washed"></div>
+      <div class="ff"><label>Producer</label><input type="text" id="f-producer" value="${c.producer||''}" placeholder="Ninety Plus"></div>
       <div class="ff full"><label>Taste notes</label><textarea id="f-taste" placeholder="Blueberry, jasmine, bright acidity...">${c.tasteNotes||''}</textarea></div>
     </div>
   </div>
   <div id="ftab-dates" style="display:none;">
-    <div class="form-grid">
-      <div class="ff"><label>Roast date</label><input type="date" id="f-roast" value="${c.roastDate||''}" oninput="autoReady()"></div>
-      <div class="ff"><label>Rest days needed</label><input type="number" id="f-rest" value="${c.restDays||''}" placeholder="e.g. 10" min="0" oninput="autoReady()"></div>
+    <div class="form-grid dates-form-grid">
+      <div class="ff dates-full"><label>Roast date</label><input type="date" id="f-roast" value="${c.roastDate||''}" oninput="autoReady()"></div>
+      <div class="ff dates-full"><label>Rest days needed</label><input type="number" id="f-rest" value="${c.restDays||''}" placeholder="e.g. 10" min="0" oninput="autoReady()"></div>
       <div class="ff full"><label>Ready date <span style="font-weight:400;color:#aaa;">(auto)</span></label><input type="date" id="f-ready" value="${c.readyDate||''}" readonly></div>
       <div class="ff full" style="border-top:0.5px solid #e5e5e3;padding-top:10px;margin-top:4px;">
         <label>Open date <span style="font-weight:400;color:#aaa;">(optional — fill in when you open the bag)</span></label>
@@ -363,6 +427,8 @@ async function saveCoffee(){
   const c={...existing,name,
     roaster:(document.getElementById('f-roaster').value||'').trim(),
     origin:(document.getElementById('f-origin').value||'').trim(),
+    process:(document.getElementById('f-process').value||'').trim(),
+    producer:(document.getElementById('f-producer').value||'').trim(),
     tasteNotes:(document.getElementById('f-taste').value||'').trim(),
     roastDate:document.getElementById('f-roast').value||'',
     restDays:document.getElementById('f-rest').value||'',
@@ -456,10 +522,19 @@ function renderCalendar(){
   leg.innerHTML=coffees.map((c,i)=>{const p=pal(i);const label=c.roaster||c.name||'Coffee '+(i+1);return`<div class="cal-legend-item"><div style="width:12px;height:12px;border-radius:2px;background:${p.strip};"></div><span>${label}</span></div>`;}).join('')+(coffees.length?`<div class="cal-legend-item" style="margin-left:auto;"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;"></div> Resting</div>`:'');
 }
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
-function render(){renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();}
+function render(){renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();if(document.getElementById('view-archive').style.display!=='none')renderArchive();}
+
+async function autoArchivePastBestBy(){
+  const toArchive=coffees.filter(c=>!c.archived&&c.bestby&&today()>c.bestby);
+  for(const c of toArchive){
+    c.archived=true;
+    try{await dbUpdate(c.id,{archived:true});}catch(e){c.archived=false;}
+  }
+  if(toArchive.length){toast(toArchive.length+' coffee'+(toArchive.length>1?'s':'')+' auto-archived (past best-by).');}
+}
 
 async function init(){
-  try{const rows=await dbGet();coffees=rows.map(fromDB);render();}
+  try{const rows=await dbGet();coffees=rows.map(fromDB);await autoArchivePastBestBy();render();}
   catch(e){document.getElementById('coffee-list').innerHTML='<div style="text-align:center;padding:2rem;color:#A32D2D;font-size:14px;">Could not connect to database. Check your internet connection.</div>';console.error(e);}
 }
 init();
