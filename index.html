@@ -209,7 +209,9 @@ function renderArchive(){
 function archiveCardHtml(c,i){
   const p=PALETTE[i%PALETTE.length];
   const iconHtml=c.photo?`<img src="${c.photo}" alt="">`:(`<div class="ccard-photo-ph" style="color:`+p.strip+`;">Photo / icon</div>`);
-  return `<div class="ccard" style="border-top:3px solid ${p.strip};opacity:0.75;" id="ccard-${i}">
+  const brewOpen=!!openBrewIdx['a'+i];
+  const brews=c.brewLog||[];
+  return `<div class="ccard" style="border-top:3px solid ${p.strip};opacity:0.75;" id="ccard-a-${i}">
     <div class="ccard-inner">
       <div class="ccard-top">
         <div class="ccard-photo-wrap" style="background:${p.bg};">${iconHtml}</div>
@@ -232,6 +234,29 @@ function archiveCardHtml(c,i){
             <div class="date-cell"><div class="date-label">Best-by</div><div class="date-val">${fmtShort(c.bestby)}</div></div>
           </div>
         </div>
+      </div>
+      <div class="ccard-brew-section">
+        <button class="brew-toggle" onclick="toggleArchiveBrew(${i})">
+          <span>Brew log${brews.length?' ('+brews.length+')':''}</span>
+          <i class="ti ${brewOpen?'ti-chevron-up':'ti-chevron-down'}" style="font-size:13px;"></i>
+        </button>
+        ${brewOpen?`<div class="brew-body">
+          ${brews.length?brews.slice().reverse().map(b=>`
+            <div class="brew-entry">
+              <div class="brew-entry-header">
+                <div style="font-size:12px;font-weight:500;">${[b.filter,b.method].filter(Boolean).join(' · ')||'Brew'}</div>
+                <div style="font-size:11px;color:#888;">${fmtFull(b.date)}</div>
+              </div>
+              <div class="brew-meta-row">
+                ${b.temp?`<div class="brew-meta-item">Temp<span>${b.temp}°C</span></div>`:''}
+                ${b.tds?`<div class="brew-meta-item">TDS<span>${b.tds}ppm</span></div>`:''}
+                ${b.dose?`<div class="brew-meta-item">Dose<span>${b.dose}g</span></div>`:''}
+                ${b.grind?`<div class="brew-meta-item">Grind<span>${b.grind}</span></div>`:''}
+                ${b.ratio?`<div class="brew-meta-item">Recipe<span>${b.ratio}</span></div>`:''}
+              </div>
+              ${b.notes?`<div class="brew-notes">${b.notes}</div>`:''}
+            </div>`).join(''):'<div style="font-size:13px;color:#aaa;text-align:center;padding:.5rem 0;">No brew entries</div>'}
+        </div>`:''}
       </div>
     </div>
   </div>`;
@@ -453,6 +478,7 @@ async function deleteCoffee(i){
 }
 
 function toggleBrew(i){openBrewIdx[i]=!openBrewIdx[i];brewEditIdx=null;brewEditEntryIdx=null;renderList();}
+function toggleArchiveBrew(i){openBrewIdx['a'+i]=!openBrewIdx['a'+i];renderArchive();}
 function openBrewForm(i){brewEditIdx=i;brewEditEntryIdx=null;openBrewIdx[i]=true;renderList();setTimeout(()=>{const c=document.getElementById('ccard-'+i);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
 function openBrewEdit(coffeeIdx,entryIdx){brewEditIdx=coffeeIdx;brewEditEntryIdx=entryIdx;openBrewIdx[coffeeIdx]=true;renderList();setTimeout(()=>{const c=document.getElementById('ccard-'+coffeeIdx);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
 function cancelBrewForm(i){brewEditIdx=null;brewEditEntryIdx=null;renderList();}
@@ -497,10 +523,10 @@ function renderCalendar(){
   let html=dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   const t=today(),firstDay=new Date(calYear,calMonth,1).getDay(),dim=new Date(calYear,calMonth+1,0).getDate(),diPrev=new Date(calYear,calMonth,0).getDate();
   const stripMap={},labelMap={};
-  coffees.forEach((c,i)=>{
+  coffees.filter(c=>!c.archived).forEach((c,i)=>{
     const p=pal(i);
     // Use roaster if available, fall back to name
-    const label=c.roaster||c.name||'Coffee '+(i+1);
+    const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'Coffee '+(i+1);
     if(c.roastDate&&c.readyDate){let cur=c.roastDate;while(cur<c.readyDate){if(!stripMap[cur])stripMap[cur]=[];stripMap[cur].push(p.strip);const d=new Date(cur+'T12:00:00');d.setDate(d.getDate()+1);cur=d.toISOString().split('T')[0];}}
     [{ds:c.readyDate,lbl:'ready'},{ds:c.openDate,lbl:'opened'},{ds:c.bestby,lbl:'best-by'}].forEach(({ds,lbl})=>{if(ds){if(!labelMap[ds])labelMap[ds]=[];labelMap[ds].push({color:p.strip,label:label+' '+lbl});}});
   });
@@ -519,7 +545,7 @@ function renderCalendar(){
   }).join('');
   grid.innerHTML=html;
   const leg=document.getElementById('cal-legend');
-  leg.innerHTML=coffees.map((c,i)=>{const p=pal(i);const label=c.roaster||c.name||'Coffee '+(i+1);return`<div class="cal-legend-item"><div style="width:12px;height:12px;border-radius:2px;background:${p.strip};"></div><span>${label}</span></div>`;}).join('')+(coffees.length?`<div class="cal-legend-item" style="margin-left:auto;"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;"></div> Resting</div>`:'');
+  leg.innerHTML=coffees.filter(c=>!c.archived).map((c,i)=>{const p=pal(coffees.indexOf(c));const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'Coffee '+(i+1);return`<div class="cal-legend-item"><div style="width:12px;height:12px;border-radius:2px;background:${p.strip};"></div><span>${label}</span></div>`;}).join('')+(coffees.filter(c=>!c.archived).length?`<div class="cal-legend-item" style="margin-left:auto;"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;"></div> Resting</div>`:'');
 }
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function render(){renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();if(document.getElementById('view-archive').style.display!=='none')renderArchive();}
