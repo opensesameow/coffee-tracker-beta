@@ -113,8 +113,9 @@
     .cal-dot-row{display:flex;align-items:center;gap:3px;margin-bottom:1px;}
     .cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
     .cal-dot-label{font-size:9px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+    .cal-clickable{cursor:pointer;}
+    .cal-clickable:hover{background:#f0f0ee !important;}
     .cal-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:.85rem;padding-top:.75rem;border-top:0.5px solid #e5e5e3;}
-    .cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#888;}
     .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-size:13px;padding:8px 18px;border-radius:8px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
     .toast.show{opacity:1;}
     .loading{text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;}
@@ -151,6 +152,7 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<div id="cal-popup"></div>
 <script>
 const SB_URL='https://nqlqvtjponqmanvlhkoq.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xbHF2dGpwb25xbWFudmxoa29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDAwNTAsImV4cCI6MjA5NTk3NjA1MH0.rVjohQyka7l0wkQVANLAj6oymj1OFbu55Vxkh8RVUTw';
@@ -207,25 +209,25 @@ function renderArchive(){
   el.innerHTML=archived.map((c,i)=>archiveCardHtml(c,coffees.indexOf(c))).join('');
 }
 function archiveCardHtml(c,i){
-  const p=PALETTE[i%PALETTE.length];
+  const p=PALETTE[coffees.indexOf(c)%PALETTE.length];
   const iconHtml=c.photo?`<img src="${c.photo}" alt="">`:(`<div class="ccard-photo-ph" style="color:`+p.strip+`;">Photo / icon</div>`);
   const brewOpen=!!openBrewIdx['a'+i];
   const brews=c.brewLog||[];
-  return `<div class="ccard" style="border-top:3px solid ${p.strip};opacity:0.75;" id="ccard-a-${i}">
+  return `<div class="ccard" style="border-top:3px solid ${p.strip};opacity:0.8;" id="ccard-a-${i}">
     <div class="ccard-inner">
       <div class="ccard-top">
         <div class="ccard-photo-wrap" style="background:${p.bg};">${iconHtml}</div>
         <div class="ccard-right">
-          <div class="ccard-info">
-            <div class="card-top-actions">
+          <div class="ccard-info" style="position:relative;">
+            <div class="card-top-actions" style="position:absolute;top:.5rem;right:.6rem;">
               <button class="btn-icon" title="Unarchive" onclick="unarchiveCoffee(${i})"><i class="ti ti-archive-off"></i></button>
               <button class="btn-icon danger" title="Delete" onclick="deleteCoffee(${i})"><i class="ti ti-trash"></i></button>
             </div>
-            <div class="ccard-name">${c.name||'Unnamed coffee'}</div>
+            <div class="ccard-name" style="padding-right:62px;">${c.name||'Unnamed coffee'}</div>
             <div class="ccard-sub">${[c.roaster,c.origin].filter(Boolean).join(' · ')||'—'}</div>
             ${[c.process,c.producer].filter(Boolean).length?`<div class="ccard-sub">${[c.process,c.producer].filter(Boolean).join(' · ')}</div>`:''}
             ${c.tasteNotes?`<div class="ccard-taste">${c.tasteNotes}</div>`:''}
-            <div class="ccard-badge-row"><span class="badge badge-expired">Archived</span></div>
+            <div class="ccard-badge-row"><span class="badge badge-expired" style="background:#f0f0ee;color:#aaa;">Archived</span></div>
           </div>
           <div class="ccard-dates">
             <div class="date-cell"><div class="date-label">Roasted</div><div class="date-val">${fmtShort(c.roastDate)}</div></div>
@@ -523,12 +525,29 @@ function renderCalendar(){
   let html=dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   const t=today(),firstDay=new Date(calYear,calMonth,1).getDay(),dim=new Date(calYear,calMonth+1,0).getDate(),diPrev=new Date(calYear,calMonth,0).getDate();
   const stripMap={},labelMap={};
+  // Store full event data for popup
+  window._calEvents={};
   coffees.filter(c=>!c.archived).forEach((c,i)=>{
-    const p=pal(i);
-    // Use roaster if available, fall back to name
+    const p=pal(coffees.indexOf(c));
     const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'Coffee '+(i+1);
-    if(c.roastDate&&c.readyDate){let cur=c.roastDate;while(cur<c.readyDate){if(!stripMap[cur])stripMap[cur]=[];stripMap[cur].push(p.strip);const d=new Date(cur+'T12:00:00');d.setDate(d.getDate()+1);cur=d.toISOString().split('T')[0];}}
-    [{ds:c.readyDate,lbl:'ready'},{ds:c.openDate,lbl:'opened'},{ds:c.bestby,lbl:'best-by'}].forEach(({ds,lbl})=>{if(ds){if(!labelMap[ds])labelMap[ds]=[];labelMap[ds].push({color:p.strip,label:label+' '+lbl});}});
+    if(c.roastDate&&c.readyDate){
+      let cur=c.roastDate;
+      while(cur<c.readyDate){
+        if(!stripMap[cur])stripMap[cur]=[];
+        stripMap[cur].push(p.strip);
+        if(!window._calEvents[cur])window._calEvents[cur]=[];
+        window._calEvents[cur].push({color:p.strip,label,type:'resting',coffee:c});
+        const d=new Date(cur+'T12:00:00');d.setDate(d.getDate()+1);cur=d.toISOString().split('T')[0];
+      }
+    }
+    [{ds:c.readyDate,lbl:'Ready to brew'},{ds:c.openDate,lbl:'Opened'},{ds:c.bestby,lbl:'Best-by'}].forEach(({ds,lbl})=>{
+      if(ds){
+        if(!labelMap[ds])labelMap[ds]=[];
+        labelMap[ds].push({color:p.strip,label:label+' · '+lbl});
+        if(!window._calEvents[ds])window._calEvents[ds]=[];
+        window._calEvents[ds].push({color:p.strip,label,type:lbl,coffee:c});
+      }
+    });
   });
   let cells=[];
   for(let i=0;i<firstDay;i++)cells.push({day:diPrev-firstDay+1+i,thisMonth:false,ds:null});
@@ -536,16 +555,66 @@ function renderCalendar(){
   let nx=1;while(cells.length%7!==0)cells.push({day:nx++,thisMonth:false,ds:null});
   html+=cells.map(cell=>{
     const strips=cell.ds?(stripMap[cell.ds]||[]):[];
-    const labels=cell.ds?(labelMap[cell.ds]||[]):[];
+    const hasEvents=cell.ds&&(strips.length||(labelMap[cell.ds]||[]).length);
     const isToday=cell.ds===t;
-    const cls=['cal-day',!cell.thisMonth?'other-month':'',isToday?'today':'',(strips.length||labels.length)?'has-events':''].filter(Boolean).join(' ');
+    const cls=['cal-day',!cell.thisMonth?'other-month':'',isToday?'today':'',hasEvents?'has-events':'',hasEvents?'cal-clickable':''].filter(Boolean).join(' ');
     const stripsHtml=[...new Set(strips)].map(col=>`<div class="cal-strip" style="background:${col}55;"></div>`).join('');
-    const labelsHtml=labels.map(l=>`<div class="cal-dot-row"><div class="cal-dot" style="background:${l.color};"></div><span class="cal-dot-label">${l.label}</span></div>`).join('');
-    return `<div class="${cls}"><div class="cal-day-num">${cell.day}</div>${stripsHtml}${labelsHtml}</div>`;
+    // Show dot indicators only (no text) — click for full detail
+    const dots=(labelMap[cell.ds]||[]).map(l=>`<div class="cal-dot" style="background:${l.color};display:inline-block;margin-right:2px;"></div>`).join('');
+    const dotsHtml=dots?`<div style="margin-top:3px;">${dots}</div>`:'';
+    const onclick=hasEvents?`onclick="showCalPopup('${cell.ds}')" `:'';
+    return `<div class="${cls}" ${onclick}><div class="cal-day-num">${cell.day}</div>${stripsHtml}${dotsHtml}</div>`;
   }).join('');
   grid.innerHTML=html;
   const leg=document.getElementById('cal-legend');
   leg.innerHTML=coffees.filter(c=>!c.archived).map((c,i)=>{const p=pal(coffees.indexOf(c));const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'Coffee '+(i+1);return`<div class="cal-legend-item"><div style="width:12px;height:12px;border-radius:2px;background:${p.strip};"></div><span>${label}</span></div>`;}).join('')+(coffees.filter(c=>!c.archived).length?`<div class="cal-legend-item" style="margin-left:auto;"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;"></div> Resting</div>`:'');
+}
+
+function showCalPopup(ds){
+  const events=window._calEvents[ds]||[];
+  if(!events.length)return;
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const d=new Date(ds+'T12:00:00');
+  const dateLabel=d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();
+  // Group: key dates first, then resting
+  const keyEvents=events.filter(e=>e.type!=='resting');
+  const restingEvents=events.filter(e=>e.type==='resting');
+  // Deduplicate resting by coffee name
+  const seenResting=new Set();
+  const uniqueResting=restingEvents.filter(e=>{if(seenResting.has(e.label))return false;seenResting.add(e.label);return true;});
+  let inner='';
+  if(keyEvents.length){
+    inner+=keyEvents.map(e=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:.6rem 0;border-bottom:0.5px solid #e5e5e3;">
+        <div style="width:10px;height:10px;border-radius:50%;background:${e.color};flex-shrink:0;"></div>
+        <div>
+          <div style="font-size:13px;font-weight:500;">${e.label}</div>
+          <div style="font-size:12px;color:#888;margin-top:1px;">${e.type}</div>
+        </div>
+      </div>`).join('');
+  }
+  if(uniqueResting.length){
+    inner+=`<div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.05em;padding:.6rem 0 .3rem;">Resting</div>`;
+    inner+=uniqueResting.map(e=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:.4rem 0;">
+        <div style="width:10px;height:10px;border-radius:3px;background:${e.color}66;flex-shrink:0;"></div>
+        <div style="font-size:13px;color:#555;">${e.label}</div>
+      </div>`).join('');
+  }
+  document.getElementById('cal-popup').innerHTML=`
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:flex;align-items:center;justify-content:center;" onclick="closeCalPopup(event)">
+      <div style="background:#fff;border-radius:12px;padding:1.25rem;width:340px;max-width:92vw;max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;">
+          <div style="font-size:15px;font-weight:500;">${dateLabel}</div>
+          <button onclick="closeCalPopup()" style="background:transparent;border:none;font-size:18px;cursor:pointer;color:#aaa;line-height:1;">×</button>
+        </div>
+        ${inner}
+      </div>
+    </div>`;
+}
+function closeCalPopup(e){
+  if(!e||e.target===document.querySelector('#cal-popup>div'))
+  document.getElementById('cal-popup').innerHTML='';
 }
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function render(){renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();if(document.getElementById('view-archive').style.display!=='none')renderArchive();}
