@@ -628,10 +628,40 @@ async function autoArchivePastBestBy(){
   if(toArchive.length){toast(toArchive.length+' coffee'+(toArchive.length>1?'s':'')+' auto-archived (past best-by).');}
 }
 
-async function init(){
-  try{const rows=await dbGet();coffees=rows.map(fromDB);await autoArchivePastBestBy();render();}
-  catch(e){document.getElementById('coffee-list').innerHTML='<div style="text-align:center;padding:2rem;color:#A32D2D;font-size:14px;">Could not connect to database. Check your internet connection.</div>';console.error(e);}
+async function fetchWithRetry(fn, retries=3, delayMs=1500){
+  for(let attempt=1;attempt<=retries;attempt++){
+    try{return await fn();}
+    catch(e){
+      if(attempt===retries)throw e;
+      const el=document.getElementById('coffee-list');
+      if(el)el.innerHTML=`<div style="text-align:center;padding:2rem;color:#aaa;font-size:14px;">Connecting... (attempt ${attempt+1} of ${retries})</div>`;
+      await new Promise(r=>setTimeout(r,delayMs*attempt));
+    }
+  }
 }
+
+async function init(){
+  try{
+    const rows=await fetchWithRetry(()=>dbGet());
+    coffees=rows.map(fromDB);
+    await autoArchivePastBestBy();
+    render();
+  } catch(e){
+    document.getElementById('coffee-list').innerHTML=`
+      <div style="text-align:center;padding:2rem;">
+        <div style="color:#A32D2D;font-size:14px;margin-bottom:12px;">Could not connect to database.</div>
+        <div style="color:#aaa;font-size:12px;margin-bottom:16px;">This is usually a network issue. Try switching between WiFi and VPN, or wait a moment.</div>
+        <button onclick="retryInit()" style="font-size:13px;padding:8px 20px;border-radius:8px;border:0.5px solid #d5d5d3;background:#1a1a1a;color:#fff;cursor:pointer;">Try again</button>
+      </div>`;
+    console.error(e);
+  }
+}
+
+async function retryInit(){
+  document.getElementById('coffee-list').innerHTML='<div style="text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;">Connecting...</div>';
+  await init();
+}
+
 init();
 </script>
 </body>
