@@ -125,7 +125,10 @@
 <div class="app" id="app">
   <div class="header">
     <h1>Coffee Tracker</h1>
-    <button class="add-btn" onclick="openAddForm('new')"><i class="ti ti-plus"></i> Add coffee</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="sync-status" style="display:none;font-size:11px;padding:3px 8px;border-radius:6px;"></span>
+      <button class="add-btn" onclick="openAddForm('new')"><i class="ti ti-plus"></i> Add coffee</button>
+    </div>
   </div>
   <div class="stats">
     <div class="stat"><div class="stat-label">Total coffees</div><div class="stat-value" id="stat-total">—</div></div>
@@ -158,10 +161,16 @@ const SB_URL='https://nqlqvtjponqmanvlhkoq.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xbHF2dGpwb25xbWFudmxoa29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDAwNTAsImV4cCI6MjA5NTk3NjA1MH0.rVjohQyka7l0wkQVANLAj6oymj1OFbu55Vxkh8RVUTw';
 const HEADERS={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
 
-async function dbGet(){const r=await fetch(SB_URL+'/rest/v1/coffees?order=created_at.desc',{headers:{...HEADERS,'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function dbInsert(row){const r=await fetch(SB_URL+'/rest/v1/coffees',{method:'POST',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
-async function dbUpdate(id,row){const r=await fetch(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
-async function dbDelete(id){const r=await fetch(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS});if(!r.ok)throw new Error(await r.text());}
+function fetchWithTimeout(url, options, timeoutMs=8000){
+  return Promise.race([
+    fetch(url, options),
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error('Connection timed out')),timeoutMs))
+  ]);
+}
+async function dbGet(){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?order=created_at.desc',{headers:{...HEADERS,'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function dbInsert(row){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees',{method:'POST',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
+async function dbUpdate(id,row){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
+async function dbDelete(id){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS});if(!r.ok)throw new Error(await r.text());}
 
 function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',process:row.process||'',producer:row.producer||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',photo:row.photo||null,brewLog:row.brew_log||[],archived:row.archived||false};}
 function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false};}
@@ -262,18 +271,6 @@ function archiveCardHtml(c,i){
       </div>
     </div>
   </div>`;
-}
-async function archiveCoffee(i){
-  coffees[i].archived=true;
-  try{await dbUpdate(coffees[i].id,{archived:true});toast('Coffee archived.');}
-  catch(e){coffees[i].archived=false;toast('Error: '+e.message);}
-  render();
-}
-async function unarchiveCoffee(i){
-  coffees[i].archived=false;
-  try{await dbUpdate(coffees[i].id,{archived:false});toast('Coffee restored.');}
-  catch(e){coffees[i].archived=true;toast('Error: '+e.message);}
-  render();renderArchive();
 }
 
 function cardHtml(c,i){
@@ -446,39 +443,6 @@ function openAddForm(idx){
 }
 function closeEdit(){editingIdx=null;photoDataUrl=null;renderList();}
 
-async function saveCoffee(){
-  const name=(document.getElementById('f-name').value||'').trim();
-  if(!name){alert('Please enter a coffee name.');return;}
-  const isNew=editingIdx==='new';
-  const existing=!isNew?coffees[editingIdx]:{};
-  const c={...existing,name,
-    roaster:(document.getElementById('f-roaster').value||'').trim(),
-    origin:(document.getElementById('f-origin').value||'').trim(),
-    process:(document.getElementById('f-process').value||'').trim(),
-    producer:(document.getElementById('f-producer').value||'').trim(),
-    tasteNotes:(document.getElementById('f-taste').value||'').trim(),
-    roastDate:document.getElementById('f-roast').value||'',
-    restDays:document.getElementById('f-rest').value||'',
-    readyDate:document.getElementById('f-ready').value||'',
-    openDate:document.getElementById('f-open').value||'',
-    bestby:document.getElementById('f-bestby').value||'',
-    photo:photoDataUrl||existing.photo||null,
-    brewLog:existing.brewLog||[],
-  };
-  try{
-    if(isNew){const row=await dbInsert(toDB(c));coffees.unshift(fromDB(row));}
-    else{const row=await dbUpdate(existing.id,toDB(c));coffees[editingIdx]=fromDB(row);}
-    toast(isNew?'Coffee added!':'Coffee updated!');
-  }catch(e){toast('Error saving: '+e.message);console.error(e);}
-  editingIdx=null;photoDataUrl=null;render();
-}
-
-async function deleteCoffee(i){
-  if(!confirm('Remove this coffee?'))return;
-  try{await dbDelete(coffees[i].id);coffees.splice(i,1);toast('Coffee removed.');render();}
-  catch(e){toast('Error deleting: '+e.message);}
-}
-
 function toggleBrew(i){openBrewIdx[i]=!openBrewIdx[i];brewEditIdx=null;brewEditEntryIdx=null;renderList();}
 function toggleArchiveBrew(i){openBrewIdx['a'+i]=!openBrewIdx['a'+i];renderArchive();}
 function openBrewForm(i){brewEditIdx=i;brewEditEntryIdx=null;openBrewIdx[i]=true;renderList();setTimeout(()=>{const c=document.getElementById('ccard-'+i);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
@@ -489,32 +453,6 @@ function getBrewEntry(){
   const filterVal=document.getElementById('b-filter').value;
   const filterOther=document.getElementById('b-filter-other')?document.getElementById('b-filter-other').value:'';
   return{date:document.getElementById('b-date').value,method:document.getElementById('b-method').value,filter:filterVal==='Other'?filterOther||'Other':filterVal,temp:document.getElementById('b-temp').value,tds:document.getElementById('b-tds').value,dose:document.getElementById('b-dose').value,ratio:document.getElementById('b-ratio').value,grind:document.getElementById('b-grind').value,notes:document.getElementById('b-notes').value.trim()};
-}
-
-async function saveBrewEntry(i){
-  const entry=getBrewEntry();
-  if(!coffees[i].brewLog)coffees[i].brewLog=[];
-  coffees[i].brewLog.push(entry);
-  try{await dbUpdate(coffees[i].id,{brew_log:coffees[i].brewLog});toast('Brew entry saved!');}
-  catch(e){toast('Error saving brew: '+e.message);coffees[i].brewLog.pop();}
-  openBrewIdx[i]=true;brewEditIdx=null;brewEditEntryIdx=null;render();
-}
-
-async function saveBrewEdit(coffeeIdx,entryIdx){
-  const entry=getBrewEntry();
-  const prev=coffees[coffeeIdx].brewLog[entryIdx];
-  coffees[coffeeIdx].brewLog[entryIdx]=entry;
-  try{await dbUpdate(coffees[coffeeIdx].id,{brew_log:coffees[coffeeIdx].brewLog});toast('Brew entry updated!');}
-  catch(e){toast('Error updating brew: '+e.message);coffees[coffeeIdx].brewLog[entryIdx]=prev;}
-  openBrewIdx[coffeeIdx]=true;brewEditIdx=null;brewEditEntryIdx=null;render();
-}
-
-async function deleteBrewEntry(coffeeIdx,entryIdx){
-  if(!confirm('Delete this brew entry?'))return;
-  const removed=coffees[coffeeIdx].brewLog.splice(entryIdx,1);
-  try{await dbUpdate(coffees[coffeeIdx].id,{brew_log:coffees[coffeeIdx].brewLog});toast('Brew entry deleted.');}
-  catch(e){toast('Error deleting brew: '+e.message);coffees[coffeeIdx].brewLog.splice(entryIdx,0,...removed);}
-  openBrewIdx[coffeeIdx]=true;render();
 }
 
 function renderCalendar(){
@@ -619,50 +557,229 @@ function closeCalPopup(e){
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function render(){renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();if(document.getElementById('view-archive').style.display!=='none')renderArchive();}
 
+
+// ── Local cache ──────────────────────────────────────────────────
+const LS_KEY='ct_offline';
+function saveLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(coffees));}catch(e){}}
+function loadLocal(){try{const d=localStorage.getItem(LS_KEY);return d?JSON.parse(d):null;}catch(e){return null;}}
+
+// ── Sync queue ───────────────────────────────────────────────────
+const Q_KEY='ct_queue';
+function loadQueue(){try{const d=localStorage.getItem(Q_KEY);return d?JSON.parse(d):[];}catch(e){return[];}}
+function saveQueue(q){try{localStorage.setItem(Q_KEY,JSON.stringify(q));}catch(e){}}
+let syncQueue=loadQueue();
+
+function queueOp(op){syncQueue.push(op);saveQueue(syncQueue);}
+
+// ── Sync status UI ───────────────────────────────────────────────
+function setSyncStatus(state){
+  const el=document.getElementById('sync-status');
+  if(!el)return;
+  const styles={
+    synced:{text:'✓ Synced',color:'#3B6D11',bg:'#EAF3DE'},
+    syncing:{text:'↻ Syncing…',color:'#633806',bg:'#FEF9EC'},
+    offline:{text:'Offline — changes saved locally',color:'#633806',bg:'#FEF9EC'},
+    error:{text:'⚠ Sync failed — will retry',color:'#A32D2D',bg:'#FCEBEB'},
+  };
+  const s=styles[state]||styles.offline;
+  el.textContent=s.text;
+  el.style.color=s.color;
+  el.style.background=s.bg;
+  el.style.display='inline-block';
+  if(state==='synced')setTimeout(()=>{if(el.textContent==='✓ Synced')el.style.display='none';},3000);
+}
+
+// ── Supabase ops ─────────────────────────────────────────────────
+function fetchWithTimeout(url,options,ms=8000){
+  return Promise.race([fetch(url,options),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
+}
+async function dbGet(){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?order=created_at.desc',{headers:{...HEADERS,'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function dbInsert(row){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees',{method:'POST',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
+async function dbUpdate(id,row){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
+async function dbDelete(id){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS});if(!r.ok)throw new Error(await r.text());}
+
+// ── Drain sync queue ─────────────────────────────────────────────
+async function drainQueue(){
+  if(!syncQueue.length)return;
+  setSyncStatus('syncing');
+  const failed=[];
+  for(const op of syncQueue){
+    try{
+      if(op.type==='insert')await dbInsert(op.row);
+      else if(op.type==='update')await dbUpdate(op.id,op.row);
+      else if(op.type==='delete')await dbDelete(op.id);
+    }catch(e){failed.push(op);}
+  }
+  syncQueue=failed;
+  saveQueue(syncQueue);
+  if(failed.length){setSyncStatus('error');}
+  else{setSyncStatus('synced');}
+}
+
+// ── Offline-aware save/delete ────────────────────────────────────
+async function saveCoffeeToCloud(c,isNew){
+  setSyncStatus('syncing');
+  try{
+    if(isNew){const row=await dbInsert(toDB(c));c.id=row.id;coffees[0]=fromDB(row);}
+    else{const row=await dbUpdate(c.id,toDB(c));coffees[coffees.indexOf(c)]=fromDB(row);}
+    saveLocal();setSyncStatus('synced');
+  }catch(e){
+    queueOp(isNew?{type:'insert',row:toDB(c)}:{type:'update',id:c.id,row:toDB(c)});
+    saveLocal();setSyncStatus('offline');
+  }
+}
+async function deleteCoffeeFromCloud(id){
+  setSyncStatus('syncing');
+  try{await dbDelete(id);setSyncStatus('synced');}
+  catch(e){queueOp({type:'delete',id});setSyncStatus('offline');}
+}
+
+// ── Rewire save/delete functions ─────────────────────────────────
+async function saveCoffee(){
+  const name=(document.getElementById('f-name').value||'').trim();
+  if(!name){alert('Please enter a coffee name.');return;}
+  const isNew=editingIdx==='new';
+  const existing=!isNew?coffees[editingIdx]:{};
+  const c={...existing,name,
+    roaster:(document.getElementById('f-roaster').value||'').trim(),
+    origin:(document.getElementById('f-origin').value||'').trim(),
+    process:(document.getElementById('f-process').value||'').trim(),
+    producer:(document.getElementById('f-producer').value||'').trim(),
+    tasteNotes:(document.getElementById('f-taste').value||'').trim(),
+    roastDate:document.getElementById('f-roast').value||'',
+    restDays:document.getElementById('f-rest').value||'',
+    readyDate:document.getElementById('f-ready').value||'',
+    openDate:document.getElementById('f-open').value||'',
+    bestby:document.getElementById('f-bestby').value||'',
+    photo:photoDataUrl||existing.photo||null,
+    brewLog:existing.brewLog||[],
+    archived:existing.archived||false,
+    id:existing.id||('local-'+Date.now()),
+  };
+  if(isNew)coffees.unshift(c);
+  else coffees[editingIdx]=c;
+  editingIdx=null;photoDataUrl=null;
+  saveLocal();render();
+  toast(isNew?'Coffee added!':'Coffee updated!');
+  await saveCoffeeToCloud(c,isNew&&!existing.id);
+}
+
+async function deleteCoffee(i){
+  if(!confirm('Remove this coffee?'))return;
+  const id=coffees[i].id;
+  coffees.splice(i,1);
+  saveLocal();render();toast('Coffee removed.');
+  if(id&&!String(id).startsWith('local-'))await deleteCoffeeFromCloud(id);
+}
+
+async function archiveCoffee(i){
+  coffees[i].archived=true;
+  saveLocal();render();toast('Coffee archived.');
+  if(coffees[i]&&coffees[i].id&&!String(coffees[i].id).startsWith('local-'))
+    try{await dbUpdate(coffees[i].id,{archived:true});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:coffees[i].id,row:{archived:true}});setSyncStatus('offline');}
+}
+
+async function unarchiveCoffee(i){
+  coffees[i].archived=false;
+  saveLocal();render();renderArchive();toast('Coffee restored.');
+  if(coffees[i]&&coffees[i].id&&!String(coffees[i].id).startsWith('local-'))
+    try{await dbUpdate(coffees[i].id,{archived:false});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:coffees[i].id,row:{archived:false}});setSyncStatus('offline');}
+}
+
+async function saveBrewEntry(i){
+  const entry=getBrewEntry();
+  if(!coffees[i].brewLog)coffees[i].brewLog=[];
+  coffees[i].brewLog.push(entry);
+  saveLocal();openBrewIdx[i]=true;brewEditIdx=null;brewEditEntryIdx=null;render();
+  toast('Brew entry saved!');
+  if(coffees[i].id&&!String(coffees[i].id).startsWith('local-'))
+    try{await dbUpdate(coffees[i].id,{brew_log:coffees[i].brewLog});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:coffees[i].id,row:{brew_log:coffees[i].brewLog}});setSyncStatus('offline');}
+}
+
+async function saveBrewEdit(coffeeIdx,entryIdx){
+  const entry=getBrewEntry();
+  coffees[coffeeIdx].brewLog[entryIdx]=entry;
+  saveLocal();openBrewIdx[coffeeIdx]=true;brewEditIdx=null;brewEditEntryIdx=null;render();
+  toast('Brew entry updated!');
+  if(coffees[coffeeIdx].id&&!String(coffees[coffeeIdx].id).startsWith('local-'))
+    try{await dbUpdate(coffees[coffeeIdx].id,{brew_log:coffees[coffeeIdx].brewLog});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:coffees[coffeeIdx].id,row:{brew_log:coffees[coffeeIdx].brewLog}});setSyncStatus('offline');}
+}
+
+async function deleteBrewEntry(coffeeIdx,entryIdx){
+  if(!confirm('Delete this brew entry?'))return;
+  coffees[coffeeIdx].brewLog.splice(entryIdx,1);
+  saveLocal();openBrewIdx[coffeeIdx]=true;render();toast('Brew entry deleted.');
+  if(coffees[coffeeIdx].id&&!String(coffees[coffeeIdx].id).startsWith('local-'))
+    try{await dbUpdate(coffees[coffeeIdx].id,{brew_log:coffees[coffeeIdx].brewLog});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:coffees[coffeeIdx].id,row:{brew_log:coffees[coffeeIdx].brewLog}});setSyncStatus('offline');}
+}
+
 async function autoArchivePastBestBy(){
   const toArchive=coffees.filter(c=>!c.archived&&c.bestby&&today()>c.bestby);
   for(const c of toArchive){
     c.archived=true;
-    try{await dbUpdate(c.id,{archived:true});}catch(e){c.archived=false;}
+    if(c.id&&!String(c.id).startsWith('local-'))
+      try{await dbUpdate(c.id,{archived:true});}catch(e){queueOp({type:'update',id:c.id,row:{archived:true}});}
   }
-  if(toArchive.length){toast(toArchive.length+' coffee'+(toArchive.length>1?'s':'')+' auto-archived (past best-by).');}
+  if(toArchive.length){saveLocal();toast(toArchive.length+' coffee'+(toArchive.length>1?'s':'')+' auto-archived (past best-by).');}
 }
 
-async function fetchWithRetry(fn, retries=3, delayMs=1500){
-  for(let attempt=1;attempt<=retries;attempt++){
-    try{return await fn();}
-    catch(e){
-      if(attempt===retries)throw e;
-      const el=document.getElementById('coffee-list');
-      if(el)el.innerHTML=`<div style="text-align:center;padding:2rem;color:#aaa;font-size:14px;">Connecting... (attempt ${attempt+1} of ${retries})</div>`;
-      await new Promise(r=>setTimeout(r,delayMs*attempt));
-    }
-  }
-}
-
+// ── Init: load local first, then sync from cloud ─────────────────
 async function init(){
-  try{
-    const rows=await fetchWithRetry(()=>dbGet());
-    coffees=rows.map(fromDB);
-    await autoArchivePastBestBy();
+  // Step 1: load local cache instantly
+  const local=loadLocal();
+  if(local&&local.length){
+    coffees=local;
     render();
-  } catch(e){
-    document.getElementById('coffee-list').innerHTML=`
-      <div style="text-align:center;padding:2rem;">
-        <div style="color:#A32D2D;font-size:14px;margin-bottom:12px;">Could not connect to database.</div>
-        <div style="color:#aaa;font-size:12px;margin-bottom:16px;">This is usually a network issue. Try switching between WiFi and VPN, or wait a moment.</div>
-        <button onclick="retryInit()" style="font-size:13px;padding:8px 20px;border-radius:8px;border:0.5px solid #d5d5d3;background:#1a1a1a;color:#fff;cursor:pointer;">Try again</button>
-      </div>`;
-    console.error(e);
+    setSyncStatus('syncing');
   }
+  // Step 2: try to sync from Supabase in background
+  try{
+    const rows=await dbGet();
+    // Merge: cloud is source of truth if we have cloud data
+    coffees=rows.map(fromDB);
+    saveLocal();
+    await autoArchivePastBestBy();
+    await drainQueue();
+    render();
+    setSyncStatus('synced');
+  }catch(e){
+    if(!local||!local.length){
+      // No local data and no cloud — show error
+      document.getElementById('coffee-list').innerHTML=`
+        <div style="text-align:center;padding:2rem;">
+          <div style="color:#A32D2D;font-size:14px;margin-bottom:12px;">Could not connect to database.</div>
+          <div style="color:#aaa;font-size:12px;margin-bottom:16px;">No local data available. Try toggling VPN or switching networks.</div>
+          <button onclick="init()" style="font-size:13px;padding:8px 20px;border-radius:8px;border:0.5px solid #d5d5d3;background:#1a1a1a;color:#fff;cursor:pointer;">Try again</button>
+        </div>`;
+    } else {
+      // Has local data — show offline notice, keep working
+      setSyncStatus('offline');
+    }
+    console.warn('Supabase unreachable, working offline:',e.message);
+  }
+  // Step 3: retry sync every 30s if offline
+  setTimeout(backgroundSync,30000);
 }
 
-async function retryInit(){
-  document.getElementById('coffee-list').innerHTML='<div style="text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;">Connecting...</div>';
-  await init();
+async function backgroundSync(){
+  try{
+    const rows=await dbGet();
+    coffees=rows.map(fromDB);
+    saveLocal();
+    await drainQueue();
+    render();
+    setSyncStatus('synced');
+  }catch(e){setSyncStatus('offline');}
+  setTimeout(backgroundSync,30000);
 }
 
 init();
+
 </script>
 </body>
 </html>
