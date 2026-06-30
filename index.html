@@ -103,11 +103,11 @@
     .cal-month{font-size:15px;font-weight:500;}
     .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;width:100%;overflow:hidden;}
     .cal-dow{font-size:10px;color:#aaa;text-align:center;padding:3px 0;text-transform:uppercase;}
-    .cal-day{min-height:64px;padding:3px;border-radius:4px;overflow:hidden;min-width:0;}
+    .cal-day{min-height:64px;padding:3px;border-radius:4px;overflow:hidden;min-width:0;box-sizing:border-box;}
     .cal-day.has-events{background:#f8f8f6;}
-    .cal-day.today{outline:1px solid #1a1a1a;}
+    .cal-day.today{background:#EEF4FC;}
+    .cal-day.today .cal-day-num{color:#0C447C;font-weight:700;}
     .cal-day-num{font-size:11px;font-weight:500;color:#aaa;margin-bottom:2px;}
-    .cal-day.today .cal-day-num{color:#1a1a1a;}
     .cal-day.other-month .cal-day-num{color:#ddd;}
     .cal-strip{height:5px;border-radius:2px;margin-bottom:2px;width:100%;}
     .cal-dot-row{display:flex;align-items:center;gap:3px;margin-bottom:1px;}
@@ -163,7 +163,7 @@
 <script>
 const NEON_URL='https://ep-aged-river-aouicmda.apirest.c-2.ap-southeast-1.aws.neon.tech/neondb/rest/v1';
 const NEON_KEY='napi_kqrjm81ot5xe5x1207gxai0ocjp4a6q1dbn5anamb871fjo75v8anloyl0ymazzq';
-const HEADERS={'Content-Type':'application/json','Neon-Api-Key':NEON_KEY};
+const HEADERS={'Content-Type':'application/json'};
 
 function fetchWithTimeout(url, options, timeoutMs=8000){
   return Promise.race([
