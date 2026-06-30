@@ -161,9 +161,9 @@
 <div class="toast" id="toast"></div>
 <div id="cal-popup"></div>
 <script>
-const SB_URL='https://nqlqvtjponqmanvlhkoq.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xbHF2dGpwb25xbWFudmxoa29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDAwNTAsImV4cCI6MjA5NTk3NjA1MH0.rVjohQyka7l0wkQVANLAj6oymj1OFbu55Vxkh8RVUTw';
-const HEADERS={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+const NEON_URL='https://ep-aged-river-aouicmda.apirest.c-2.ap-southeast-1.aws.neon.tech/neondb/rest/v1';
+const NEON_KEY='napi_kqrjm81ot5xe5x1207gxai0ocjp4a6q1dbn5anamb871fjo75v8anloyl0ymazzq';
+const HEADERS={'Content-Type':'application/json','Neon-Api-Key':NEON_KEY};
 
 function fetchWithTimeout(url, options, timeoutMs=8000){
   return Promise.race([
@@ -171,10 +171,10 @@ function fetchWithTimeout(url, options, timeoutMs=8000){
     new Promise((_,reject)=>setTimeout(()=>reject(new Error('Connection timed out')),timeoutMs))
   ]);
 }
-async function dbGet(){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?order=created_at.desc',{headers:{...HEADERS,'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function dbInsert(row){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees',{method:'POST',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
-async function dbUpdate(id,row){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
-async function dbDelete(id){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS});if(!r.ok)throw new Error(await r.text());}
+async function dbGet(){const r=await fetchWithTimeout(NEON_URL+'/coffees?order=created_at.desc',{headers:{...HEADERS,'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function dbInsert(row){const r=await fetchWithTimeout(NEON_URL+'/coffees',{method:'POST',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
+async function dbUpdate(id,row){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
+async function dbDelete(id){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS});if(!r.ok)throw new Error(await r.text());}
 
 function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',process:row.process||'',producer:row.producer||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',photo:row.photo||null,brewLog:row.brew_log||[],archived:row.archived||false};}
 function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false};}
@@ -597,10 +597,10 @@ function setSyncStatus(state){
 function fetchWithTimeout(url,options,ms=8000){
   return Promise.race([fetch(url,options),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
 }
-async function dbGet(){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?order=created_at.desc',{headers:{...HEADERS,'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function dbInsert(row){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees',{method:'POST',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
-async function dbUpdate(id,row){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
-async function dbDelete(id){const r=await fetchWithTimeout(SB_URL+'/rest/v1/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS});if(!r.ok)throw new Error(await r.text());}
+async function dbGet(){const r=await fetchWithTimeout(NEON_URL+'/coffees?order=created_at.desc',{headers:{...HEADERS,'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function dbInsert(row){const r=await fetchWithTimeout(NEON_URL+'/coffees',{method:'POST',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
+async function dbUpdate(id,row){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS,'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
+async function dbDelete(id){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS});if(!r.ok)throw new Error(await r.text());}
 
 // ── Drain sync queue ─────────────────────────────────────────────
 async function drainQueue(){
