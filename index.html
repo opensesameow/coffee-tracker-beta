@@ -144,6 +144,7 @@
     <h1>Coffee Tracker</h1>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
       <span id="sync-status" style="display:none;font-size:11px;padding:3px 8px;border-radius:6px;"></span>
+      <button class="btn-icon" title="Compress existing photos (run once)" onclick="migratePhotos()"><i class="ti ti-photo-bolt"></i></button>
       <button class="btn-icon" title="Sync now" onclick="manualSync()"><i class="ti ti-refresh"></i></button>
       <button class="btn-icon" title="Log out" onclick="handleLogout()"><i class="ti ti-logout"></i></button>
       <button class="add-btn" onclick="openAddForm('new')"><i class="ti ti-plus"></i> Add coffee</button>
@@ -206,7 +207,18 @@ function fetchWithTimeout(url,options,ms=8000){
 }
 
 // ── Data API ops ──────────────────────────────────────────────────
-async function dbGet(){const r=await fetchWithTimeout(NEON_URL+'/coffees?order=created_at.desc',{headers:{...HEADERS(),'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function dbGet(){
+  // Exclude photo column to stay under Neon's 10MB response limit
+  const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,name,roaster,origin,process,producer,taste_notes,roast_date,rest_days,ready_date,open_date,best_by,brew_log,archived,user_id,created_at&order=created_at.desc',{headers:{...HEADERS(),'Prefer':'return=representation'}});
+  if(!r.ok)throw new Error(await r.text());
+  return r.json();
+}
+async function dbGetPhoto(id){
+  const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,photo&id=eq.'+id,{headers:{...HEADERS(),'Prefer':'return=representation'}});
+  if(!r.ok)return null;
+  const rows=await r.json();
+  return rows[0]&&rows[0].photo||null;
+}
 async function dbInsert(row){const r=await fetchWithTimeout(NEON_URL+'/coffees',{method:'POST',headers:{...HEADERS(),'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
 async function dbUpdate(id,row){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS(),'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
 async function dbDelete(id){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS()});if(!r.ok)throw new Error(await r.text());}
@@ -482,7 +494,21 @@ function autoBestBy(){const o=document.getElementById('f-open').value;document.g
 function handlePhoto(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{photoDataUrl=ev.target.result;const prev=document.getElementById('ph-prev');if(prev){prev.src=photoDataUrl;prev.style.display='block';}};
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=800;
+      let w=img.width,h=img.height;
+      if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      photoDataUrl=canvas.toDataURL('image/jpeg',0.7);
+      const prev=document.getElementById('ph-prev');
+      if(prev){prev.src=photoDataUrl;prev.style.display='block';}
+    };
+    img.src=ev.target.result;
+  };
   reader.readAsDataURL(file);
 }
 function openAddForm(idx){
@@ -602,6 +628,62 @@ function closeCalPopup(e){
 }
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function render(){renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();if(document.getElementById('view-archive').style.display!=='none')renderArchive();}
+async function compressDataUrl(dataUrl){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=800;
+      let w=img.width,h=img.height;
+      if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      res(canvas.toDataURL('image/jpeg',0.7));
+    };
+    img.onerror=()=>res(dataUrl);
+    img.src=dataUrl;
+  });
+}
+async function migratePhotos(){
+  // Fetch full rows including photo, compress, save back
+  // Run once to fix oversized photos already in DB
+  toast('Compressing photos… this may take a moment.');
+  const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,photo&photo=not.is.null',{headers:{...HEADERS(),'Prefer':'return=representation'}});
+  if(!r.ok){toast('Migration failed.');return;}
+  const rows=await r.json();
+  let count=0;
+  for(const row of rows){
+    if(!row.photo)continue;
+    // Skip if already small (under ~50KB as base64 = ~37500 chars)
+    if(row.photo.length<50000){count++;continue;}
+    try{
+      const compressed=await compressDataUrl(row.photo);
+      await dbUpdate(row.id,{photo:compressed});
+      // Update in-memory too
+      const c=coffees.find(x=>x.id===row.id);
+      if(c)c.photo=compressed;
+      count++;
+    }catch(e){console.warn('photo compress failed for',row.id,e);}
+  }
+  saveLocal();render();
+  toast('Done! '+count+' photos processed.');
+}
+async function loadPhotosLazily(){
+  // After list renders, fetch photos for cards that don't have them cached
+  const active=coffees.filter(c=>!c.archived&&c.id&&!String(c.id).startsWith('local-')&&!c.photo);
+  for(const c of active){
+    try{
+      const photo=await dbGetPhoto(c.id);
+      if(photo){
+        c.photo=photo;
+        // Update just the photo element if card is in DOM
+        const wrap=document.querySelector('#ccard-'+coffees.indexOf(c)+' .ccard-photo-wrap');
+        if(wrap){wrap.innerHTML=`<img src="${photo}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;}
+      }
+    }catch(e){}
+  }
+  saveLocal();
+}
 
 // ── Local cache ───────────────────────────────────────────────────
 const LS_KEY='ct_offline';
@@ -763,7 +845,7 @@ async function init(){
     saveLocal();
     await autoArchivePastBestBy();
     await drainQueue();
-    render();setSyncStatus('synced');
+    render();setSyncStatus('synced');loadPhotosLazily();
   }catch(e){
     const local=loadLocal();
     if(local&&local.length){
@@ -792,7 +874,7 @@ async function manualSync(){
       const jwt=r.headers.get('set-auth-jwt');
       if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}
     }
-    const rows=await dbGet();coffees=rows.map(fromDB);saveLocal();await drainQueue();render();setSyncStatus('synced');
+    const rows=await dbGet();coffees=rows.map(fromDB);saveLocal();await drainQueue();render();setSyncStatus('synced');loadPhotosLazily();
     toast('Synced!');
   }catch(e){
     setSyncStatus('offline');
