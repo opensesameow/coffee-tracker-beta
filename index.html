@@ -829,33 +829,42 @@ async function handleAuthSubmit(){
   const endpoint=authMode==='signin'?'/sign-in/email':'/sign-up/email';
   const body=authMode==='signin'?{email,password}:{email,password,name:email.split('@')[0]};
   try{
+    // Step 1: sign in / sign up — get session token + user id
     const r=await fetchWithTimeout(NEON_AUTH_URL+endpoint,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(body)
     },10000);
-    const jwtFromHeader=r.headers.get('set-auth-jwt');
     const data=await r.json();
     if(!r.ok){
       errEl.textContent=data.message||data.error||'Something went wrong. Please try again.';
       errEl.style.display='block';
       return;
     }
-    // Neon Auth returns: { data: { session: { access_token, ... }, user: { id, ... } } }
-    const token=jwtFromHeader
-      ||(data.data&&data.data.session&&data.data.session.access_token)
-      ||(data.session&&data.session.access_token)
-      ||data.token;
-    const userId=(data.data&&data.data.user&&data.data.user.id)
-      ||(data.user&&data.user.id);
-    // Also check response header for JWT (Neon Auth sets set-auth-jwt header)
-    console.log('Auth response:', JSON.stringify(data).substring(0,300));
-    if(!token||!userId){
-      errEl.textContent='Signed in, but no session token received. Please try again.';
+    const sessionToken=data.token;
+    const userId=(data.user&&data.user.id);
+    if(!sessionToken||!userId){
+      errEl.textContent='Sign in failed — unexpected response. Please try again.';
       errEl.style.display='block';
       return;
     }
-    saveSession({token,userId,email});
+
+    // Step 2: exchange session token for JWT via /get-session
+    const r2=await fetchWithTimeout(NEON_AUTH_URL+'/get-session',{
+      method:'GET',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionToken}
+    },10000);
+    const jwt=r2.headers.get('set-auth-jwt');
+    const session2=await r2.json();
+    // JWT may come from header or body
+    const finalJwt=jwt||(session2&&session2.token)||(session2&&session2.access_token);
+    if(!finalJwt){
+      errEl.textContent='Could not retrieve JWT. Please try again.';
+      errEl.style.display='block';
+      console.error('get-session response:', JSON.stringify(session2).substring(0,300), 'jwt header:', jwt);
+      return;
+    }
+    saveSession({token:finalJwt,sessionToken,userId,email});
     showApp();
   }catch(e){
     errEl.textContent='Connection failed: '+e.message;
