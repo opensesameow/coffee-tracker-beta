@@ -179,24 +179,24 @@ const NEON_URL='https://ep-aged-river-aouicmda.apirest.c-2.ap-southeast-1.aws.ne
 const NEON_AUTH_URL='https://ep-aged-river-aouicmda.neonauth.c-2.ap-southeast-1.aws.neon.tech/neondb/auth';
 const SESSION_KEY='ct_session';
 
+// ── Session helpers ───────────────────────────────────────────────
 function getSession(){try{const d=localStorage.getItem(SESSION_KEY);return d?JSON.parse(d):null;}catch(e){return null;}}
 function saveSession(s){try{localStorage.setItem(SESSION_KEY,JSON.stringify(s));}catch(e){}}
 function clearSession(){try{localStorage.removeItem(SESSION_KEY);}catch(e){}}
 
-function HEADERS_AUTH(){
+// ── Auth headers — always call this fresh so we pick up refreshed tokens ──
+function HEADERS(){
   const s=getSession();
   const h={'Content-Type':'application/json'};
   if(s&&s.token)h['Authorization']='Bearer '+s.token;
   return h;
 }
-const HEADERS=HEADERS_AUTH; // backward compat: call as HEADERS() now
 
-function fetchWithTimeout(url, options, timeoutMs=8000){
-  return Promise.race([
-    fetch(url, options),
-    new Promise((_,reject)=>setTimeout(()=>reject(new Error('Connection timed out')),timeoutMs))
-  ]);
+function fetchWithTimeout(url,options,ms=8000){
+  return Promise.race([fetch(url,options),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
 }
+
+// ── Data API ops ──────────────────────────────────────────────────
 async function dbGet(){const r=await fetchWithTimeout(NEON_URL+'/coffees?order=created_at.desc',{headers:{...HEADERS(),'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
 async function dbInsert(row){const r=await fetchWithTimeout(NEON_URL+'/coffees',{method:'POST',headers:{...HEADERS(),'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
 async function dbUpdate(id,row){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS(),'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
@@ -204,6 +204,7 @@ async function dbDelete(id){const r=await fetchWithTimeout(NEON_URL+'/coffees?id
 
 function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',process:row.process||'',producer:row.producer||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',photo:row.photo||null,brewLog:row.brew_log||[],archived:row.archived||false,userId:row.user_id||null};}
 function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false,user_id:c.userId||(getSession()&&getSession().userId)||null};}
+
 const PALETTE=[{bg:'#EEF4FC',strip:'#85B7EB'},{bg:'#FEF9EC',strip:'#FAC775'},{bg:'#EAF3DE',strip:'#97C459'},{bg:'#FBEAF0',strip:'#ED93B1'},{bg:'#E1F5EE',strip:'#5DCAA5'},{bg:'#EEEDFE',strip:'#AFA9EC'},{bg:'#FAECE7',strip:'#F0997B'},{bg:'#F1EFE8',strip:'#B4B2A9'}];
 const pal=i=>PALETTE[i%PALETTE.length];
 let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
@@ -382,6 +383,7 @@ function cardHtml(c,i){
     </div>
   </div>`;
 }
+
 function editFormHtml(c){
   return `<div class="modal-title">${editingIdx==='new'?'Add a coffee':'Edit coffee'}</div>
   <div class="modal-tabs">
@@ -422,7 +424,7 @@ function editFormHtml(c){
   </div>`;
 }
 
-function brewFormHtml(coffeeIdx, entryIdx, existing){
+function brewFormHtml(coffeeIdx,entryIdx,existing){
   const b=existing||{};
   const isEdit=entryIdx!==null&&entryIdx!==undefined;
   return `<div class="brew-entry" style="border:0.5px solid #85B7EB;background:#f8fbff;">
@@ -446,7 +448,7 @@ function brewFormHtml(coffeeIdx, entryIdx, existing){
       <div class="ff full"><label>Taste notes</label><textarea id="b-notes" placeholder="Blueberry, bright acidity...">${b.notes||''}</textarea></div>
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="cancelBrewForm(${coffeeIdx})">${isEdit?'Cancel':'Cancel'}</button>
+      <button class="btn-cancel" onclick="cancelBrewForm(${coffeeIdx})">Cancel</button>
       <button class="btn-primary" onclick="${isEdit?`saveBrewEdit(${coffeeIdx},${entryIdx})`:`saveBrewEntry(${coffeeIdx})`}">${isEdit?'Update entry':'Save entry'}</button>
     </div>
   </div>`;
@@ -494,7 +496,6 @@ function renderCalendar(){
   let html=dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   const t=today(),firstDay=new Date(calYear,calMonth,1).getDay(),dim=new Date(calYear,calMonth+1,0).getDate(),diPrev=new Date(calYear,calMonth,0).getDate();
   const stripMap={},labelMap={};
-  // Store full event data for popup
   window._calEvents={};
   coffees.filter(c=>!c.archived).forEach((c,i)=>{
     const p=pal(coffees.indexOf(c));
@@ -544,10 +545,8 @@ function showCalPopup(ds){
   const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const d=new Date(ds+'T12:00:00');
   const dateLabel=d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();
-  // Group: key dates first, then resting
   const keyEvents=events.filter(e=>e.type!=='resting');
   const restingEvents=events.filter(e=>e.type==='resting');
-  // Deduplicate resting by coffee name
   const seenResting=new Set();
   const uniqueResting=restingEvents.filter(e=>{if(seenResting.has(e.label))return false;seenResting.add(e.label);return true;});
   let inner='';
@@ -587,48 +586,29 @@ function closeCalPopup(e){
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function render(){renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();if(document.getElementById('view-archive').style.display!=='none')renderArchive();}
 
-
-// ── Local cache ──────────────────────────────────────────────────
+// ── Local cache ───────────────────────────────────────────────────
 const LS_KEY='ct_offline';
 function saveLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(coffees));}catch(e){}}
 function loadLocal(){try{const d=localStorage.getItem(LS_KEY);return d?JSON.parse(d):null;}catch(e){return null;}}
 
-// ── Sync queue ───────────────────────────────────────────────────
+// ── Sync queue ────────────────────────────────────────────────────
 const Q_KEY='ct_queue';
 function loadQueue(){try{const d=localStorage.getItem(Q_KEY);return d?JSON.parse(d):[];}catch(e){return[];}}
 function saveQueue(q){try{localStorage.setItem(Q_KEY,JSON.stringify(q));}catch(e){}}
 let syncQueue=loadQueue();
-
 function queueOp(op){syncQueue.push(op);saveQueue(syncQueue);}
 
-// ── Sync status UI ───────────────────────────────────────────────
+// ── Sync status UI ────────────────────────────────────────────────
 function setSyncStatus(state){
   const el=document.getElementById('sync-status');
   if(!el)return;
-  const styles={
-    synced:{text:'✓ Synced',color:'#3B6D11',bg:'#EAF3DE'},
-    syncing:{text:'↻ Syncing…',color:'#633806',bg:'#FEF9EC'},
-    offline:{text:'Offline — changes saved locally',color:'#633806',bg:'#FEF9EC'},
-    error:{text:'⚠ Sync failed — will retry',color:'#A32D2D',bg:'#FCEBEB'},
-  };
+  const styles={synced:{text:'✓ Synced',color:'#3B6D11',bg:'#EAF3DE'},syncing:{text:'↻ Syncing…',color:'#633806',bg:'#FEF9EC'},offline:{text:'Offline — changes saved locally',color:'#633806',bg:'#FEF9EC'},error:{text:'⚠ Sync failed — will retry',color:'#A32D2D',bg:'#FCEBEB'}};
   const s=styles[state]||styles.offline;
-  el.textContent=s.text;
-  el.style.color=s.color;
-  el.style.background=s.bg;
-  el.style.display='inline-block';
+  el.textContent=s.text;el.style.color=s.color;el.style.background=s.bg;el.style.display='inline-block';
   if(state==='synced')setTimeout(()=>{if(el.textContent==='✓ Synced')el.style.display='none';},3000);
 }
 
-// ── Neon Data API ops ────────────────────────────────────────────
-function fetchWithTimeout(url,options,ms=8000){
-  return Promise.race([fetch(url,options),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
-}
-async function dbGet(){const r=await fetchWithTimeout(NEON_URL+'/coffees?order=created_at.desc',{headers:{...HEADERS(),'Prefer':'return=representation'}});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function dbInsert(row){const r=await fetchWithTimeout(NEON_URL+'/coffees',{method:'POST',headers:{...HEADERS(),'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
-async function dbUpdate(id,row){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS(),'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
-async function dbDelete(id){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS()});if(!r.ok)throw new Error(await r.text());}
-
-// ── Drain sync queue ─────────────────────────────────────────────
+// ── Drain sync queue ──────────────────────────────────────────────
 async function drainQueue(){
   if(!syncQueue.length)return;
   setSyncStatus('syncing');
@@ -640,13 +620,11 @@ async function drainQueue(){
       else if(op.type==='delete')await dbDelete(op.id);
     }catch(e){failed.push(op);}
   }
-  syncQueue=failed;
-  saveQueue(syncQueue);
-  if(failed.length){setSyncStatus('error');}
-  else{setSyncStatus('synced');}
+  syncQueue=failed;saveQueue(syncQueue);
+  if(failed.length){setSyncStatus('error');}else{setSyncStatus('synced');}
 }
 
-// ── Offline-aware save/delete ────────────────────────────────────
+// ── Offline-aware save/delete ─────────────────────────────────────
 async function saveCoffeeToCloud(c,isNew){
   setSyncStatus('syncing');
   try{
@@ -664,86 +642,48 @@ async function deleteCoffeeFromCloud(id){
   catch(e){queueOp({type:'delete',id});setSyncStatus('offline');}
 }
 
-// ── Rewire save/delete functions ─────────────────────────────────
+// ── Coffee CRUD ───────────────────────────────────────────────────
 async function saveCoffee(){
   const name=(document.getElementById('f-name').value||'').trim();
   if(!name){alert('Please enter a coffee name.');return;}
   const isNew=editingIdx==='new';
   const existing=!isNew?coffees[editingIdx]:{};
-  const c={...existing,name,
-    roaster:(document.getElementById('f-roaster').value||'').trim(),
-    origin:(document.getElementById('f-origin').value||'').trim(),
-    process:(document.getElementById('f-process').value||'').trim(),
-    producer:(document.getElementById('f-producer').value||'').trim(),
-    tasteNotes:(document.getElementById('f-taste').value||'').trim(),
-    roastDate:document.getElementById('f-roast').value||'',
-    restDays:document.getElementById('f-rest').value||'',
-    readyDate:document.getElementById('f-ready').value||'',
-    openDate:document.getElementById('f-open').value||'',
-    bestby:document.getElementById('f-bestby').value||'',
-    photo:photoDataUrl||existing.photo||null,
-    brewLog:existing.brewLog||[],
-    archived:existing.archived||false,
-    id:existing.id||('local-'+Date.now()),
-    userId:existing.userId||(getSession()&&getSession().userId)||null,
-  };
-  if(isNew)coffees.unshift(c);
-  else coffees[editingIdx]=c;
-  editingIdx=null;photoDataUrl=null;
-  saveLocal();render();
-  toast(isNew?'Coffee added!':'Coffee updated!');
+  const c={...existing,name,roaster:(document.getElementById('f-roaster').value||'').trim(),origin:(document.getElementById('f-origin').value||'').trim(),process:(document.getElementById('f-process').value||'').trim(),producer:(document.getElementById('f-producer').value||'').trim(),tasteNotes:(document.getElementById('f-taste').value||'').trim(),roastDate:document.getElementById('f-roast').value||'',restDays:document.getElementById('f-rest').value||'',readyDate:document.getElementById('f-ready').value||'',openDate:document.getElementById('f-open').value||'',bestby:document.getElementById('f-bestby').value||'',photo:photoDataUrl||existing.photo||null,brewLog:existing.brewLog||[],archived:existing.archived||false,id:existing.id||('local-'+Date.now()),userId:existing.userId||(getSession()&&getSession().userId)||null};
+  if(isNew)coffees.unshift(c);else coffees[editingIdx]=c;
+  editingIdx=null;photoDataUrl=null;saveLocal();render();toast(isNew?'Coffee added!':'Coffee updated!');
   await saveCoffeeToCloud(c,isNew&&!existing.id);
 }
-
 async function deleteCoffee(i){
   if(!confirm('Remove this coffee?'))return;
-  const id=coffees[i].id;
-  coffees.splice(i,1);
-  saveLocal();render();toast('Coffee removed.');
+  const id=coffees[i].id;coffees.splice(i,1);saveLocal();render();toast('Coffee removed.');
   if(id&&!String(id).startsWith('local-'))await deleteCoffeeFromCloud(id);
 }
-
 async function archiveCoffee(i){
-  coffees[i].archived=true;
-  saveLocal();render();toast('Coffee archived.');
+  coffees[i].archived=true;saveLocal();render();toast('Coffee archived.');
   if(coffees[i]&&coffees[i].id&&!String(coffees[i].id).startsWith('local-'))
     try{await dbUpdate(coffees[i].id,{archived:true});setSyncStatus('synced');}
     catch(e){queueOp({type:'update',id:coffees[i].id,row:{archived:true}});setSyncStatus('offline');}
 }
-
 async function unarchiveCoffee(i){
-  coffees[i].archived=false;
-  saveLocal();render();renderArchive();toast('Coffee restored.');
+  coffees[i].archived=false;saveLocal();render();renderArchive();toast('Coffee restored.');
   if(coffees[i]&&coffees[i].id&&!String(coffees[i].id).startsWith('local-'))
     try{await dbUpdate(coffees[i].id,{archived:false});setSyncStatus('synced');}
     catch(e){queueOp({type:'update',id:coffees[i].id,row:{archived:false}});setSyncStatus('offline');}
 }
-
 async function saveBrewEntry(i){
-  const entry=getBrewEntry();
-  if(!coffees[i].brewLog)coffees[i].brewLog=[];
-  coffees[i].brewLog.push(entry);
-  saveLocal();openBrewIdx[i]=true;brewEditIdx=null;brewEditEntryIdx=null;render();
-  toast('Brew entry saved!');
+  const entry=getBrewEntry();if(!coffees[i].brewLog)coffees[i].brewLog=[];coffees[i].brewLog.push(entry);saveLocal();openBrewIdx[i]=true;brewEditIdx=null;brewEditEntryIdx=null;render();toast('Brew entry saved!');
   if(coffees[i].id&&!String(coffees[i].id).startsWith('local-'))
     try{await dbUpdate(coffees[i].id,{brew_log:coffees[i].brewLog});setSyncStatus('synced');}
     catch(e){queueOp({type:'update',id:coffees[i].id,row:{brew_log:coffees[i].brewLog}});setSyncStatus('offline');}
 }
-
 async function saveBrewEdit(coffeeIdx,entryIdx){
-  const entry=getBrewEntry();
-  coffees[coffeeIdx].brewLog[entryIdx]=entry;
-  saveLocal();openBrewIdx[coffeeIdx]=true;brewEditIdx=null;brewEditEntryIdx=null;render();
-  toast('Brew entry updated!');
+  const entry=getBrewEntry();coffees[coffeeIdx].brewLog[entryIdx]=entry;saveLocal();openBrewIdx[coffeeIdx]=true;brewEditIdx=null;brewEditEntryIdx=null;render();toast('Brew entry updated!');
   if(coffees[coffeeIdx].id&&!String(coffees[coffeeIdx].id).startsWith('local-'))
     try{await dbUpdate(coffees[coffeeIdx].id,{brew_log:coffees[coffeeIdx].brewLog});setSyncStatus('synced');}
     catch(e){queueOp({type:'update',id:coffees[coffeeIdx].id,row:{brew_log:coffees[coffeeIdx].brewLog}});setSyncStatus('offline');}
 }
-
 async function deleteBrewEntry(coffeeIdx,entryIdx){
-  if(!confirm('Delete this brew entry?'))return;
-  coffees[coffeeIdx].brewLog.splice(entryIdx,1);
-  saveLocal();openBrewIdx[coffeeIdx]=true;render();toast('Brew entry deleted.');
+  if(!confirm('Delete this brew entry?'))return;coffees[coffeeIdx].brewLog.splice(entryIdx,1);saveLocal();openBrewIdx[coffeeIdx]=true;render();toast('Brew entry deleted.');
   if(coffees[coffeeIdx].id&&!String(coffees[coffeeIdx].id).startsWith('local-'))
     try{await dbUpdate(coffees[coffeeIdx].id,{brew_log:coffees[coffeeIdx].brewLog});setSyncStatus('synced');}
     catch(e){queueOp({type:'update',id:coffees[coffeeIdx].id,row:{brew_log:coffees[coffeeIdx].brewLog}});setSyncStatus('offline');}
@@ -751,66 +691,79 @@ async function deleteBrewEntry(coffeeIdx,entryIdx){
 
 async function autoArchivePastBestBy(){
   const toArchive=coffees.filter(c=>!c.archived&&c.bestby&&today()>c.bestby);
-  for(const c of toArchive){
-    c.archived=true;
-    if(c.id&&!String(c.id).startsWith('local-'))
-      try{await dbUpdate(c.id,{archived:true});}catch(e){queueOp({type:'update',id:c.id,row:{archived:true}});}
-  }
+  for(const c of toArchive){c.archived=true;if(c.id&&!String(c.id).startsWith('local-'))try{await dbUpdate(c.id,{archived:true});}catch(e){queueOp({type:'update',id:c.id,row:{archived:true}});}}
   if(toArchive.length){saveLocal();toast(toArchive.length+' coffee'+(toArchive.length>1?'s':'')+' auto-archived (past best-by).');}
 }
 
-// ── Init: load local first, then sync from cloud ─────────────────
-async function init(){
-  // Step 1: load local cache instantly
-  const local=loadLocal();
-  if(local&&local.length){
-    coffees=local;
-    render();
-    setSyncStatus('syncing');
-  }
-  // Step 2: try to sync from Neon in background
+// ── Token refresh (JWT expires every 15 min) ──────────────────────
+// Call /get-session with credentials:include so the browser sends
+// the HTTP-only session cookie that Neon Auth set at sign-in.
+// This only works when app is served from same origin as auth URL
+// OR Neon Auth has CORS configured for your GitHub Pages domain.
+async function refreshTokenIfNeeded(){
+  const s=getSession();
+  if(!s||!s.tokenExpiry)return;
+  // Refresh 2 minutes before expiry
+  const msLeft=s.tokenExpiry-Date.now();
+  if(msLeft>2*60*1000)return;
   try{
+    const r=await fetch(NEON_AUTH_URL+'/get-session',{
+      method:'GET',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include'   // sends the HTTP-only __Secure-neonauth.session_token cookie
+    });
+    const jwt=r.headers.get('set-auth-jwt');
+    if(jwt){
+      const exp=getJwtExpiry(jwt);
+      saveSession({...s,token:jwt,tokenExpiry:exp});
+    }
+  }catch(e){
+    console.warn('Token refresh failed, will retry:',e.message);
+  }
+}
+
+function getJwtExpiry(jwt){
+  try{
+    const payload=JSON.parse(atob(jwt.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    return payload.exp?payload.exp*1000:Date.now()+14*60*1000;
+  }catch(e){return Date.now()+14*60*1000;}
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+async function init(){
+  const local=loadLocal();
+  if(local&&local.length){coffees=local;render();setSyncStatus('syncing');}
+  try{
+    await refreshTokenIfNeeded();
     const rows=await dbGet();
-    // Merge: cloud is source of truth if we have cloud data
-    coffees=rows.map(fromDB);
-    saveLocal();
+    coffees=rows.map(fromDB);saveLocal();
     await autoArchivePastBestBy();
     await drainQueue();
-    render();
-    setSyncStatus('synced');
+    render();setSyncStatus('synced');
   }catch(e){
     if(!local||!local.length){
-      // No local data and no cloud — show error
       document.getElementById('coffee-list').innerHTML=`
         <div style="text-align:center;padding:2rem;">
           <div style="color:#A32D2D;font-size:14px;margin-bottom:12px;">Could not connect to database.</div>
           <div style="color:#aaa;font-size:12px;margin-bottom:16px;">No local data available. Try toggling VPN or switching networks.</div>
           <button onclick="init()" style="font-size:13px;padding:8px 20px;border-radius:8px;border:0.5px solid #d5d5d3;background:#1a1a1a;color:#fff;cursor:pointer;">Try again</button>
         </div>`;
-    } else {
-      // Has local data — show offline notice, keep working
-      setSyncStatus('offline');
-    }
+    }else{setSyncStatus('offline');}
     console.warn('Neon unreachable, working offline:',e.message);
   }
-  // Step 3: retry sync every 30s if offline
   setTimeout(backgroundSync,30000);
 }
 
 async function backgroundSync(){
   try{
-    const rows=await dbGet();
-    coffees=rows.map(fromDB);
-    saveLocal();
-    await drainQueue();
-    render();
-    setSyncStatus('synced');
+    await refreshTokenIfNeeded();
+    const rows=await dbGet();coffees=rows.map(fromDB);saveLocal();await drainQueue();render();setSyncStatus('synced');
   }catch(e){setSyncStatus('offline');}
   setTimeout(backgroundSync,30000);
 }
 
-// ── Auth ─────────────────────────────────────────────────────────
-let authMode='signin'; // or 'signup'
+// ── Auth ──────────────────────────────────────────────────────────
+let authMode='signin';
 
 function toggleAuthMode(){
   authMode=authMode==='signin'?'signup':'signin';
@@ -826,46 +779,64 @@ async function handleAuthSubmit(){
   const errEl=document.getElementById('auth-error');
   errEl.style.display='none';
   if(!email||!password){errEl.textContent='Please fill in both fields.';errEl.style.display='block';return;}
+
   const endpoint=authMode==='signin'?'/sign-in/email':'/sign-up/email';
   const body=authMode==='signin'?{email,password}:{email,password,name:email.split('@')[0]};
+
   try{
-    // Step 1: sign in / sign up — get session token + user id
     const r=await fetchWithTimeout(NEON_AUTH_URL+endpoint,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body)
+      body:JSON.stringify(body),
+      credentials:'include'   // allows Neon Auth to set the HTTP-only session cookie
     },10000);
+
     const data=await r.json();
+
     if(!r.ok){
       errEl.textContent=data.message||data.error||'Something went wrong. Please try again.';
       errEl.style.display='block';
       return;
     }
-    const sessionToken=data.token;
-    const userId=(data.user&&data.user.id);
-    if(!sessionToken||!userId){
-      errEl.textContent='Sign in failed — unexpected response. Please try again.';
-      errEl.style.display='block';
+
+    // ── The JWT is in data.data.session.access_token (Neon Auth response shape) ──
+    // Fallback chain covers slight variations across Neon Auth versions
+    const jwt=
+      (data.data&&data.data.session&&data.data.session.access_token)||
+      (data.session&&data.session.access_token)||
+      (data.token)||
+      null;
+
+    const userId=
+      (data.data&&data.data.user&&data.data.user.id)||
+      (data.user&&data.user.id)||
+      null;
+
+    if(!jwt){
+      // ── Fallback: try /get-session with credentials (browser sends the cookie) ──
+      console.log('JWT not in sign-in body, trying /get-session…');
+      const r2=await fetchWithTimeout(NEON_AUTH_URL+'/get-session',{
+        method:'GET',
+        headers:{'Content-Type':'application/json'},
+        credentials:'include'
+      },8000);
+      const jwt2=r2.headers.get('set-auth-jwt');
+      if(!jwt2){
+        errEl.textContent='Signed in but could not retrieve auth token. Check your Neon Auth CORS settings include your GitHub Pages domain.';
+        errEl.style.display='block';
+        console.error('/get-session status:',r2.status,'headers set-auth-jwt:',jwt2,'body:',(await r2.text()).substring(0,300));
+        return;
+      }
+      const exp=getJwtExpiry(jwt2);
+      saveSession({token:jwt2,tokenExpiry:exp,userId,email});
+      showApp();
       return;
     }
 
-    // Step 2: exchange session token for JWT via /get-session
-    const r2=await fetchWithTimeout(NEON_AUTH_URL+'/get-session',{
-      method:'GET',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionToken}
-    },10000);
-    const jwt=r2.headers.get('set-auth-jwt');
-    const session2=await r2.json();
-    // JWT may come from header or body
-    const finalJwt=jwt||(session2&&session2.token)||(session2&&session2.access_token);
-    if(!finalJwt){
-      errEl.textContent='Could not retrieve JWT. Please try again.';
-      errEl.style.display='block';
-      console.error('get-session response:', JSON.stringify(session2).substring(0,300), 'jwt header:', jwt);
-      return;
-    }
-    saveSession({token:finalJwt,sessionToken,userId,email});
+    const exp=getJwtExpiry(jwt);
+    saveSession({token:jwt,tokenExpiry:exp,userId,email});
     showApp();
+
   }catch(e){
     errEl.textContent='Connection failed: '+e.message;
     errEl.style.display='block';
@@ -874,20 +845,10 @@ async function handleAuthSubmit(){
 
 function handleLogout(){
   if(!confirm('Log out?'))return;
-  clearSession();
-  coffees=[];
-  showAuthScreen();
+  clearSession();coffees=[];showAuthScreen();
 }
-
-function showAuthScreen(){
-  document.getElementById('auth-screen').style.display='block';
-  document.getElementById('app').style.display='none';
-}
-function showApp(){
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('app').style.display='block';
-  init();
-}
+function showAuthScreen(){document.getElementById('auth-screen').style.display='block';document.getElementById('app').style.display='none';}
+function showApp(){document.getElementById('auth-screen').style.display='none';document.getElementById('app').style.display='block';init();}
 
 // On load: check session, gate accordingly
 (function bootAuth(){
@@ -895,7 +856,6 @@ function showApp(){
   if(s&&s.token){showApp();}
   else{showAuthScreen();}
 })();
-
 </script>
 </body>
 </html>
