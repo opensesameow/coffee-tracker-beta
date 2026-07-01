@@ -712,30 +712,29 @@ async function autoArchivePastBestBy(){
   if(toArchive.length){saveLocal();toast(toArchive.length+' coffee'+(toArchive.length>1?'s':'')+' auto-archived (past best-by).');}
 }
 
-// ── Token refresh (JWT expires every 15 min) ──────────────────────
-// Call /get-session with credentials:include so the browser sends
-// the HTTP-only session cookie that Neon Auth set at sign-in.
-// This only works when app is served from same origin as auth URL
-// OR Neon Auth has CORS configured for your GitHub Pages domain.
+// ── Token refresh ────────────────────────────────────────────────
+// Always refreshes unless token is fresh (>5 min left).
+// Falls back gracefully — if /get-session fails, keeps existing token.
 async function refreshTokenIfNeeded(){
   const s=getSession();
-  if(!s||!s.tokenExpiry)return;
-  // Refresh 2 minutes before expiry
-  const msLeft=s.tokenExpiry-Date.now();
-  if(msLeft>2*60*1000)return;
+  if(!s)return;
+  // Skip only if token is definitely still fresh
+  if(s.tokenExpiry&&(s.tokenExpiry-Date.now())>5*60*1000)return;
   try{
     const r=await fetch(NEON_AUTH_URL+'/get-session',{
       method:'GET',
-      headers:{'Content-Type':'application/json'},
-      credentials:'include'   // sends the HTTP-only __Secure-neonauth.session_token cookie
+      credentials:'include'
     });
     const jwt=r.headers.get('set-auth-jwt');
     if(jwt){
       const exp=getJwtExpiry(jwt);
       saveSession({...s,token:jwt,tokenExpiry:exp});
+      console.log('Token refreshed, expires:',new Date(exp).toISOString());
+    }else{
+      console.warn('get-session returned no JWT — session may have expired. Re-login required.');
     }
   }catch(e){
-    console.warn('Token refresh failed, will retry:',e.message);
+    console.warn('Token refresh failed:',e.message);
   }
 }
 
@@ -780,10 +779,25 @@ async function init(){
 async function manualSync(){
   setSyncStatus('syncing');
   try{
-    await refreshTokenIfNeeded();
+    // Force token refresh regardless of expiry before syncing
+    const s=getSession();
+    if(s){
+      const r=await fetch(NEON_AUTH_URL+'/get-session',{method:'GET',credentials:'include'});
+      const jwt=r.headers.get('set-auth-jwt');
+      if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}
+    }
     const rows=await dbGet();coffees=rows.map(fromDB);saveLocal();await drainQueue();render();setSyncStatus('synced');
     toast('Synced!');
-  }catch(e){setSyncStatus('offline');toast('Could not reach server.');}
+  }catch(e){
+    setSyncStatus('offline');
+    // If it looks like an auth error, prompt re-login
+    if(e.message&&(e.message.includes('401')||e.message.includes('403')||e.message.includes('JWT'))){
+      toast('Session expired — please sign out and sign in again.');
+    }else{
+      toast('Could not reach server.');
+    }
+    console.warn('manualSync failed:',e.message);
+  }
 }
 async function backgroundSync(){
   try{
