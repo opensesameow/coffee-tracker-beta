@@ -747,11 +747,17 @@ function getJwtExpiry(jwt){
 
 // ── Init ──────────────────────────────────────────────────────────
 async function init(){
-  // Cloud is always source of truth. Fetch from Neon first.
-  // Local storage is only a fallback if Neon is unreachable.
   setSyncStatus('syncing');
+  // Always force a fresh token on load — don't trust stored expiry
+  const s=getSession();
+  if(s){
+    try{
+      const r=await fetch(NEON_AUTH_URL+'/get-session',{method:'GET',credentials:'include'});
+      const jwt=r.headers.get('set-auth-jwt');
+      if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}
+    }catch(e){console.warn('Token refresh on init failed:',e.message);}
+  }
   try{
-    await refreshTokenIfNeeded();
     const rows=await dbGet();
     coffees=rows.map(fromDB);
     saveLocal();
@@ -801,7 +807,14 @@ async function manualSync(){
 }
 async function backgroundSync(){
   try{
-    await refreshTokenIfNeeded();
+    const s=getSession();
+    if(s){
+      try{
+        const r=await fetch(NEON_AUTH_URL+'/get-session',{method:'GET',credentials:'include'});
+        const jwt=r.headers.get('set-auth-jwt');
+        if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}
+      }catch(e){console.warn('bg token refresh failed:',e.message);}
+    }
     const rows=await dbGet();coffees=rows.map(fromDB);saveLocal();await drainQueue();render();setSyncStatus('synced');
   }catch(e){setSyncStatus('offline');}
   setTimeout(backgroundSync,30000);
