@@ -245,7 +245,7 @@ function switchMain(tab,btn){
   document.getElementById('view-calendar').style.display=tab==='calendar'?'':'none';
   document.getElementById('view-archive').style.display=tab==='archive'?'':'none';
   if(tab==='calendar')renderCalendar();
-  if(tab==='archive')renderArchive();
+  if(tab==='archive'){renderArchive();loadPhotosLazily();}
 }
 function renderStats(){
   const active=coffees.filter(c=>!c.archived);
@@ -645,39 +645,40 @@ async function compressDataUrl(dataUrl){
   });
 }
 async function migratePhotos(){
-  // Fetch full rows including photo, compress, save back
-  // Run once to fix oversized photos already in DB
   toast('Compressing photos… this may take a moment.');
-  const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,photo&photo=not.null',{headers:{...HEADERS(),'Prefer':'return=representation'}});
-  if(!r.ok){toast('Migration failed.');return;}
-  const rows=await r.json();
-  let count=0;
-  for(const row of rows){
-    if(!row.photo)continue;
-    // Skip if already small (under ~50KB as base64 = ~37500 chars)
-    if(row.photo.length<50000){count++;continue;}
+  // Fetch photos one at a time to avoid 10MB limit
+  const allIds=coffees.map(c=>c.id).filter(id=>id&&!String(id).startsWith('local-'));
+  let compressed=0,skipped=0,failed=0;
+  for(const id of allIds){
     try{
-      const compressed=await compressDataUrl(row.photo);
-      await dbUpdate(row.id,{photo:compressed});
-      // Update in-memory too
-      const c=coffees.find(x=>x.id===row.id);
-      if(c)c.photo=compressed;
-      count++;
-    }catch(e){console.warn('photo compress failed for',row.id,e);}
+      const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,photo&id=eq.'+id,{headers:{...HEADERS(),'Prefer':'return=representation'}});
+      if(!r.ok){failed++;continue;}
+      const rows=await r.json();
+      const photo=rows[0]&&rows[0].photo;
+      if(!photo){skipped++;continue;}
+      if(photo.length<50000){skipped++;const c=coffees.find(x=>x.id===id);if(c&&!c.photo)c.photo=photo;continue;}
+      const small=await compressDataUrl(photo);
+      await dbUpdate(id,{photo:small});
+      const c=coffees.find(x=>x.id===id);
+      if(c)c.photo=small;
+      compressed++;
+    }catch(e){console.warn('photo compress failed for',id,e);failed++;}
   }
   saveLocal();render();
-  toast('Done! '+count+' photos processed.');
+  toast('Done! '+compressed+' compressed, '+skipped+' skipped, '+failed+' failed.');
 }
 async function loadPhotosLazily(){
-  // After list renders, fetch photos for cards that don't have them cached
-  const active=coffees.filter(c=>!c.archived&&c.id&&!String(c.id).startsWith('local-')&&!c.photo);
-  for(const c of active){
+  // Load photos for all coffees (active and archived) that don't have them cached
+  const needPhotos=coffees.filter(c=>c.id&&!String(c.id).startsWith('local-')&&!c.photo);
+  for(const c of needPhotos){
     try{
       const photo=await dbGetPhoto(c.id);
       if(photo){
         c.photo=photo;
-        // Update just the photo element if card is in DOM
-        const wrap=document.querySelector('#ccard-'+coffees.indexOf(c)+' .ccard-photo-wrap');
+        const idx=coffees.indexOf(c);
+        // Try active card first, then archive card
+        const wrap=document.querySelector('#ccard-'+idx+' .ccard-photo-wrap')||
+                   document.querySelector('#ccard-a-'+idx+' .ccard-photo-wrap');
         if(wrap){wrap.innerHTML=`<img src="${photo}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;}
       }
     }catch(e){}
