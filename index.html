@@ -619,7 +619,7 @@ function setSyncStatus(state){
   if(state==='synced')setTimeout(()=>{if(el.textContent==='✓ Synced')el.style.display='none';},3000);
 }
 
-// ── Supabase ops ─────────────────────────────────────────────────
+// ── Neon Data API ops ────────────────────────────────────────────
 function fetchWithTimeout(url,options,ms=8000){
   return Promise.race([fetch(url,options),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
 }
@@ -768,7 +768,7 @@ async function init(){
     render();
     setSyncStatus('syncing');
   }
-  // Step 2: try to sync from Supabase in background
+  // Step 2: try to sync from Neon in background
   try{
     const rows=await dbGet();
     // Merge: cloud is source of truth if we have cloud data
@@ -791,7 +791,7 @@ async function init(){
       // Has local data — show offline notice, keep working
       setSyncStatus('offline');
     }
-    console.warn('Supabase unreachable, working offline:',e.message);
+    console.warn('Neon unreachable, working offline:',e.message);
   }
   // Step 3: retry sync every 30s if offline
   setTimeout(backgroundSync,30000);
