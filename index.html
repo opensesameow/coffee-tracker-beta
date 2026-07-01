@@ -834,14 +834,22 @@ async function handleAuthSubmit(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(body)
     },10000);
+    const jwtFromHeader=r.headers.get('set-auth-jwt');
     const data=await r.json();
     if(!r.ok){
       errEl.textContent=data.message||data.error||'Something went wrong. Please try again.';
       errEl.style.display='block';
       return;
     }
-    const token=data.token||(data.session&&data.session.token)||(data.data&&data.data.token);
-    const userId=(data.user&&data.user.id)||(data.data&&data.data.user&&data.data.user.id);
+    // Neon Auth returns: { data: { session: { access_token, ... }, user: { id, ... } } }
+    const token=jwtFromHeader
+      ||(data.data&&data.data.session&&data.data.session.access_token)
+      ||(data.session&&data.session.access_token)
+      ||data.token;
+    const userId=(data.data&&data.data.user&&data.data.user.id)
+      ||(data.user&&data.user.id);
+    // Also check response header for JWT (Neon Auth sets set-auth-jwt header)
+    console.log('Auth response:', JSON.stringify(data).substring(0,300));
     if(!token||!userId){
       errEl.textContent='Signed in, but no session token received. Please try again.';
       errEl.style.display='block';
