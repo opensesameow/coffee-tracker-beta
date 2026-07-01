@@ -648,7 +648,7 @@ async function migratePhotos(){
   // Fetch full rows including photo, compress, save back
   // Run once to fix oversized photos already in DB
   toast('Compressing photos… this may take a moment.');
-  const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,photo&photo=not.is.null',{headers:{...HEADERS(),'Prefer':'return=representation'}});
+  const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,photo&photo=not.null',{headers:{...HEADERS(),'Prefer':'return=representation'}});
   if(!r.ok){toast('Migration failed.');return;}
   const rows=await r.json();
   let count=0;
@@ -841,7 +841,13 @@ async function init(){
   }
   try{
     const rows=await dbGet();
-    coffees=rows.map(fromDB);
+    const newCoffees=rows.map(fromDB);
+    // Preserve cached photos from previous load so they don't vanish on re-render
+    newCoffees.forEach(c=>{
+      const prev=coffees.find(p=>p.id===c.id);
+      if(prev&&prev.photo)c.photo=prev.photo;
+    });
+    coffees=newCoffees;
     saveLocal();
     await autoArchivePastBestBy();
     await drainQueue();
@@ -874,7 +880,10 @@ async function manualSync(){
       const jwt=r.headers.get('set-auth-jwt');
       if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}
     }
-    const rows=await dbGet();coffees=rows.map(fromDB);saveLocal();await drainQueue();render();setSyncStatus('synced');loadPhotosLazily();
+    const rows=await dbGet();
+    const newCoffees=rows.map(fromDB);
+    newCoffees.forEach(c=>{const prev=coffees.find(p=>p.id===c.id);if(prev&&prev.photo)c.photo=prev.photo;});
+    coffees=newCoffees;saveLocal();await drainQueue();render();setSyncStatus('synced');loadPhotosLazily();
     toast('Synced!');
   }catch(e){
     setSyncStatus('offline');
@@ -897,7 +906,10 @@ async function backgroundSync(){
         if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}
       }catch(e){console.warn('bg token refresh failed:',e.message);}
     }
-    const rows=await dbGet();coffees=rows.map(fromDB);saveLocal();await drainQueue();render();setSyncStatus('synced');
+    const rows=await dbGet();
+    const newCoffees=rows.map(fromDB);
+    newCoffees.forEach(c=>{const prev=coffees.find(p=>p.id===c.id);if(prev&&prev.photo)c.photo=prev.photo;});
+    coffees=newCoffees;saveLocal();await drainQueue();render();setSyncStatus('synced');
   }catch(e){setSyncStatus('offline');}
   setTimeout(backgroundSync,30000);
 }
