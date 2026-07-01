@@ -142,8 +142,9 @@
 <div class="app" id="app" style="display:none;">
   <div class="header">
     <h1>Coffee Tracker</h1>
-    <div style="display:flex;align-items:center;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
       <span id="sync-status" style="display:none;font-size:11px;padding:3px 8px;border-radius:6px;"></span>
+      <button class="btn-icon" title="Sync now" onclick="manualSync()"><i class="ti ti-refresh"></i></button>
       <button class="btn-icon" title="Log out" onclick="handleLogout()"><i class="ti ti-logout"></i></button>
       <button class="add-btn" onclick="openAddForm('new')"><i class="ti ti-plus"></i> Add coffee</button>
     </div>
@@ -153,10 +154,18 @@
     <div class="stat"><div class="stat-label">Ready</div><div class="stat-value" id="stat-ready">—</div></div>
     <div class="stat"><div class="stat-label">Still resting</div><div class="stat-value" id="stat-resting">—</div></div>
   </div>
-  <div class="tabs-main">
-    <button class="tab-main active" onclick="switchMain('list',this)">List</button>
-    <button class="tab-main" onclick="switchMain('calendar',this)">Calendar</button>
-    <button class="tab-main" onclick="switchMain('archive',this)">Archive</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;flex-wrap:wrap;gap:8px;">
+    <div class="tabs-main" style="margin-bottom:0;">
+      <button class="tab-main active" onclick="switchMain('list',this)">List</button>
+      <button class="tab-main" onclick="switchMain('calendar',this)">Calendar</button>
+      <button class="tab-main" onclick="switchMain('archive',this)">Archive</button>
+    </div>
+    <select id="sort-select" onchange="setSortOrder(this.value)" style="font-size:12px;padding:5px 10px;border-radius:8px;border:0.5px solid #d5d5d3;background:#fff;color:#888;cursor:pointer;">
+      <option value="added">Date added</option>
+      <option value="roast">Roast date</option>
+      <option value="ready">Ready date</option>
+      <option value="name">Name A–Z</option>
+    </select>
   </div>
   <div id="view-list"><div class="coffee-list" id="coffee-list"><div class="loading">Loading your coffees...</div></div></div>
   <div id="view-archive" style="display:none;"><div class="coffee-list" id="archive-list"></div></div>
@@ -207,7 +216,7 @@ function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origi
 
 const PALETTE=[{bg:'#EEF4FC',strip:'#85B7EB'},{bg:'#FEF9EC',strip:'#FAC775'},{bg:'#EAF3DE',strip:'#97C459'},{bg:'#FBEAF0',strip:'#ED93B1'},{bg:'#E1F5EE',strip:'#5DCAA5'},{bg:'#EEEDFE',strip:'#AFA9EC'},{bg:'#FAECE7',strip:'#F0997B'},{bg:'#F1EFE8',strip:'#B4B2A9'}];
 const pal=i=>PALETTE[i%PALETTE.length];
-let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),sortOrder='added';
 let openBrewIdx={},editingIdx=null,brewEditIdx=null,brewEditEntryIdx=null,photoDataUrl=null;
 
 function today(){return new Date().toISOString().split('T')[0];}
@@ -233,11 +242,19 @@ function renderStats(){
   document.getElementById('stat-ready').textContent=s.filter(x=>x==='ready').length;
   document.getElementById('stat-resting').textContent=s.filter(x=>x==='resting').length;
 }
+function setSortOrder(v){sortOrder=v;renderList();}
+function sortedActive(){
+  const active=coffees.filter(c=>!c.archived);
+  if(sortOrder==='roast')return active.slice().sort((a,b)=>(b.roastDate||'').localeCompare(a.roastDate||''));
+  if(sortOrder==='ready')return active.slice().sort((a,b)=>(b.readyDate||'').localeCompare(a.readyDate||''));
+  if(sortOrder==='name')return active.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  return active; // 'added' = natural order from Neon (created_at desc)
+}
 function renderList(){
   const el=document.getElementById('coffee-list');
   let html='';
   if(editingIdx==='new')html=`<div class="ccard"><div class="inline-modal">${editFormHtml({})}</div></div>`;
-  const active=coffees.filter(c=>!c.archived);
+  const active=sortedActive();
   if(!active.length){el.innerHTML=html+'<div style="text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;">No coffees yet — add your first bag!</div>';return;}
   html+=active.map((c,i)=>cardHtml(c,coffees.indexOf(c))).join('');
   el.innerHTML=html;
@@ -731,29 +748,43 @@ function getJwtExpiry(jwt){
 
 // ── Init ──────────────────────────────────────────────────────────
 async function init(){
-  const local=loadLocal();
-  if(local&&local.length){coffees=local;render();setSyncStatus('syncing');}
+  // Cloud is always source of truth. Fetch from Neon first.
+  // Local storage is only a fallback if Neon is unreachable.
+  setSyncStatus('syncing');
   try{
     await refreshTokenIfNeeded();
     const rows=await dbGet();
-    coffees=rows.map(fromDB);saveLocal();
+    coffees=rows.map(fromDB);
+    saveLocal();
     await autoArchivePastBestBy();
     await drainQueue();
     render();setSyncStatus('synced');
   }catch(e){
-    if(!local||!local.length){
+    const local=loadLocal();
+    if(local&&local.length){
+      coffees=local;render();setSyncStatus('offline');
+    }else{
       document.getElementById('coffee-list').innerHTML=`
         <div style="text-align:center;padding:2rem;">
           <div style="color:#A32D2D;font-size:14px;margin-bottom:12px;">Could not connect to database.</div>
           <div style="color:#aaa;font-size:12px;margin-bottom:16px;">No local data available. Try toggling VPN or switching networks.</div>
           <button onclick="init()" style="font-size:13px;padding:8px 20px;border-radius:8px;border:0.5px solid #d5d5d3;background:#1a1a1a;color:#fff;cursor:pointer;">Try again</button>
         </div>`;
-    }else{setSyncStatus('offline');}
+      setSyncStatus('offline');
+    }
     console.warn('Neon unreachable, working offline:',e.message);
   }
   setTimeout(backgroundSync,30000);
 }
 
+async function manualSync(){
+  setSyncStatus('syncing');
+  try{
+    await refreshTokenIfNeeded();
+    const rows=await dbGet();coffees=rows.map(fromDB);saveLocal();await drainQueue();render();setSyncStatus('synced');
+    toast('Synced!');
+  }catch(e){setSyncStatus('offline');toast('Could not reach server.');}
+}
 async function backgroundSync(){
   try{
     await refreshTokenIfNeeded();
