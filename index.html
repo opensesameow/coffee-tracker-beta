@@ -872,7 +872,7 @@ async function init(){
     }
     console.warn('Neon unreachable, working offline:',e.message);
   }
-  setTimeout(backgroundSync,30000);
+  setTimeout(backgroundSync,5*60*1000);
 }
 
 async function manualSync(){
@@ -914,9 +914,13 @@ async function backgroundSync(){
     const rows=await dbGet();
     const newCoffees=rows.map(fromDB);
     newCoffees.forEach(c=>{const prev=coffees.find(p=>p.id===c.id);if(prev&&prev.photo)c.photo=prev.photo;});
-    coffees=newCoffees;saveLocal();await drainQueue();render();setSyncStatus('synced');
+    coffees=newCoffees;saveLocal();await drainQueue();
+    // Don't re-render if user is actively editing something
+    const userEditing=editingIdx!==null||brewEditIdx!==null;
+    if(!userEditing){render();setSyncStatus('synced');}
+    else{setSyncStatus('synced');}
   }catch(e){setSyncStatus('offline');}
-  setTimeout(backgroundSync,30000);
+  setTimeout(backgroundSync,5*60*1000); // every 5 minutes instead of 30 seconds
 }
 
 // ── Auth ──────────────────────────────────────────────────────────
