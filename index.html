@@ -229,84 +229,224 @@ function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',
 function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false,user_id:c.userId||(getSession()&&getSession().userId)||null};}
 
 const PALETTE=[
-  // Reds & pinks — berry, cherry, strawberry
-  {bg:'#FAEAEA',strip:'#C9706A',name:'red'},
-  {bg:'#F7ECEC',strip:'#B85C5C',name:'darkred'},
-  {bg:'#FAE8EE',strip:'#C4788A',name:'rosepink'},
-  // Purples — grape, blackcurrant, winey, floral
-  {bg:'#F2EAF4',strip:'#9B6BAA',name:'lavender'},
-  {bg:'#EDE6F0',strip:'#7A5490',name:'purple'},
-  {bg:'#EAE2EE',strip:'#6B4080',name:'plum'},
-  {bg:'#E8E0EE',strip:'#5A2D6E',name:'wine'},
-  // Pinks — rose, floral
-  {bg:'#F7EAF2',strip:'#B87AA8',name:'mauve'},
-  {bg:'#F5E8F0',strip:'#A86090',name:'dustypink'},
-  // Oranges & golds — citrus, peach, caramel, honey
-  {bg:'#FBF1E6',strip:'#C98A40',name:'gold'},
-  {bg:'#FAF0E6',strip:'#C87840',name:'amber'},
-  {bg:'#FAE8DC',strip:'#C46A40',name:'orange'},
-  {bg:'#F9E4D8',strip:'#BE5E38',name:'terracotta'},
-  // Yellows — tropical, lemon, lime
-  {bg:'#FAF8E0',strip:'#B8A830',name:'olive'},
-  {bg:'#F8F6DC',strip:'#A89828',name:'darkolive'},
-  // Greens — apple, pear, vegetal, tea
-  {bg:'#EEF4E4',strip:'#7A9E50',name:'sage'},
-  {bg:'#EAF2E0',strip:'#6A9040',name:'apple'},
-  {bg:'#E6F0DC',strip:'#5A8838',name:'moss'},
-  {bg:'#E2EED8',strip:'#4A7830',name:'fern'},
-  // Teals & sea greens — jasmine, herbal, green tea
-  {bg:'#E4F2EE',strip:'#4A9080',name:'seagreen'},
-  {bg:'#E0EEF0',strip:'#3A8088',name:'teal'},
-  {bg:'#DCE8EC',strip:'#2A6870',name:'deepteal'},
-  // Blues — blueberry, clean
-  {bg:'#E4EEF6',strip:'#5A80A8',name:'slate'},
-  {bg:'#E0EAF4',strip:'#4A6E98',name:'steelblue'},
-  {bg:'#DCE6F2',strip:'#3A5A88',name:'blue'},
-  {bg:'#D8E2EE',strip:'#2A4870',name:'navy'},
-  // Browns & earth — chocolate, cocoa, nutty, roasted
-  {bg:'#EEE8E0',strip:'#8A6A50',name:'tan'},
-  {bg:'#EAE2D8',strip:'#7A5A40',name:'brown'},
-  {bg:'#E6DCD0',strip:'#6A4A30',name:'darkbrown'},
-  // Neutrals — fallback
-  {bg:'#EEEBE6',strip:'#8A8070',name:'taupe'},
+  // Reds — strawberry, raspberry, cherry, red berry
+  {bg:'#FAEAEA',strip:'#C96868',name:'red'},
+  {bg:'#F8EAEA',strip:'#B85858',name:'crimson'},
+  // Warm pinks — cranberry, pomegranate
+  {bg:'#FAE8ED',strip:'#C47080',name:'rosered'},
+  // Cool pinks — rose petal, pink floral
+  {bg:'#F7EAF2',strip:'#B878A0',name:'rose'},
+  // Mauves — violet, lavender floral
+  {bg:'#F2EAF5',strip:'#9870AA',name:'lavender'},
+  // Purples — grape, blackcurrant
+  {bg:'#EDE6F2',strip:'#785298',name:'purple'},
+  // Deep purples — winey, prune, raisin
+  {bg:'#E8E0EE',strip:'#5A3078',name:'wine'},
+  // Dusty plum — dried fruit, dark fermented
+  {bg:'#E6DFF0',strip:'#4E2868',name:'plum'},
+  // Warm gold — bergamot, lemon, citrus peel
+  {bg:'#FAF4E0',strip:'#C8A030',name:'citrusgold'},
+  // Bright gold — orange, tangerine
+  {bg:'#FAF0DC',strip:'#C88830',name:'gold'},
+  // Amber — honey, caramel, brown sugar
+  {bg:'#FAE8D4',strip:'#C07030',name:'amber'},
+  // Orange — peach, apricot, nectarine
+  {bg:'#F8E4CC',strip:'#B86030',name:'peach'},
+  // Terracotta — spice, cinnamon
+  {bg:'#F6E0C8',strip:'#A85030',name:'terracotta'},
+  // Pale yellow-green — lemon blossom, lime, citrus flower
+  {bg:'#F6F8E0',strip:'#909830',name:'limegreen'},
+  // Olive — tropical fruit skin, pineapple
+  {bg:'#F0F4D8',strip:'#788828',name:'olive'},
+  // Sage — apple, pear, green fruit
+  {bg:'#EAF2DC',strip:'#6A9248',name:'sage'},
+  // Apple green — green apple, white grape
+  {bg:'#E4EED4',strip:'#588040',name:'apple'},
+  // Moss — vegetal, fresh herb
+  {bg:'#DEEACC',strip:'#487038',name:'moss'},
+  // Fern — hay, green tea dry
+  {bg:'#D8E6C4',strip:'#3A6030',name:'fern'},
+  // Sea green — jasmine tea, light floral-green
+  {bg:'#E0F0E8',strip:'#489078',name:'seagreen'},
+  // Teal — green tea, oolong
+  {bg:'#D8ECE8',strip:'#387870',name:'teal'},
+  // Deep teal — roasted green, earthy
+  {bg:'#D0E6E4',strip:'#286860',name:'deepteal'},
+  // Slate blue — blueberry
+  {bg:'#E0EAF4',strip:'#5070A0',name:'slate'},
+  // Steel blue — clean, bright acidity
+  {bg:'#D8E4F0',strip:'#405E90',name:'steelblue'},
+  // Navy — dark, complex
+  {bg:'#D0DCEC',strip:'#304C78',name:'navy'},
+  // Tan — almond, hazelnut, milk chocolate
+  {bg:'#EEE8DC',strip:'#906848',name:'tan'},
+  // Brown — dark chocolate, cocoa
+  {bg:'#E8E0D4',strip:'#785840',name:'brown'},
+  // Dark brown — roasted, smoky, tobacco
+  {bg:'#E4DAD0',strip:'#604830',name:'darkbrown'},
+  // Warm taupe — nutmeg, clove, woody
+  {bg:'#EAE4DC',strip:'#807060',name:'taupe'},
+  // Cool grey-taupe — neutral fallback
+  {bg:'#E8E6E2',strip:'#706860',name:'greytaupe'},
+];
+
+// Flavor-to-color keyword map
+// Rules: most specific first; Chinese and English both covered
+// Goal: same flavor family → same hue family, but granular enough that
+// e.g. 柠檬花 ≠ 柠檬 ≠ 荔枝 so similar coffees still look distinct
+const FLAVOR_MAP=[
+  // ── BERRY ────────────────────────────────────────────────────────
+  // Blueberry — before generic berry
+  {keys:['blueberry','蓝莓'],name:'slate'},
+  // Blackcurrant
+  {keys:['blackcurrant','black currant','黑醋栗','cassis'],name:'plum'},
+  // Grape / winey / prune / raisin / dried dark fruit
+  {keys:['grape','葡萄','prune','李子','raisin','葡萄干','winey','wine','dried fruit','果干'],name:'wine'},
+  // Strawberry
+  {keys:['strawberry','草莓'],name:'red'},
+  // Raspberry
+  {keys:['raspberry','覆盆子','树莓'],name:'crimson'},
+  // Cherry
+  {keys:['cherry','樱桃','maraschino'],name:'rosered'},
+  // Cranberry / pomegranate / red berry
+  {keys:['cranberry','蔓越莓','pomegranate','石榴','red berry','红色浆果','red fruit','红色水果'],name:'rosered'},
+  // Generic berry
+  {keys:['berry','浆果'],name:'red'},
+
+  // ── FLORAL ───────────────────────────────────────────────────────
+  // Rose
+  {keys:['rose','玫瑰','rose hip','玫瑰果'],name:'rose'},
+  // Violet / lavender
+  {keys:['violet','紫罗兰','lavender','薰衣草','peony','牡丹','lilac','丁香花'],name:'lavender'},
+  // Hibiscus
+  {keys:['hibiscus','芙蓉','洛神花'],name:'rosered'},
+  // Jasmine
+  {keys:['jasmine','茉莉'],name:'seagreen'},
+  // Osmanthus / sweet olive
+  {keys:['osmanthus','桂花','sweet olive'],name:'gold'},
+  // Chamomile / elderflower / white flower
+  {keys:['chamomile','洋甘菊','elderflower','接骨木','white flower','白花','白色花香'],name:'limegreen'},
+  // Lemon blossom / citrus flower / orange blossom
+  {keys:['lemon blossom','柠檬花','orange blossom','橙花','citrus blossom','花香柑橘'],name:'limegreen'},
+  // Generic floral
+  {keys:['floral','花香'],name:'rose'},
+
+  // ── CITRUS ───────────────────────────────────────────────────────
+  // Bergamot
+  {keys:['bergamot','佛手柑'],name:'citrusgold'},
+  // Lemon
+  {keys:['lemon','柠檬'],name:'citrusgold'},
+  // Lime
+  {keys:['lime','青柠','莱姆'],name:'limegreen'},
+  // Grapefruit
+  {keys:['grapefruit','葡萄柚'],name:'olive'},
+  // Orange / tangerine / mandarin
+  {keys:['orange','橙子','tangerine','橘子','mandarin','砂糖橘','clementine'],name:'peach'},
+  // Citrus peel / zest
+  {keys:['citrus','柑橘','zest','peel','橙皮','柚子','yuzu'],name:'gold'},
+
+  // ── STONE FRUIT ──────────────────────────────────────────────────
+  // Peach
+  {keys:['peach','桃','水蜜桃','蜜桃'],name:'peach'},
+  // Apricot
+  {keys:['apricot','杏','杏子'],name:'amber'},
+  // Nectarine
+  {keys:['nectarine','油桃'],name:'peach'},
+  // Plum (fruit, not color)
+  {keys:['plum fruit','梅子','梅','青梅'],name:'wine'},
+
+  // ── TROPICAL ─────────────────────────────────────────────────────
+  // Lychee
+  {keys:['lychee','荔枝'],name:'rose'},
+  // Mango
+  {keys:['mango','芒果'],name:'amber'},
+  // Pineapple
+  {keys:['pineapple','菠萝'],name:'olive'},
+  // Passion fruit
+  {keys:['passion fruit','百香果','passionfruit'],name:'olive'},
+  // Papaya / guava
+  {keys:['papaya','木瓜','guava','番石榴'],name:'peach'},
+  // Coconut
+  {keys:['coconut','椰子','椰奶'],name:'tan'},
+  // Lemon grass / tropical generic
+  {keys:['tropical','热带水果'],name:'amber'},
+
+  // ── APPLE / PEAR / GREEN FRUIT ───────────────────────────────────
+  // Green apple
+  {keys:['green apple','青苹果','granny smith'],name:'apple'},
+  // Apple
+  {keys:['apple','苹果'],name:'sage'},
+  // Pear
+  {keys:['pear','梨'],name:'sage'},
+  // White grape / green grape
+  {keys:['white grape','白葡萄','green grape','青提','muscat','麝香葡萄'],name:'apple'},
+
+  // ── SWEET ────────────────────────────────────────────────────────
+  // Honey
+  {keys:['honey','蜂蜜'],name:'gold'},
+  // Caramel / toffee
+  {keys:['caramel','焦糖','toffee','太妃糖','butterscotch','奶油糖'],name:'amber'},
+  // Maple syrup / brown sugar / molasses
+  {keys:['maple','枫糖','brown sugar','红糖','molasses','糖蜜','muscovado'],name:'amber'},
+  // Vanilla
+  {keys:['vanilla','香草'],name:'tan'},
+  // Candy / sugar
+  {keys:['candy','糖果','sugar','甜'],name:'gold'},
+  // Milk chocolate
+  {keys:['milk chocolate','牛奶巧克力','white chocolate','白巧克力'],name:'tan'},
+
+  // ── NUTTY / COCOA ────────────────────────────────────────────────
+  // Dark chocolate / cocoa
+  {keys:['dark chocolate','黑巧克力','bittersweet','苦甜巧克力'],name:'brown'},
+  // Chocolate (generic)
+  {keys:['chocolate','巧克力','cacao','可可豆'],name:'brown'},
+  // Cocoa
+  {keys:['cocoa','可可'],name:'darkbrown'},
+  // Hazelnut
+  {keys:['hazelnut','榛子','榛果'],name:'tan'},
+  // Almond
+  {keys:['almond','杏仁'],name:'tan'},
+  // Walnut / pecan
+  {keys:['walnut','核桃','pecan','山核桃'],name:'taupe'},
+  // Peanut
+  {keys:['peanut','花生'],name:'taupe'},
+  // Generic nutty
+  {keys:['nutty','坚果','nut'],name:'tan'},
+
+  // ── SPICE ────────────────────────────────────────────────────────
+  {keys:['cinnamon','肉桂'],name:'terracotta'},
+  {keys:['clove','丁香','nutmeg','肉豆蔻','allspice'],name:'terracotta'},
+  {keys:['pepper','胡椒','black pepper','黑胡椒'],name:'taupe'},
+  {keys:['anise','八角','licorice','甘草'],name:'purple'},
+  {keys:['spice','香料'],name:'terracotta'},
+
+  // ── TEA / HERBAL / GREEN ─────────────────────────────────────────
+  {keys:['green tea','绿茶','matcha','抹茶'],name:'teal'},
+  {keys:['black tea','红茶','assam','darjeeling','大吉岭'],name:'moss'},
+  {keys:['oolong','乌龙'],name:'seagreen'},
+  {keys:['herbal','草本','herb'],name:'moss'},
+  {keys:['vegetal','植物','grass','青草'],name:'fern'},
+  {keys:['tea','茶'],name:'teal'},
+
+  // ── ROASTED / SMOKY ──────────────────────────────────────────────
+  {keys:['roasted','烘焙','roasty'],name:'deepteal'},
+  {keys:['smoky','烟熏','smoke','烟'],name:'darkbrown'},
+  {keys:['tobacco','烟草'],name:'darkbrown'},
+  {keys:['burnt','焦','charred'],name:'darkbrown'},
+  {keys:['cereal','谷物','malt','麦芽','grain','谷'],name:'taupe'},
+
+  // ── FERMENTED / WINEY ────────────────────────────────────────────
+  {keys:['fermented','发酵','ferment','kombucha'],name:'wine'},
+  {keys:['winey','酒香','酒'],name:'wine'},
+  {keys:['whiskey','威士忌','rum','朗姆'],name:'amber'},
+
+  // ── ACIDITY DESCRIPTORS ──────────────────────────────────────────
+  {keys:['bright','通透','clean','干净','crystal','水晶'],name:'steelblue'},
+  {keys:['juicy','多汁','juiciness'],name:'sage'},
 ];
 const pal=i=>PALETTE[i%PALETTE.length];
 
-// Flavor-to-color keyword map (order matters: most specific first)
-const FLAVOR_MAP=[
-  // Blueberry — before generic berry
-  {keys:['blueberry','蓝莓'],name:'blue'},
-  // Blackcurrant / grape / winey / fermented / dark fruit
-  {keys:['blackcurrant','black currant','黑醋栗','grape','葡萄','prune','李子','raisin','葡萄干','winey','wine','发酵'],name:'wine'},
-  // Rose / violet — floral pink
-  {keys:['rose','玫瑰','violet','紫罗兰','peony','牡丹','hibiscus','芙蓉'],name:'dustypink'},
-  // Jasmine / white flower / elderflower — light floral
-  {keys:['jasmine','茉莉','white flower','白花','elderflower','接骨木','chamomile','洋甘菊','osmanthus','桂花','floral','花香'],name:'mauve'},
-  // Strawberry / raspberry / cherry / berry
-  {keys:['strawberry','草莓','raspberry','覆盆子','cherry','樱桃','pomegranate','石榴','cranberry','蔓越莓','red fruit','红色水果','red berry','berry','浆果'],name:'red'},
-  // Bergamot / citrus / lemon / lime / grapefruit
-  {keys:['bergamot','佛手柑','grapefruit','葡萄柚','lemon','柠檬','lime','青柠','citrus','柑橘','orange peel','橙皮','zest'],name:'gold'},
-  // Tropical — mango, pineapple, passion fruit, lychee
-  {keys:['tropical','热带','pineapple','菠萝','mango','芒果','passion fruit','百香果','papaya','木瓜','lychee','荔枝','coconut','椰子'],name:'amber'},
-  // Peach / apricot / stone fruit / orange
-  {keys:['peach','桃','apricot','杏','nectarine','油桃','orange','橙子'],name:'orange'},
-  // Apple / pear / green grape
-  {keys:['apple','苹果','pear','梨','green grape','青提','white grape','白葡萄'],name:'apple'},
-  // Honey / caramel / maple / brown sugar / vanilla
-  {keys:['honey','蜂蜜','caramel','焦糖','maple','枫糖','brown sugar','红糖','molasses','糖蜜','toffee','太妃糖','vanilla','香草','butterscotch'],name:'amber'},
-  // Green tea / herbal / vegetal / tea
-  {keys:['green tea','绿茶','matcha','抹茶','herbal','草本','vegetal','植物','hay','草'],name:'seagreen'},
-  // Tea (black / oolong) 
-  {keys:['black tea','红茶','oolong','乌龙','tea','茶'],name:'teal'},
-  // Chocolate / cocoa / dark chocolate
-  {keys:['chocolate','巧克力','cocoa','可可','cacao','dark chocolate','黑巧克力'],name:'darkbrown'},
-  // Nutty — hazelnut, almond, walnut
-  {keys:['hazelnut','榛子','almond','杏仁','walnut','核桃','peanut','花生','nutty','坚果'],name:'brown'},
-  // Spice
-  {keys:['cinnamon','肉桂','clove','丁香','nutmeg','肉豆蔻','spice','香料','pepper','胡椒'],name:'terracotta'},
-  // Roasted / smoky / tobacco
-  {keys:['roasted','烘焙','smoky','烟熏','tobacco','烟草','burnt','焦'],name:'deepteal'},
-];
+
 
 function paletteByName(name){return PALETTE.find(p=>p.name===name)||PALETTE[0];}
 
