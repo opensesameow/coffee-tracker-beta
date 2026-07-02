@@ -229,48 +229,47 @@ function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',
 function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false,user_id:c.userId||(getSession()&&getSession().userId)||null};}
 
 const PALETTE=[
-  // Reds — highest chroma, warm hue ~0-10°
-  // strawberry ~130, raspberry ~120, cherry ~110, rosered ~100
-  {bg:'#FAEAEA',strip:'#C85050',name:'red'},           // chroma~120  strawberry
-  {bg:'#F8EAEA',strip:'#B84040',name:'crimson'},       // chroma~112  raspberry
-  {bg:'#FAE8ED',strip:'#C05068',name:'rosered'},       // chroma~96   cherry, cranberry, pomegranate
-  // Pinks — medium-high chroma, warm-cool hue ~330-350°
-  {bg:'#F7EAF2',strip:'#B06890',name:'rose'},          // chroma~72   lychee, rose petal
-  {bg:'#F7EAF4',strip:'#A06088',name:'hibiscus'},      // chroma~64   hibiscus
-  // Mauves & purples — medium chroma, hue ~280-310°
-  {bg:'#F2EAF5',strip:'#8860A8',name:'lavender'},      // chroma~72   violet, lavender
-  {bg:'#EDE6F2',strip:'#705090',name:'purple'},        // chroma~64   grape
-  {bg:'#E8E0EE',strip:'#582870',name:'wine'},          // chroma~72   blackcurrant, winey
-  {bg:'#E6DFF0',strip:'#482060',name:'plum'},          // chroma~64   prune, dried dark fruit
-  // Yellows & golds — medium-high chroma, hue ~40-55°
-  {bg:'#FAF4E0',strip:'#C09820',name:'citrusgold'},    // chroma~160  bergamot, lemon
-  {bg:'#FAF0DC',strip:'#C08020',name:'gold'},          // chroma~160  honey, osmanthus, citrus peel
-  {bg:'#FAE8D4',strip:'#B87030',name:'amber'},         // chroma~136  caramel, mango, tropical
-  // Pale yellow-green — low-medium chroma, hue ~65-75°
-  {bg:'#F5F8E0',strip:'#889020',name:'limegreen'},     // chroma~112  lemon blossom, white flower, lime
-  {bg:'#F0F5D8',strip:'#708018',name:'olive'},         // chroma~88   pineapple, passion fruit, grapefruit
-  // Oranges — medium-high chroma, hue ~20-35°
-  {bg:'#F8E4CC',strip:'#B86030',name:'peach'},         // chroma~136  peach, apricot, orange
-  {bg:'#F6E0C8',strip:'#A05028',name:'terracotta'},    // chroma~120  spice, cinnamon, clove
-  // Greens — medium chroma, hue ~90-130°
-  {bg:'#EAF2DC',strip:'#608840',name:'sage'},          // chroma~72   apple, pear
-  {bg:'#E4EED4',strip:'#508038',name:'apple'},         // chroma~72   green apple, white grape
-  {bg:'#DEEACC',strip:'#486830',name:'moss'},          // chroma~56   vegetal, herb
-  {bg:'#D8E6C4',strip:'#385828',name:'fern'},          // chroma~48   hay, dry vegetal
-  // Sea greens & teals — medium chroma, hue ~150-180°
-  {bg:'#E0F0E8',strip:'#408870',name:'seagreen'},      // chroma~72   jasmine, oolong
-  {bg:'#D8ECE8',strip:'#307868',name:'teal'},          // chroma~72   green tea, matcha
-  {bg:'#D0E6E4',strip:'#206858',name:'deepteal'},      // chroma~72   black tea, roasted
-  // Blues — medium chroma, hue ~210-240°
-  {bg:'#E0EAF4',strip:'#486898',name:'slate'},         // chroma~80   blueberry
-  {bg:'#D8E4F0',strip:'#385880',name:'steelblue'},     // chroma~72   clean, bright acidity
-  {bg:'#D0DCEC',strip:'#284868',name:'navy'},          // chroma~64   complex, dark
-  // Browns — low chroma, warm hue ~20-40°
-  {bg:'#EEE8DC',strip:'#886040',name:'tan'},           // chroma~72   hazelnut, almond, coconut, vanilla
-  {bg:'#E8E0D4',strip:'#705030',name:'brown'},         // chroma~64   chocolate, cocoa
-  {bg:'#E4DAD0',strip:'#584028',name:'darkbrown'},     // chroma~48   dark chocolate, smoky, tobacco
-  {bg:'#EAE4DC',strip:'#786858',name:'taupe'},         // chroma~32   walnut, pepper, woody spice
-  {bg:'#E8E6E2',strip:'#686058',name:'greytaupe'},     // chroma~16   neutral fallback
+  // Reds — strawberry, raspberry, cherry
+  {bg:'#FDF0F0',strip:'#E87878',name:'red'},
+  {bg:'#FDF0F2',strip:'#D86878',name:'crimson'},
+  {bg:'#FDF0F4',strip:'#D87090',name:'rosered'},
+  // Pinks — lychee, rose, hibiscus
+  {bg:'#FCF0F6',strip:'#C878A8',name:'rose'},
+  {bg:'#FCF0F5',strip:'#C070A0',name:'hibiscus'},
+  // Purples — lavender, grape, wine, plum
+  {bg:'#F8F0FC',strip:'#A880C8',name:'lavender'},
+  {bg:'#F4EEF8',strip:'#9070B8',name:'purple'},
+  {bg:'#F0ECF8',strip:'#7850A0',name:'wine'},
+  {bg:'#EEE8F6',strip:'#684890',name:'plum'},
+  // Yellows & golds — citrus, honey, amber
+  {bg:'#FEFBE8',strip:'#D0A830',name:'citrusgold'},
+  {bg:'#FEF8E0',strip:'#C89030',name:'gold'},
+  {bg:'#FEF2D8',strip:'#C07838',name:'amber'},
+  // Yellow-greens — lemon blossom, lime, white flower
+  {bg:'#F8FCE4',strip:'#A0A830',name:'limegreen'},
+  {bg:'#F4FAD8',strip:'#889020',name:'olive'},
+  // Oranges — peach, apricot, spice
+  {bg:'#FEF0E0',strip:'#D07840',name:'peach'},
+  {bg:'#FEE8D8',strip:'#C06038',name:'terracotta'},
+  // Greens — apple, sage, vegetal
+  {bg:'#F0F8E4',strip:'#78A850',name:'sage'},
+  {bg:'#EAF6DC',strip:'#689840',name:'apple'},
+  {bg:'#E4F4D4',strip:'#588040',name:'moss'},
+  {bg:'#DEF0CC',strip:'#487030',name:'fern'},
+  // Sea greens & teals — jasmine, oolong, green tea
+  {bg:'#E8F8F2',strip:'#50A888',name:'seagreen'},
+  {bg:'#E0F6EE',strip:'#409878',name:'teal'},
+  {bg:'#D8F2E8',strip:'#308868',name:'deepteal'},
+  // Blues — blueberry, acidity, clean
+  {bg:'#EEF4FC',strip:'#68A0C8',name:'slate'},
+  {bg:'#E8F0FA',strip:'#5888B8',name:'steelblue'},
+  {bg:'#E0EAF6',strip:'#4870A0',name:'navy'},
+  // Browns — hazelnut, chocolate, roasted
+  {bg:'#F8F2E8',strip:'#A87848',name:'tan'},
+  {bg:'#F4EEE4',strip:'#906040',name:'brown'},
+  {bg:'#F0E8DC',strip:'#785030',name:'darkbrown'},
+  {bg:'#F4F0E8',strip:'#908070',name:'taupe'},
+  {bg:'#F2F0EE',strip:'#807870',name:'greytaupe'},
 ];
 
 // Flavor-to-color keyword map
@@ -455,33 +454,50 @@ function hue(hex){
 // Hue distance between two angles (0-180)
 function hueDist(a,b){const d=Math.abs(a-b);return d>180?360-d:d;}
 
+// usedColors: set of strip hex values already assigned this render cycle
+// Call resetUsedColors() before rendering the full list
+let _usedColors=new Set();
+function resetUsedColors(){_usedColors=new Set();}
+
 function palByTaste(tasteNotes,id){
+  // Collect all palette candidates from taste notes
   const matches=[];
+  const seen=new Set();
   if(tasteNotes){
     const t=tasteNotes.toLowerCase();
     for(const rule of FLAVOR_MAP){
       if(rule.keys.some(k=>t.includes(k.toLowerCase()))){
         const p=paletteByName(rule.name);
-        if(p)matches.push(p);
+        if(p&&!seen.has(p.name)){seen.add(p.name);matches.push(p);}
       }
     }
   }
-  if(matches.length>0){
-    // If only one match, use it
-    if(matches.length===1)return matches[0];
-    // Pick the match with highest chroma on its strip color (most vivid)
-    // Tiebreak: if two have similar chroma, prefer the one with most distinct hue from others
-    let best=matches[0],bestScore=chroma(matches[0].strip);
-    for(let i=1;i<matches.length;i++){
-      const c=chroma(matches[i].strip);
-      if(c>bestScore){bestScore=c;best=matches[i];}
-    }
-    return best;
+  // Sort candidates by chroma descending — most vivid first
+  matches.sort((a,b)=>chroma(b.strip)-chroma(a.strip));
+
+  // Pick the highest-chroma candidate not already used by another coffee
+  for(const p of matches){
+    if(!_usedColors.has(p.strip)){_usedColors.add(p.strip);return p;}
   }
-  // Fallback: stable hash of id
+  // All flavor matches are taken — pick from full palette by hue distance from used colors
+  if(matches.length>0){
+    // Find palette entry with max min-distance from all used hues
+    const usedHues=[..._usedColors].map(hue);
+    let best=null,bestDist=0;
+    for(const p of PALETTE){
+      if(_usedColors.has(p.strip))continue;
+      const h=hue(p.strip);
+      const minDist=usedHues.length?Math.min(...usedHues.map(u=>hueDist(h,u))):360;
+      if(minDist>bestDist){bestDist=minDist;best=p;}
+    }
+    if(best){_usedColors.add(best.strip);return best;}
+  }
+  // Final fallback: stable hash
   if(!id)return PALETTE[0];
   let h=0;for(let i=0;i<id.length;i++){h=(h*31+id.charCodeAt(i))>>>0;}
-  return PALETTE[h%PALETTE.length];
+  const p=PALETTE[h%PALETTE.length];
+  _usedColors.add(p.strip);
+  return p;
 }
 
 function palById(id){
@@ -523,6 +539,7 @@ function sortedActive(){
   return active.slice().sort((a,b)=>(a.readyDate||'9999').localeCompare(b.readyDate||'9999')); // ready date ascending: default
 }
 function renderList(){
+  resetUsedColors();
   const el=document.getElementById('coffee-list');
   let html='';
   if(editingIdx==='new')html=`<div class="ccard"><div class="inline-modal">${editFormHtml({})}</div></div>`;
@@ -532,6 +549,7 @@ function renderList(){
   el.innerHTML=html;
 }
 function renderArchive(){
+  resetUsedColors();
   const el=document.getElementById('archive-list');
   const archived=coffees.filter(c=>c.archived);
   if(!archived.length){el.innerHTML='<div style="text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;">No archived coffees yet.</div>';return;}
@@ -794,6 +812,7 @@ function getBrewEntry(){
 }
 
 function renderCalendar(){
+  resetUsedColors();
   const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('cal-label').textContent=MONTHS[calMonth]+' '+calYear;
   const grid=document.getElementById('cal-grid');
