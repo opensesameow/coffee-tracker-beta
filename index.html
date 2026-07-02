@@ -255,7 +255,25 @@ const PALETTE=[
 
 const pal=i=>PALETTE[i%PALETTE.length];
 
+// Assign colors to the full coffee list at once, guaranteeing no repeats.
+// Sort coffees by ID hash, then assign palette slots in order.
+// Result: same coffee always gets same color as long as the set of coffees is stable.
+let _colorMap={}; // id -> palette index
+function buildColorMap(coffeeList){
+  _colorMap={};
+  // Give each coffee a stable hash score
+  const scored=coffeeList.map(c=>{
+    if(!c.id)return{id:c.id,score:0};
+    let h=0;for(let i=0;i<c.id.length;i++){h=(h*31+c.id.charCodeAt(i))>>>0;}
+    return{id:c.id,score:h};
+  });
+  // Sort by score to get a stable ordering
+  scored.sort((a,b)=>a.score-b.score);
+  // Assign palette slots round-robin — no two coffees share a slot
+  scored.forEach((c,i)=>{_colorMap[c.id]=i%PALETTE.length;});
+}
 function palById(id){
+  if(id in _colorMap)return PALETTE[_colorMap[id]];
   if(!id)return PALETTE[0];
   let h=0;for(let i=0;i<id.length;i++){h=(h*31+id.charCodeAt(i))>>>0;}
   return PALETTE[h%PALETTE.length];
@@ -660,7 +678,7 @@ function closeCalPopup(e){
   document.getElementById('cal-popup').innerHTML='';
 }
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
-function render(){renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();if(document.getElementById('view-archive').style.display!=='none')renderArchive();}
+function render(){buildColorMap(coffees);renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();if(document.getElementById('view-archive').style.display!=='none')renderArchive();}
 async function compressDataUrl(dataUrl){
   return new Promise(res=>{
     const img=new Image();
