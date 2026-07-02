@@ -119,7 +119,7 @@
     .cal-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#555;min-width:0;}
     .cal-legend-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .cal-legend-resting{grid-column:1/-1;display:flex;align-items:center;gap:6px;font-size:11px;color:#888;}
-    @media(max-width:480px){.cal-legend{grid-template-columns:1fr;}.cal-legend-resting{grid-column:1;}}
+    @media(max-width:480px){.cal-legend{grid-template-columns:1fr 1fr;}.cal-legend-resting{grid-column:1/-1;}}
     .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-size:13px;padding:8px 18px;border-radius:8px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
     .toast.show{opacity:1;}
     .loading{text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;}
@@ -161,9 +161,8 @@
       <button class="tab-main" onclick="switchMain('archive',this)">Archive</button>
     </div>
     <select id="sort-select" onchange="setSortOrder(this.value)" style="font-size:12px;padding:5px 10px;border-radius:8px;border:0.5px solid #d5d5d3;background:#fff;color:#888;cursor:pointer;">
-      <option value="added">Date added</option>
-      <option value="roast">Roast date</option>
-      <option value="ready">Ready date</option>
+      <option value="roast" selected>Roast date ↓</option>
+      <option value="ready">Ready date ↑</option>
       <option value="name">Name A–Z</option>
     </select>
   </div>
@@ -229,7 +228,7 @@ async function dbDelete(id){const r=await fetchWithTimeout(NEON_URL+'/coffees?id
 function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',process:row.process||'',producer:row.producer||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',photo:row.photo||null,brewLog:row.brew_log||[],archived:row.archived||false,userId:row.user_id||null};}
 function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false,user_id:c.userId||(getSession()&&getSession().userId)||null};}
 
-const PALETTE=[{bg:'#EEF4FC',strip:'#85B7EB'},{bg:'#FEF9EC',strip:'#FAC775'},{bg:'#EAF3DE',strip:'#97C459'},{bg:'#FBEAF0',strip:'#ED93B1'},{bg:'#E1F5EE',strip:'#5DCAA5'},{bg:'#EEEDFE',strip:'#AFA9EC'},{bg:'#FAECE7',strip:'#F0997B'},{bg:'#F1EFE8',strip:'#B4B2A9'}];
+const PALETTE=[{bg:'#EEF4FC',strip:'#85B7EB'},{bg:'#FEF9EC',strip:'#FAC775'},{bg:'#EAF3DE',strip:'#97C459'},{bg:'#FBEAF0',strip:'#ED93B1'},{bg:'#E1F5EE',strip:'#5DCAA5'},{bg:'#EEEDFE',strip:'#AFA9EC'},{bg:'#FAECE7',strip:'#F0997B'},{bg:'#F1EFE8',strip:'#B4B2A9'},{bg:'#FDF3EE',strip:'#E8825A'},{bg:'#EDF6FB',strip:'#4AAFD5'},{bg:'#F5EEF8',strip:'#C39BD3'},{bg:'#E8F8F5',strip:'#45B39D'},{bg:'#FEF5E7',strip:'#F0A500'},{bg:'#EAFAF1',strip:'#52BE80'},{bg:'#FDEDEC',strip:'#E74C3C'},{bg:'#EBF5FB',strip:'#2E86C1'}];
 const pal=i=>PALETTE[i%PALETTE.length];
 let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),sortOrder='added';
 let openBrewIdx={},editingIdx=null,brewEditIdx=null,brewEditEntryIdx=null,photoDataUrl=null;
@@ -260,10 +259,9 @@ function renderStats(){
 function setSortOrder(v){sortOrder=v;renderList();}
 function sortedActive(){
   const active=coffees.filter(c=>!c.archived);
-  if(sortOrder==='roast')return active.slice().sort((a,b)=>(b.roastDate||'').localeCompare(a.roastDate||''));
-  if(sortOrder==='ready')return active.slice().sort((a,b)=>(b.readyDate||'').localeCompare(a.readyDate||''));
+  if(sortOrder==='ready')return active.slice().sort((a,b)=>(a.readyDate||'9999').localeCompare(b.readyDate||'9999'));
   if(sortOrder==='name')return active.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-  return active; // 'added' = natural order from Neon (created_at desc)
+  return active.slice().sort((a,b)=>(b.roastDate||'').localeCompare(a.roastDate||'')); // roast date: newest first
 }
 function renderList(){
   const el=document.getElementById('coffee-list');
@@ -290,12 +288,14 @@ function archiveCardHtml(c,i){
       <div class="ccard-top">
         <div class="ccard-photo-wrap" style="background:${p.bg};">${iconHtml}</div>
         <div class="ccard-right">
-          <div class="ccard-info" style="position:relative;">
-            <div class="card-top-actions" style="position:absolute;top:.5rem;right:.6rem;">
-              <button class="btn-icon" title="Unarchive" onclick="unarchiveCoffee(${i})"><i class="ti ti-archive-off"></i></button>
-              <button class="btn-icon danger" title="Delete" onclick="deleteCoffee(${i})"><i class="ti ti-trash"></i></button>
+          <div class="ccard-info">
+            <div class="ccard-name-row">
+              <div class="ccard-name">${c.name||'Unnamed coffee'}</div>
+              <div class="card-top-actions">
+                <button class="btn-icon" title="Unarchive" onclick="unarchiveCoffee(${i})"><i class="ti ti-archive-off"></i></button>
+                <button class="btn-icon danger" title="Delete" onclick="deleteCoffee(${i})"><i class="ti ti-trash"></i></button>
+              </div>
             </div>
-            <div class="ccard-name" style="padding-right:62px;">${c.name||'Unnamed coffee'}</div>
             <div class="ccard-sub">${[c.roaster,c.origin].filter(Boolean).join(' · ')||'—'}</div>
             ${[c.process,c.producer].filter(Boolean).length?`<div class="ccard-sub">${[c.process,c.producer].filter(Boolean).join(' · ')}</div>`:''}
             ${c.tasteNotes?`<div class="ccard-taste">${c.tasteNotes}</div>`:''}
