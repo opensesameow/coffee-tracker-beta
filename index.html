@@ -230,50 +230,42 @@ function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origi
 
 // Palette: 14 warm, 6 cool. Exact hex from brand palette + brown/caramel additions.
 // Each entry tagged with taste-note category for soft mapping.
+// Gradient order: chocolate → caramel → orange → red → pink → plum → gold → yellow → lemon → apple → green → teal → blue
 const PALETTE=[
-  {bg:'#FEF9E8',strip:'#FCEA9B'},      // lemon
-  {bg:'#FEF7D6',strip:'#F9E242'},      // yellow
-  {bg:'#FEF0D4',strip:'#F8B120'},      // gold
-  {bg:'#FDEBD0',strip:'#EE7235'},  // orange
-  {bg:'#FDE8D8',strip:'#D4622A'},       // burnt orange (warm addition)
-  {bg:'#FDE6D4',strip:'#C85A38'},       // terracotta (warm addition)
-  {bg:'#FDEAEA',strip:'#E33640'},       // red
-  {bg:'#FAE8EC',strip:'#C4405A'},       // rose red (warm addition)
-  {bg:'#F7E8F0',strip:'#A83870'},       // raspberry (warm addition)
-  {bg:'#F5E6EE',strip:'#7B1753'},       // plum
-  {bg:'#EFE8F2',strip:'#561C51'},       // wine
-  {bg:'#F8EEE0',strip:'#B8784A'},       // caramel (warm addition)
-  {bg:'#F4EAD8',strip:'#9A6038'},       // hazelnut (warm addition)
-  {bg:'#F0E4D0',strip:'#7A4C28'},       // chocolate (warm addition)
-  {bg:'#EEF5E8',strip:'#C6DA8C'},       // apple
-  {bg:'#E8F4EC',strip:'#A7C365'},       // green
-  {bg:'#E4F5EE',strip:'#6FBE98'},       // sea green
-  {bg:'#E2F0F0',strip:'#4DB8B1'},       // turquoise
-  {bg:'#E4EEF8',strip:'#59A7DD'},       // light blue
-  {bg:'#E6EAF2',strip:'#456DB3'},       // blue
+  {bg:'#F0E4D0',strip:'#7A4C28'},  // 01 chocolate
+  {bg:'#F4EAD8',strip:'#9A6038'},  // 02 hazelnut
+  {bg:'#F8EEE0',strip:'#B8784A'},  // 03 caramel
+  {bg:'#FDE6D4',strip:'#C85A38'},  // 04 terracotta
+  {bg:'#FDEBD0',strip:'#EE7235'},  // 05 orange
+  {bg:'#FDE8D8',strip:'#D4622A'},  // 06 burnt orange
+  {bg:'#FDEAEA',strip:'#E33640'},  // 07 red
+  {bg:'#FAE8EC',strip:'#C4405A'},  // 08 rose red
+  {bg:'#F7E8F0',strip:'#A83870'},  // 09 raspberry
+  {bg:'#F5E6EE',strip:'#7B1753'},  // 10 plum
+  {bg:'#EFE8F2',strip:'#561C51'},  // 11 wine
+  {bg:'#FEF0D4',strip:'#F8B120'},  // 12 gold
+  {bg:'#FEF7D6',strip:'#F9E242'},  // 13 yellow
+  {bg:'#FEF9E8',strip:'#FCEA9B'},  // 14 lemon
+  {bg:'#EEF5E8',strip:'#C6DA8C'},  // 15 apple
+  {bg:'#E8F4EC',strip:'#A7C365'},  // 16 green
+  {bg:'#E4F5EE',strip:'#6FBE98'},  // 17 sea green
+  {bg:'#E2F0F0',strip:'#4DB8B1'},  // 18 turquoise
+  {bg:'#E4EEF8',strip:'#59A7DD'},  // 19 light blue
+  {bg:'#E6EAF2',strip:'#456DB3'},  // 20 blue
 ];
 
 const pal=i=>PALETTE[i%PALETTE.length];
 
-// Assign colors to the full coffee list at once, guaranteeing no repeats.
-// Sort coffees by ID hash, then assign palette slots in order.
-// Result: same coffee always gets same color as long as the set of coffees is stable.
-let _colorMap={}; // id -> palette index
+// Assign palette slots alphabetically by coffee name → A-Z flows through the warm→cool gradient.
+// No two coffees share a color (wraps if >20).
+let _colorMap={};
 function buildColorMap(coffeeList){
   _colorMap={};
-  // Give each coffee a stable hash score
-  const scored=coffeeList.map(c=>{
-    if(!c.id)return{id:c.id,score:0};
-    let h=0;for(let i=0;i<c.id.length;i++){h=(h*31+c.id.charCodeAt(i))>>>0;}
-    return{id:c.id,score:h};
-  });
-  // Sort by score to get a stable ordering
-  scored.sort((a,b)=>a.score-b.score);
-  // Assign palette slots round-robin — no two coffees share a slot
-  scored.forEach((c,i)=>{_colorMap[c.id]=i%PALETTE.length;});
+  const sorted=[...coffeeList].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  sorted.forEach((c,i)=>{if(c.id)_colorMap[c.id]=i%PALETTE.length;});
 }
 function palById(id){
-  if(id in _colorMap)return PALETTE[_colorMap[id]];
+  if(id&&id in _colorMap)return PALETTE[_colorMap[id]];
   if(!id)return PALETTE[0];
   let h=0;for(let i=0;i<id.length;i++){h=(h*31+id.charCodeAt(i))>>>0;}
   return PALETTE[h%PALETTE.length];
@@ -630,7 +622,8 @@ function renderCalendar(){
   grid.innerHTML=html;
   const leg=document.getElementById('cal-legend');
   const activeCoffees=coffees.filter(c=>!c.archived);
-  leg.innerHTML=activeCoffees.map((c)=>{const p=palById(c.id);const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'?';return`<div class="cal-legend-item"><div style="width:10px;height:10px;border-radius:2px;background:${p.strip};flex-shrink:0;"></div><span>${label}</span></div>`;}).join('')+(activeCoffees.length?`<div class="cal-legend-resting"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;flex-shrink:0;"></div> Resting</div>`:'');
+  const sortedLegend=[...activeCoffees].sort((a,b)=>(_colorMap[a.id]??99)-(_colorMap[b.id]??99));
+  leg.innerHTML=sortedLegend.map((c)=>{const p=palById(c.id);const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'?';return`<div class="cal-legend-item"><div style="width:10px;height:10px;border-radius:2px;background:${p.strip};flex-shrink:0;"></div><span>${label}</span></div>`;}).join('')+(activeCoffees.length?`<div class="cal-legend-resting"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;flex-shrink:0;"></div> Resting</div>`:'');
 }
 
 function showCalPopup(ds){
