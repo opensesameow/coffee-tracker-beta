@@ -161,8 +161,8 @@
       <button class="tab-main" onclick="switchMain('archive',this)">Archive</button>
     </div>
     <select id="sort-select" onchange="setSortOrder(this.value)" style="font-size:12px;padding:5px 10px;border-radius:8px;border:0.5px solid #d5d5d3;background:#fff;color:#888;cursor:pointer;">
-      <option value="roast" selected>Roast date ↓</option>
-      <option value="ready">Ready date ↑</option>
+      <option value="ready" selected>Ready date ↑</option>
+      <option value="roast">Roast date ↑</option>
       <option value="name">Name A–Z</option>
     </select>
   </div>
@@ -230,7 +230,7 @@ function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origi
 
 const PALETTE=[{bg:'#EEF4FC',strip:'#85B7EB'},{bg:'#FEF9EC',strip:'#FAC775'},{bg:'#EAF3DE',strip:'#97C459'},{bg:'#FBEAF0',strip:'#ED93B1'},{bg:'#E1F5EE',strip:'#5DCAA5'},{bg:'#EEEDFE',strip:'#AFA9EC'},{bg:'#FAECE7',strip:'#F0997B'},{bg:'#F1EFE8',strip:'#B4B2A9'},{bg:'#FDF3EE',strip:'#E8825A'},{bg:'#EDF6FB',strip:'#4AAFD5'},{bg:'#F5EEF8',strip:'#C39BD3'},{bg:'#E8F8F5',strip:'#45B39D'},{bg:'#FEF5E7',strip:'#F0A500'},{bg:'#EAFAF1',strip:'#52BE80'},{bg:'#FDEDEC',strip:'#E74C3C'},{bg:'#EBF5FB',strip:'#2E86C1'}];
 const pal=i=>PALETTE[i%PALETTE.length];
-let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),sortOrder='added';
+let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),sortOrder='ready';
 let openBrewIdx={},editingIdx=null,brewEditIdx=null,brewEditEntryIdx=null,photoDataUrl=null;
 
 function today(){return new Date().toISOString().split('T')[0];}
@@ -259,9 +259,9 @@ function renderStats(){
 function setSortOrder(v){sortOrder=v;renderList();}
 function sortedActive(){
   const active=coffees.filter(c=>!c.archived);
-  if(sortOrder==='ready')return active.slice().sort((a,b)=>(a.readyDate||'9999').localeCompare(b.readyDate||'9999'));
+  if(sortOrder==='roast')return active.slice().sort((a,b)=>(a.roastDate||'9999').localeCompare(b.roastDate||'9999'));
   if(sortOrder==='name')return active.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-  return active.slice().sort((a,b)=>(b.roastDate||'').localeCompare(a.roastDate||'')); // roast date: newest first
+  return active.slice().sort((a,b)=>(a.readyDate||'9999').localeCompare(b.readyDate||'9999')); // ready date ascending: default
 }
 function renderList(){
   const el=document.getElementById('coffee-list');
