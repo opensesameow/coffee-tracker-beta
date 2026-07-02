@@ -214,8 +214,12 @@ async function dbGet(){
   return r.json();
 }
 async function dbGetPhoto(id){
-  const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,photo&id=eq.'+id,{headers:{...HEADERS(),'Prefer':'return=representation'}});
-  if(!r.ok)return null;
+  // Use select=photo only — some RLS setups require explicit column in policy
+  const r=await fetchWithTimeout(NEON_URL+'/coffees?select=photo&id=eq.'+id,{headers:{...HEADERS(),'Prefer':'return=representation'}});
+  if(!r.ok){
+    console.warn('dbGetPhoto failed for',id,r.status);
+    return null;
+  }
   const rows=await r.json();
   return rows[0]&&rows[0].photo||null;
 }
@@ -645,6 +649,7 @@ async function compressDataUrl(dataUrl){
   });
 }
 async function migratePhotos(){
+  console.log('Starting photo migration for',coffees.length,'coffees');
   toast('Compressing photos… this may take a moment.');
   // Fetch photos one at a time to avoid 10MB limit
   const allIds=coffees.map(c=>c.id).filter(id=>id&&!String(id).startsWith('local-'));
