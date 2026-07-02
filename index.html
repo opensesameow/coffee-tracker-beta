@@ -228,8 +228,106 @@ async function dbDelete(id){const r=await fetchWithTimeout(NEON_URL+'/coffees?id
 function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',process:row.process||'',producer:row.producer||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',photo:row.photo||null,brewLog:row.brew_log||[],archived:row.archived||false,userId:row.user_id||null};}
 function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false,user_id:c.userId||(getSession()&&getSession().userId)||null};}
 
-const PALETTE=[{bg:'#EEF4FC',strip:'#85B7EB'},{bg:'#FEF9EC',strip:'#FAC775'},{bg:'#EAF3DE',strip:'#97C459'},{bg:'#FBEAF0',strip:'#ED93B1'},{bg:'#E1F5EE',strip:'#5DCAA5'},{bg:'#EEEDFE',strip:'#AFA9EC'},{bg:'#FAECE7',strip:'#F0997B'},{bg:'#F1EFE8',strip:'#B4B2A9'},{bg:'#FDF3EE',strip:'#E8825A'},{bg:'#EDF6FB',strip:'#4AAFD5'},{bg:'#F5EEF8',strip:'#C39BD3'},{bg:'#E8F8F5',strip:'#45B39D'},{bg:'#FEF5E7',strip:'#F0A500'},{bg:'#EAFAF1',strip:'#52BE80'},{bg:'#FDEDEC',strip:'#E74C3C'},{bg:'#EBF5FB',strip:'#2E86C1'}];
+const PALETTE=[
+  // Reds & pinks — berry, cherry, strawberry
+  {bg:'#FAEAEA',strip:'#C9706A',name:'red'},
+  {bg:'#F7ECEC',strip:'#B85C5C',name:'darkred'},
+  {bg:'#FAE8EE',strip:'#C4788A',name:'rosepink'},
+  // Purples — grape, blackcurrant, winey, floral
+  {bg:'#F2EAF4',strip:'#9B6BAA',name:'lavender'},
+  {bg:'#EDE6F0',strip:'#7A5490',name:'purple'},
+  {bg:'#EAE2EE',strip:'#6B4080',name:'plum'},
+  {bg:'#E8E0EE',strip:'#5A2D6E',name:'wine'},
+  // Pinks — rose, floral
+  {bg:'#F7EAF2',strip:'#B87AA8',name:'mauve'},
+  {bg:'#F5E8F0',strip:'#A86090',name:'dustypink'},
+  // Oranges & golds — citrus, peach, caramel, honey
+  {bg:'#FBF1E6',strip:'#C98A40',name:'gold'},
+  {bg:'#FAF0E6',strip:'#C87840',name:'amber'},
+  {bg:'#FAE8DC',strip:'#C46A40',name:'orange'},
+  {bg:'#F9E4D8',strip:'#BE5E38',name:'terracotta'},
+  // Yellows — tropical, lemon, lime
+  {bg:'#FAF8E0',strip:'#B8A830',name:'olive'},
+  {bg:'#F8F6DC',strip:'#A89828',name:'darkolive'},
+  // Greens — apple, pear, vegetal, tea
+  {bg:'#EEF4E4',strip:'#7A9E50',name:'sage'},
+  {bg:'#EAF2E0',strip:'#6A9040',name:'apple'},
+  {bg:'#E6F0DC',strip:'#5A8838',name:'moss'},
+  {bg:'#E2EED8',strip:'#4A7830',name:'fern'},
+  // Teals & sea greens — jasmine, herbal, green tea
+  {bg:'#E4F2EE',strip:'#4A9080',name:'seagreen'},
+  {bg:'#E0EEF0',strip:'#3A8088',name:'teal'},
+  {bg:'#DCE8EC',strip:'#2A6870',name:'deepteal'},
+  // Blues — blueberry, clean
+  {bg:'#E4EEF6',strip:'#5A80A8',name:'slate'},
+  {bg:'#E0EAF4',strip:'#4A6E98',name:'steelblue'},
+  {bg:'#DCE6F2',strip:'#3A5A88',name:'blue'},
+  {bg:'#D8E2EE',strip:'#2A4870',name:'navy'},
+  // Browns & earth — chocolate, cocoa, nutty, roasted
+  {bg:'#EEE8E0',strip:'#8A6A50',name:'tan'},
+  {bg:'#EAE2D8',strip:'#7A5A40',name:'brown'},
+  {bg:'#E6DCD0',strip:'#6A4A30',name:'darkbrown'},
+  // Neutrals — fallback
+  {bg:'#EEEBE6',strip:'#8A8070',name:'taupe'},
+];
 const pal=i=>PALETTE[i%PALETTE.length];
+
+// Flavor-to-color keyword map (order matters: most specific first)
+const FLAVOR_MAP=[
+  // Blueberry — before generic berry
+  {keys:['blueberry','蓝莓'],name:'blue'},
+  // Blackcurrant / grape / winey / fermented / dark fruit
+  {keys:['blackcurrant','black currant','黑醋栗','grape','葡萄','prune','李子','raisin','葡萄干','winey','wine','发酵'],name:'wine'},
+  // Rose / violet — floral pink
+  {keys:['rose','玫瑰','violet','紫罗兰','peony','牡丹','hibiscus','芙蓉'],name:'dustypink'},
+  // Jasmine / white flower / elderflower — light floral
+  {keys:['jasmine','茉莉','white flower','白花','elderflower','接骨木','chamomile','洋甘菊','osmanthus','桂花','floral','花香'],name:'mauve'},
+  // Strawberry / raspberry / cherry / berry
+  {keys:['strawberry','草莓','raspberry','覆盆子','cherry','樱桃','pomegranate','石榴','cranberry','蔓越莓','red fruit','红色水果','red berry','berry','浆果'],name:'red'},
+  // Bergamot / citrus / lemon / lime / grapefruit
+  {keys:['bergamot','佛手柑','grapefruit','葡萄柚','lemon','柠檬','lime','青柠','citrus','柑橘','orange peel','橙皮','zest'],name:'gold'},
+  // Tropical — mango, pineapple, passion fruit, lychee
+  {keys:['tropical','热带','pineapple','菠萝','mango','芒果','passion fruit','百香果','papaya','木瓜','lychee','荔枝','coconut','椰子'],name:'amber'},
+  // Peach / apricot / stone fruit / orange
+  {keys:['peach','桃','apricot','杏','nectarine','油桃','orange','橙子'],name:'orange'},
+  // Apple / pear / green grape
+  {keys:['apple','苹果','pear','梨','green grape','青提','white grape','白葡萄'],name:'apple'},
+  // Honey / caramel / maple / brown sugar / vanilla
+  {keys:['honey','蜂蜜','caramel','焦糖','maple','枫糖','brown sugar','红糖','molasses','糖蜜','toffee','太妃糖','vanilla','香草','butterscotch'],name:'amber'},
+  // Green tea / herbal / vegetal / tea
+  {keys:['green tea','绿茶','matcha','抹茶','herbal','草本','vegetal','植物','hay','草'],name:'seagreen'},
+  // Tea (black / oolong) 
+  {keys:['black tea','红茶','oolong','乌龙','tea','茶'],name:'teal'},
+  // Chocolate / cocoa / dark chocolate
+  {keys:['chocolate','巧克力','cocoa','可可','cacao','dark chocolate','黑巧克力'],name:'darkbrown'},
+  // Nutty — hazelnut, almond, walnut
+  {keys:['hazelnut','榛子','almond','杏仁','walnut','核桃','peanut','花生','nutty','坚果'],name:'brown'},
+  // Spice
+  {keys:['cinnamon','肉桂','clove','丁香','nutmeg','肉豆蔻','spice','香料','pepper','胡椒'],name:'terracotta'},
+  // Roasted / smoky / tobacco
+  {keys:['roasted','烘焙','smoky','烟熏','tobacco','烟草','burnt','焦'],name:'deepteal'},
+];
+
+function paletteByName(name){return PALETTE.find(p=>p.name===name)||PALETTE[0];}
+
+function palByTaste(tasteNotes,id){
+  if(tasteNotes){
+    const t=tasteNotes.toLowerCase();
+    for(const rule of FLAVOR_MAP){
+      if(rule.keys.some(k=>t.includes(k.toLowerCase())))return paletteByName(rule.name);
+    }
+  }
+  // Fallback: stable hash of id
+  if(!id)return PALETTE[0];
+  let h=0;for(let i=0;i<id.length;i++){h=(h*31+id.charCodeAt(i))>>>0;}
+  return PALETTE[h%PALETTE.length];
+}
+
+function palById(id){
+  if(!id)return PALETTE[0];
+  let h=0;for(let i=0;i<id.length;i++){h=(h*31+id.charCodeAt(i))>>>0;}
+  return PALETTE[h%PALETTE.length];
+}
 let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),sortOrder='ready';
 let openBrewIdx={},editingIdx=null,brewEditIdx=null,brewEditEntryIdx=null,photoDataUrl=null;
 
@@ -279,7 +377,7 @@ function renderArchive(){
   el.innerHTML=archived.map((c,i)=>archiveCardHtml(c,coffees.indexOf(c))).join('');
 }
 function archiveCardHtml(c,i){
-  const p=PALETTE[coffees.indexOf(c)%PALETTE.length];
+  const p=palByTaste(c.tasteNotes,c.id);
   const iconHtml=c.photo?`<img src="${c.photo}" alt="">`:(`<div class="ccard-photo-ph" style="color:`+p.strip+`;">Photo / icon</div>`);
   const brewOpen=!!openBrewIdx['a'+i];
   const brews=c.brewLog||[];
@@ -337,7 +435,7 @@ function archiveCardHtml(c,i){
 }
 
 function cardHtml(c,i){
-  const p=pal(i),status=getStatus(c),prog=restProg(c);
+  const p=palByTaste(c.tasteNotes,c.id),status=getStatus(c),prog=restProg(c);
   const barCol=status==='ready'?'#639922':status==='expired'?'#E24B4A':'#EF9F27';
   const badgeCls=status==='ready'?'badge-ready':status==='expired'?'badge-expired':'badge-resting';
   const daysLeft=c.readyDate?Math.max(0,Math.round((new Date(c.readyDate+'T12:00:00')-new Date(today()+'T12:00:00'))/86400000)):0;
@@ -544,7 +642,7 @@ function renderCalendar(){
   const stripMap={},labelMap={};
   window._calEvents={};
   coffees.filter(c=>!c.archived).forEach((c,i)=>{
-    const p=pal(coffees.indexOf(c));
+    const p=palByTaste(c.tasteNotes,c.id);
     const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'Coffee '+(i+1);
     if(c.roastDate&&c.readyDate){
       let cur=c.roastDate;
@@ -582,7 +680,7 @@ function renderCalendar(){
   grid.innerHTML=html;
   const leg=document.getElementById('cal-legend');
   const activeCoffees=coffees.filter(c=>!c.archived);
-  leg.innerHTML=activeCoffees.map((c)=>{const p=pal(coffees.indexOf(c));const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'?';return`<div class="cal-legend-item"><div style="width:10px;height:10px;border-radius:2px;background:${p.strip};flex-shrink:0;"></div><span>${label}</span></div>`;}).join('')+(activeCoffees.length?`<div class="cal-legend-resting"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;flex-shrink:0;"></div> Resting</div>`:'');
+  leg.innerHTML=activeCoffees.map((c)=>{const p=palByTaste(c.tasteNotes,c.id);const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'?';return`<div class="cal-legend-item"><div style="width:10px;height:10px;border-radius:2px;background:${p.strip};flex-shrink:0;"></div><span>${label}</span></div>`;}).join('')+(activeCoffees.length?`<div class="cal-legend-resting"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;flex-shrink:0;"></div> Resting</div>`:'');
 }
 
 function showCalPopup(ds){
