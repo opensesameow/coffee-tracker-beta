@@ -231,57 +231,34 @@ function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origi
 // Palette: 14 warm, 6 cool. Exact hex from brand palette + brown/caramel additions.
 // Each entry tagged with taste-note category for soft mapping.
 const PALETTE=[
-  {bg:'#FEF9E8',strip:'#FCEA9B',taste:'floral'},      // lemon
-  {bg:'#FEF7D6',strip:'#F9E242',taste:'floral'},      // yellow
-  {bg:'#FEF0D4',strip:'#F8B120',taste:'citrus'},      // gold
-  {bg:'#FDEBD0',strip:'#EE7235',taste:'stonefruit'},  // orange
-  {bg:'#FDE8D8',strip:'#D4622A',taste:'spice'},       // burnt orange (warm addition)
-  {bg:'#FDE6D4',strip:'#C85A38',taste:'spice'},       // terracotta (warm addition)
-  {bg:'#FDEAEA',strip:'#E33640',taste:'berry'},       // red
-  {bg:'#FAE8EC',strip:'#C4405A',taste:'berry'},       // rose red (warm addition)
-  {bg:'#F7E8F0',strip:'#A83870',taste:'berry'},       // raspberry (warm addition)
-  {bg:'#F5E6EE',strip:'#7B1753',taste:'berry'},       // plum
-  {bg:'#EFE8F2',strip:'#561C51',taste:'berry'},       // wine
-  {bg:'#F8EEE0',strip:'#B8784A',taste:'nutty'},       // caramel (warm addition)
-  {bg:'#F4EAD8',strip:'#9A6038',taste:'nutty'},       // hazelnut (warm addition)
-  {bg:'#F0E4D0',strip:'#7A4C28',taste:'nutty'},       // chocolate (warm addition)
-  {bg:'#EEF5E8',strip:'#C6DA8C',taste:'green'},       // apple
-  {bg:'#E8F4EC',strip:'#A7C365',taste:'green'},       // green
-  {bg:'#E4F5EE',strip:'#6FBE98',taste:'green'},       // sea green
-  {bg:'#E2F0F0',strip:'#4DB8B1',taste:'green'},       // turquoise
-  {bg:'#E4EEF8',strip:'#59A7DD',taste:'other'},       // light blue
-  {bg:'#E6EAF2',strip:'#456DB3',taste:'other'},       // blue
-];
-
-// Broad taste-note → palette taste tag
-const TASTE_TAGS=[
-  {keys:['strawberry','草莓','raspberry','覆盆子','cherry','樱桃','blackcurrant','黑醋栗','grape','葡萄','berry','浆果','prune','李子','pomegranate','石榴','cranberry','蔓越莓','lychee','荔枝','rose','玫瑰','hibiscus','芙蓉'],tag:'berry'},
-  {keys:['lemon','柠檬','lime','青柠','bergamot','佛手柑','grapefruit','葡萄柚','citrus','柑橘','orange','橙','tangerine','橘'],tag:'citrus'},
-  {keys:['peach','桃','apricot','杏','nectarine','油桃','mango','芒果','pineapple','菠萝','passion fruit','百香果','tropical','热带','lychee','荔枝','papaya','木瓜'],tag:'stonefruit'},
-  {keys:['jasmine','茉莉','floral','花香','white flower','白花','lemon blossom','柠檬花','chamomile','洋甘菊','osmanthus','桂花','violet','紫罗兰','elderflower','接骨木'],tag:'floral'},
-  {keys:['chocolate','巧克力','cocoa','可可','hazelnut','榛子','almond','杏仁','nutty','坚果','caramel','焦糖','honey','蜂蜜','vanilla','香草','brown sugar','红糖','toffee','太妃糖','walnut','核桃'],tag:'nutty'},
-  {keys:['green tea','绿茶','tea','茶','herbal','草本','vegetal','植物','apple','苹果','pear','梨','grass','草'],tag:'green'},
-  {keys:['spice','香料','cinnamon','肉桂','clove','丁香','pepper','胡椒','tobacco','烟草','roasted','烘焙','smoky','烟熏'],tag:'spice'},
+  {bg:'#FEF9E8',strip:'#FCEA9B'},      // lemon
+  {bg:'#FEF7D6',strip:'#F9E242'},      // yellow
+  {bg:'#FEF0D4',strip:'#F8B120'},      // gold
+  {bg:'#FDEBD0',strip:'#EE7235'},  // orange
+  {bg:'#FDE8D8',strip:'#D4622A'},       // burnt orange (warm addition)
+  {bg:'#FDE6D4',strip:'#C85A38'},       // terracotta (warm addition)
+  {bg:'#FDEAEA',strip:'#E33640'},       // red
+  {bg:'#FAE8EC',strip:'#C4405A'},       // rose red (warm addition)
+  {bg:'#F7E8F0',strip:'#A83870'},       // raspberry (warm addition)
+  {bg:'#F5E6EE',strip:'#7B1753'},       // plum
+  {bg:'#EFE8F2',strip:'#561C51'},       // wine
+  {bg:'#F8EEE0',strip:'#B8784A'},       // caramel (warm addition)
+  {bg:'#F4EAD8',strip:'#9A6038'},       // hazelnut (warm addition)
+  {bg:'#F0E4D0',strip:'#7A4C28'},       // chocolate (warm addition)
+  {bg:'#EEF5E8',strip:'#C6DA8C'},       // apple
+  {bg:'#E8F4EC',strip:'#A7C365'},       // green
+  {bg:'#E4F5EE',strip:'#6FBE98'},       // sea green
+  {bg:'#E2F0F0',strip:'#4DB8B1'},       // turquoise
+  {bg:'#E4EEF8',strip:'#59A7DD'},       // light blue
+  {bg:'#E6EAF2',strip:'#456DB3'},       // blue
 ];
 
 const pal=i=>PALETTE[i%PALETTE.length];
 
-function palById(id,tasteNotes){
-  // Find taste tag from notes
-  let tag=null;
-  if(tasteNotes){
-    const t=tasteNotes.toLowerCase();
-    for(const rule of TASTE_TAGS){
-      if(rule.keys.some(k=>t.includes(k))){tag=rule.tag;break;}
-    }
-  }
-  // Get candidates matching the tag (or all if no tag)
-  const candidates=tag?PALETTE.filter(p=>p.taste===tag):PALETTE;
-  const pool=candidates.length?candidates:PALETTE;
-  // Stable hash within the pool
-  if(!id)return pool[0];
+function palById(id){
+  if(!id)return PALETTE[0];
   let h=0;for(let i=0;i<id.length;i++){h=(h*31+id.charCodeAt(i))>>>0;}
-  return pool[h%pool.length];
+  return PALETTE[h%PALETTE.length];
 }
 let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),sortOrder='ready';
 let openBrewIdx={},editingIdx=null,brewEditIdx=null,brewEditEntryIdx=null,photoDataUrl=null;
@@ -332,7 +309,7 @@ function renderArchive(){
   el.innerHTML=archived.map((c,i)=>archiveCardHtml(c,coffees.indexOf(c))).join('');
 }
 function archiveCardHtml(c,i){
-  const p=palById(c.id,c.tasteNotes);
+  const p=palById(c.id);
   const iconHtml=c.photo?`<img src="${c.photo}" alt="">`:(`<div class="ccard-photo-ph" style="color:`+p.strip+`;">Photo / icon</div>`);
   const brewOpen=!!openBrewIdx['a'+i];
   const brews=c.brewLog||[];
@@ -390,7 +367,7 @@ function archiveCardHtml(c,i){
 }
 
 function cardHtml(c,i){
-  const p=palById(c.id,c.tasteNotes),status=getStatus(c),prog=restProg(c);
+  const p=palById(c.id),status=getStatus(c),prog=restProg(c);
   const barCol=status==='ready'?'#639922':status==='expired'?'#E24B4A':'#EF9F27';
   const badgeCls=status==='ready'?'badge-ready':status==='expired'?'badge-expired':'badge-resting';
   const daysLeft=c.readyDate?Math.max(0,Math.round((new Date(c.readyDate+'T12:00:00')-new Date(today()+'T12:00:00'))/86400000)):0;
@@ -597,7 +574,7 @@ function renderCalendar(){
   const stripMap={},labelMap={};
   window._calEvents={};
   coffees.filter(c=>!c.archived).forEach((c,i)=>{
-    const p=palById(c.id,c.tasteNotes);
+    const p=palById(c.id);
     const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'Coffee '+(i+1);
     if(c.roastDate&&c.readyDate){
       let cur=c.roastDate;
@@ -635,7 +612,7 @@ function renderCalendar(){
   grid.innerHTML=html;
   const leg=document.getElementById('cal-legend');
   const activeCoffees=coffees.filter(c=>!c.archived);
-  leg.innerHTML=activeCoffees.map((c)=>{const p=palById(c.id,c.tasteNotes);const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'?';return`<div class="cal-legend-item"><div style="width:10px;height:10px;border-radius:2px;background:${p.strip};flex-shrink:0;"></div><span>${label}</span></div>`;}).join('')+(activeCoffees.length?`<div class="cal-legend-resting"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;flex-shrink:0;"></div> Resting</div>`:'');
+  leg.innerHTML=activeCoffees.map((c)=>{const p=palById(c.id);const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'?';return`<div class="cal-legend-item"><div style="width:10px;height:10px;border-radius:2px;background:${p.strip};flex-shrink:0;"></div><span>${label}</span></div>`;}).join('')+(activeCoffees.length?`<div class="cal-legend-resting"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;flex-shrink:0;"></div> Resting</div>`:'');
 }
 
 function showCalPopup(ds){
