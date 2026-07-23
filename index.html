@@ -70,6 +70,7 @@
     .modal-tab{padding:5px 16px;font-size:12px;cursor:pointer;background:transparent;border:none;color:#888;}
     .modal-tab.active{background:#1a1a1a;color:#fff;}
     .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .brew-form-grid .brew-full{grid-column:1/-1;}
     @media (max-width:480px){
       .form-grid{grid-template-columns:1fr;}
       .brew-meta-item{border-top:0.5px solid #e5e5e3;}
@@ -366,6 +367,7 @@ function archiveCardHtml(c,i){
                 ${b.tds?`<div class="brew-meta-item">TDS<span>${b.tds}ppm</span></div>`:''}
                 ${b.dose?`<div class="brew-meta-item">Dose<span>${b.dose}g</span></div>`:''}
                 ${b.grind?`<div class="brew-meta-item">Grind<span>${b.grind}</span></div>`:''}
+                ${b.paper?`<div class="brew-meta-item">Paper<span>${b.paper}</span></div>`:''}
                 ${b.ratio?`<div class="brew-meta-item">Recipe<span>${b.ratio}</span></div>`:''}
               </div>
               ${b.notes?`<div class="brew-notes">${b.notes}</div>`:''}
@@ -403,6 +405,7 @@ function cardHtml(c,i){
         ${b.tds?`<div class="brew-meta-item">TDS<span>${b.tds}ppm</span></div>`:''}
         ${b.dose?`<div class="brew-meta-item">Dose<span>${b.dose}g</span></div>`:''}
         ${b.grind?`<div class="brew-meta-item">Grind<span>${b.grind}</span></div>`:''}
+        ${b.paper?`<div class="brew-meta-item">Paper<span>${b.paper}</span></div>`:''}
         ${b.ratio?`<div class="brew-meta-item">Recipe<span>${b.ratio}</span></div>`:''}
       </div>
       ${b.notes?`<div class="brew-notes">${b.notes}</div>`:''}
@@ -507,15 +510,16 @@ function brewFormHtml(coffeeIdx,entryIdx,existing){
         <select id="b-method"><option value="">Select...</option>${['Espresso','Filter / pour over','French press','AeroPress','Moka pot','Cold brew','Other'].map(m=>`<option ${b.method===m?'selected':''}>${m}</option>`).join('')}</select>
       </div>
       <div class="ff brew-full"><label>Filter</label>
-        <select id="b-filter" onchange="toggleFilterOther()"><option value="">Select...</option>${['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Other'].map(f=>`<option ${b.filter===f?'selected':''}>${f}</option>`).join('')}</select>
+        <select id="b-filter" onchange="toggleFilterOther()"><option value="">Select...</option>${['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2','Other'].map(f=>`<option ${b.filter===f?'selected':''}>${f}</option>`).join('')}</select>
       </div>
-      <div class="ff brew-full" id="b-filter-other-wrap" style="display:${b.filter&&!['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1'].includes(b.filter)&&b.filter!==''?'flex':'none'};flex-direction:column;gap:4px;">
-        <label>Specify filter</label><input type="text" id="b-filter-other" value="${b.filter&&!['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1'].includes(b.filter)?b.filter:''}" placeholder="e.g. Kalita Wave">
+      <div class="ff brew-full" id="b-filter-other-wrap" style="display:${b.filter&&!['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2'].includes(b.filter)&&b.filter!==''?'flex':'none'};flex-direction:column;gap:4px;">
+        <label>Specify filter</label><input type="text" id="b-filter-other" value="${b.filter&&!['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2'].includes(b.filter)?b.filter:''}" placeholder="e.g. Kalita Wave">
       </div>
       <div class="ff"><label>Water temp (°C)</label><input type="number" id="b-temp" value="${b.temp||''}" placeholder="93" min="50" max="100"></div>
       <div class="ff"><label>Water TDS (ppm)</label><input type="number" id="b-tds" value="${b.tds||''}" placeholder="150" min="0"></div>
       <div class="ff"><label>Dose (g)</label><input type="number" id="b-dose" value="${b.dose||''}" placeholder="18" min="1"></div>
       <div class="ff"><label>Grind</label><input type="text" id="b-grind" value="${b.grind||''}" placeholder="C40 25"></div>
+      <div class="ff"><label>Filter paper</label><input type="text" id="b-paper" value="${b.paper||''}" placeholder="e.g. Cafec Abaca"></div>
       <div class="ff brew-full"><label>Recipe</label><input type="text" id="b-ratio" value="${b.ratio||''}" placeholder="e.g. 30/120/225"></div>
       <div class="ff full"><label>Taste notes</label><textarea id="b-notes" placeholder="Blueberry, bright acidity...">${b.notes||''}</textarea></div>
     </div>
@@ -571,7 +575,7 @@ function cancelBrewForm(i){brewEditIdx=null;brewEditEntryIdx=null;renderList();}
 function getBrewEntry(){
   const filterVal=document.getElementById('b-filter').value;
   const filterOther=document.getElementById('b-filter-other')?document.getElementById('b-filter-other').value:'';
-  return{date:document.getElementById('b-date').value,method:document.getElementById('b-method').value,filter:filterVal==='Other'?filterOther||'Other':filterVal,temp:document.getElementById('b-temp').value,tds:document.getElementById('b-tds').value,dose:document.getElementById('b-dose').value,ratio:document.getElementById('b-ratio').value,grind:document.getElementById('b-grind').value,notes:document.getElementById('b-notes').value.trim()};
+  return{date:document.getElementById('b-date').value,method:document.getElementById('b-method').value,filter:filterVal==='Other'?filterOther||'Other':filterVal,temp:document.getElementById('b-temp').value,tds:document.getElementById('b-tds').value,dose:document.getElementById('b-dose').value,ratio:document.getElementById('b-ratio').value,grind:document.getElementById('b-grind').value,paper:document.getElementById('b-paper').value,notes:document.getElementById('b-notes').value.trim()};
 }
 
 function renderCalendar(){
