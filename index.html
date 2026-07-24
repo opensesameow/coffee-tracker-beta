@@ -505,13 +505,14 @@ function brewFormHtml(coffeeIdx,entryIdx,existing){
   return `<div class="brew-entry" style="border:0.5px solid #85B7EB;background:#f8fbff;">
     <div style="font-size:13px;font-weight:500;margin-bottom:.75rem;">${isEdit?'Edit brew entry':'New brew entry'}</div>
     <div class="form-grid brew-form-grid">
-      <div class="ff brew-full"><label>Date</label><input type="date" id="b-date" value="${b.date||today()}"></div>
-      <div class="ff brew-full"><label>Method</label>
+      <div class="ff"><label>Date</label><input type="date" id="b-date" value="${b.date||today()}"></div>
+      <div class="ff"><label>Method</label>
         <select id="b-method"><option value="">Select...</option>${['Espresso','Filter / pour over','French press','AeroPress','Moka pot','Cold brew','Other'].map(m=>`<option ${b.method===m?'selected':''}>${m}</option>`).join('')}</select>
       </div>
-      <div class="ff brew-full"><label>Filter</label>
+      <div class="ff"><label>Filter</label>
         <select id="b-filter" onchange="toggleFilterOther()"><option value="">Select...</option>${['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2','Other'].map(f=>`<option ${b.filter===f?'selected':''}>${f}</option>`).join('')}</select>
       </div>
+      <div class="ff"><label>Filter paper</label><input type="text" id="b-paper" value="${b.paper||''}" placeholder="e.g. Cafec Abaca"></div>
       <div class="ff brew-full" id="b-filter-other-wrap" style="display:${b.filter&&!['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2'].includes(b.filter)&&b.filter!==''?'flex':'none'};flex-direction:column;gap:4px;">
         <label>Specify filter</label><input type="text" id="b-filter-other" value="${b.filter&&!['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2'].includes(b.filter)?b.filter:''}" placeholder="e.g. Kalita Wave">
       </div>
@@ -519,7 +520,6 @@ function brewFormHtml(coffeeIdx,entryIdx,existing){
       <div class="ff"><label>Water TDS (ppm)</label><input type="number" id="b-tds" value="${b.tds||''}" placeholder="150" min="0"></div>
       <div class="ff"><label>Dose (g)</label><input type="number" id="b-dose" value="${b.dose||''}" placeholder="18" min="1"></div>
       <div class="ff"><label>Grind</label><input type="text" id="b-grind" value="${b.grind||''}" placeholder="C40 25"></div>
-      <div class="ff"><label>Filter paper</label><input type="text" id="b-paper" value="${b.paper||''}" placeholder="e.g. Cafec Abaca"></div>
       <div class="ff brew-full"><label>Recipe</label><input type="text" id="b-ratio" value="${b.ratio||''}" placeholder="e.g. 30/120/225"></div>
       <div class="ff full"><label>Taste notes</label><textarea id="b-notes" placeholder="Blueberry, bright acidity...">${b.notes||''}</textarea></div>
     </div>
