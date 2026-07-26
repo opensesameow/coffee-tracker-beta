@@ -33,9 +33,10 @@ button{cursor:pointer;background:none;border:none;}
 .btn-text{font-size:12px;padding:8px;color:var(--muted);width:100%;text-align:center;margin-top:2px;}
 
 /* ---------- header / hero ---------- */
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:1.5rem 1.25rem 0;}
-.topbar-icons{display:flex;gap:14px;color:var(--faint);font-size:15px;margin-top:4px;}
-.topbar-icons span{cursor:pointer;}
+.topbar{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:1.5rem 1.25rem 0;}
+.topbar-icons{display:flex;align-items:center;gap:16px;}
+.topbar-icons span{cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--faint);}
+.topbar-icons svg{width:18px;height:18px;display:block;}
 .greet-date{font-size:11px;color:var(--muted);padding:0 1.25rem;margin-top:2px;}
 .greet-title{font-size:30px;font-weight:700;line-height:1.1;padding:0 1.25rem;margin:4px 0 18px;}
 
@@ -88,7 +89,7 @@ button{cursor:pointer;background:none;border:none;}
 .cal-daynum.today{background:var(--text);color:#fff;}
 .cal-dots{display:flex;gap:2px;justify-content:center;height:5px;}
 .cal-dot{width:5px;height:5px;border-radius:50%;}
-.cal-legend{display:flex;justify-content:center;gap:18px;padding:1.25rem 0;margin-top:.75rem;border-top:0.5px solid var(--border);}
+.cal-legend{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:10px 18px;padding:1.25rem 0;margin-top:.75rem;border-top:0.5px solid var(--border);}
 .cal-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
 .cal-popup-bg{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:300;display:flex;align-items:center;justify-content:center;}
 .cal-popup{background:var(--surface2);border-radius:14px;padding:1.25rem;width:320px;max-width:90vw;max-height:75vh;overflow-y:auto;}
@@ -97,7 +98,7 @@ button{cursor:pointer;background:none;border:none;}
 
 /* ---------- detail / add-coffee / add-brew overlays ---------- */
 .overlay{position:fixed;inset:0;background:var(--surface2);z-index:200;display:flex;flex-direction:column;max-width:480px;margin:0 auto;overflow-y:auto;}
-.detail-hero{position:relative;height:220px;flex-shrink:0;background:var(--border);overflow:hidden;}
+.detail-hero{position:relative;aspect-ratio:4/5;flex-shrink:0;background:var(--border);overflow:hidden;}
 .detail-hero img{width:100%;height:100%;object-fit:cover;display:block;}
 .detail-back{position:absolute;top:16px;left:16px;color:rgba(255,255,255,.9);font-size:20px;background:rgba(0,0,0,.25);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
 .detail-hero-noimg .detail-back{color:var(--text);background:rgba(255,255,255,.6);}
@@ -160,6 +161,12 @@ button{cursor:pointer;background:none;border:none;}
 .toast.show{opacity:1;}
 .loading{text-align:center;padding:3rem 0;color:var(--faint);font-size:14px;}
 .sync-pill{font-size:10px;padding:3px 8px;border-radius:6px;display:none;}
+
+@media(min-width:900px){
+  .overlay{left:auto;right:0;margin:0;width:440px;max-width:440px;box-shadow:-12px 0 32px rgba(0,0,0,.10);}
+  .cal-popup-bg{justify-content:flex-end;align-items:stretch;background:rgba(0,0,0,.15);}
+  .cal-popup{border-radius:0;height:100vh;max-height:100vh;width:380px;max-width:380px;box-shadow:-12px 0 32px rgba(0,0,0,.10);}
+}
 </style>
 </head>
 <body>
@@ -181,8 +188,8 @@ button{cursor:pointer;background:none;border:none;}
   <div class="topbar">
     <span class="sync-pill" id="sync-status"></span>
     <div class="topbar-icons">
-      <span onclick="manualSync()" title="Sync">&#8635;</span>
-      <span onclick="handleLogout()" title="Log out">&#9099;</span>
+      <span onclick="manualSync()" title="Sync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg></span>
+      <span onclick="handleLogout()" title="Log out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
     </div>
   </div>
 
@@ -208,7 +215,6 @@ button{cursor:pointer;background:none;border:none;}
       <div class="cal-count" id="archive-count">0 archived</div>
       <div class="cal-title disp">Archive</div>
     </div>
-    <div class="sort-row" id="archive-sort-row"></div>
     <div class="clist" id="archive-list"></div>
   </div>
 
@@ -280,6 +286,22 @@ function getReadyDate(c){return c.roastDate?addDays(c.roastDate,c.restDays||0):'
 
 const STATUS_COLOR={resting:'#9B9892',ready:'#6E8F5E',opened:'#B8804A',bestby:'#B15C52',archived:'#C5C3BF'};
 
+// Per-coffee identity color (distinguishes coffees from each other; independent of status)
+function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0;}return h;}
+function hslToHex(h,s,l){
+  h=((h%360)+360)%360;s/=100;l/=100;
+  const k=n=>(n+h/30)%12;
+  const a=s*Math.min(l,1-l);
+  const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
+  const toHex=x=>Math.round(255*x).toString(16).padStart(2,'0');
+  return '#'+toHex(f(0))+toHex(f(8))+toHex(f(4));
+}
+function coffeeColor(c){
+  const key=(c&&(c.id||c.name))||'x';
+  const h=hashStr(String(key))%360;
+  return hslToHex(h,42,46);
+}
+
 function getStatus(c){
   if(c.archived)return'archived';
   const t=today();
@@ -318,17 +340,20 @@ const GREETINGS={
   evening:["Evening pour.","Winding down.","Evening."],
   night:["Late one.","Night brew.","Quiet hours."]
 };
+let _cachedGreeting=null;
 function pickGreeting(){
+  if(_cachedGreeting)return _cachedGreeting;
   const h=new Date().getHours();
   const bucket=h<5?'night':h<11?'morning':h<17?'afternoon':h<21?'evening':'night';
   const arr=GREETINGS[bucket];
-  return arr[Math.floor(Math.random()*arr.length)];
+  _cachedGreeting=arr[Math.floor(Math.random()*arr.length)];
+  return _cachedGreeting;
 }
 
 // ── State ──────────────────────────────────────────────────────────
 let coffees=[],currentTab='list';
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
-let sortOrder='ready',archiveSortOrder='ready';
+let sortOrder='ready';
 let editingCoffeeId=null,photoDataUrl=null;
 let editingBrewCoffeeId=null,editingBrewEntryIdx=null;
 
@@ -365,7 +390,6 @@ function renderSortRow(elId,current,setter){
   ).join('');
 }
 function setSortOrder(k){sortOrder=k;renderList();}
-function setArchiveSortOrder(k){archiveSortOrder=k;renderArchive();}
 
 function sortCoffees(list,key){
   const arr=list.slice();
@@ -376,21 +400,24 @@ function sortCoffees(list,key){
 }
 
 // ── Coffee card ───────────────────────────────────────────────────
-function cardHtml(c){
-  const status=getStatus(c),color=STATUS_COLOR[status];
+function cardHtml(c,opts){
+  const status=getStatus(c),statusColor=STATUS_COLOR[status],idColor=coffeeColor(c);
   const photoHtml=c.photo?`<img src="${c.photo}" alt="">`:'';
+  const isArchiveView=opts&&opts.archive;
+  const pillText=isArchiveView?((c.brewLog||[]).length?`${c.brewLog.length} brew${c.brewLog.length===1?'':'s'}`:'No brews yet'):statusLabel(c);
+  const pillColor=isArchiveView?'#9B9892':statusColor;
   return `<div class="ccard" onclick="openDetail('${c.id}')">
     <div class="cphoto">${photoHtml}</div>
     <div class="cinfo">
       <div>
         <div class="cname-row">
-          <span class="cdot" style="background:${color};"></span>
+          <span class="cdot" style="background:${idColor};"></span>
           <span class="cname disp">${esc(c.name||'Unnamed coffee')}</span>
         </div>
         <div class="cmeta">${esc([c.roaster,c.origin].filter(Boolean).join(' · ')||'—')}</div>
         ${c.tasteNotes?`<div class="cnotes">${esc(c.tasteNotes)}</div>`:''}
       </div>
-      <div class="cpill-wrap"><span class="cpill" style="color:${color};border-color:${color}55;">${statusLabel(c)}</span></div>
+      <div class="cpill-wrap"><span class="cpill" style="color:${pillColor};border-color:${pillColor}55;">${pillText}</span></div>
     </div>
   </div>`;
 }
@@ -411,11 +438,10 @@ function renderArchive(){
   const archived=coffees.filter(c=>c.archived);
   document.getElementById('archive-count').textContent=`${archived.length} archived`;
   document.getElementById('archive-tab-count').textContent=archived.length?`(${archived.length})`:'';
-  renderSortRow('archive-sort-row',archiveSortOrder,'setArchiveSortOrder');
   const el=document.getElementById('archive-list');
-  const sorted=sortCoffees(archived,archiveSortOrder);
+  const sorted=sortCoffees(archived,'name');
   if(!sorted.length){el.innerHTML='<div class="empty-msg">No archived coffees.</div>';return;}
-  el.innerHTML=sorted.map(cardHtml).join('');
+  el.innerHTML=sorted.map(c=>cardHtml(c,{archive:true})).join('');
 }
 
 function switchTab(tab){
@@ -440,7 +466,6 @@ function render(){
 
 // ── Calendar ──────────────────────────────────────────────────────
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const CAL_TYPE_COLOR={roast:STATUS_COLOR.resting,ready:STATUS_COLOR.ready,opened:STATUS_COLOR.opened,bestby:STATUS_COLOR.bestby};
 function renderCalendar(){
   document.getElementById('cal-count').textContent=`${coffees.filter(c=>!c.archived).length} coffees`;
   document.getElementById('cal-month-label').textContent=MONTHS[calMonth]+' '+calYear;
@@ -449,23 +474,25 @@ function renderCalendar(){
   const dim=new Date(calYear,calMonth+1,0).getDate();
   const events={};
   window._calEvents={};
-  coffees.filter(c=>!c.archived).forEach(c=>{
+  const activeCoffees=coffees.filter(c=>!c.archived);
+  activeCoffees.forEach(c=>{
     const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'Coffee';
-    const mark=(ds,type,txt)=>{
+    const idColor=coffeeColor(c);
+    const mark=(ds,txt)=>{
       if(!ds)return;
       const d=new Date(ds+'T12:00:00');
       if(d.getFullYear()===calYear&&d.getMonth()===calMonth){
         const day=d.getDate();
-        if(!events[day])events[day]=new Set();
-        events[day].add(type);
+        if(!events[day])events[day]=[];
+        events[day].push(idColor);
         if(!window._calEvents[day])window._calEvents[day]=[];
-        window._calEvents[day].push({color:CAL_TYPE_COLOR[type],label,type:txt});
+        window._calEvents[day].push({color:idColor,label,type:txt});
       }
     };
-    mark(c.roastDate,'roast','Roasted');
-    mark(getReadyDate(c),'ready','Ready');
-    mark(c.openDate,'opened','Opened');
-    if(c.bestby)mark(c.bestby,'bestby','Best-by');
+    mark(c.roastDate,'Roasted');
+    mark(getReadyDate(c),'Ready');
+    mark(c.openDate,'Opened');
+    if(c.bestby)mark(c.bestby,'Best-by');
   });
   let cells=[];
   for(let i=0;i<firstDay;i++)cells.push(null);
@@ -476,17 +503,15 @@ function renderCalendar(){
     if(!day)return'<div></div>';
     const ds=`${calYear}-${mm}-${String(day).padStart(2,'0')}`;
     const isToday=ds===t;
-    const types=events[day]?[...events[day]]:[];
-    const dotsHtml=types.slice(0,3).map(ty=>`<span class="cal-dot" style="background:${CAL_TYPE_COLOR[ty]};"></span>`).join('');
-    const onclick=types.length?`onclick="showCalPopup(${day})"`:'';
+    const colors=[...new Set(events[day]||[])];
+    const dotsHtml=colors.slice(0,3).map(col=>`<span class="cal-dot" style="background:${col};"></span>`).join('');
+    const onclick=colors.length?`onclick="showCalPopup(${day})"`:'';
     return `<div class="cal-day" ${onclick}><div class="cal-daynum ${isToday?'today':''}">${day}</div><div class="cal-dots">${dotsHtml}</div></div>`;
   }).join('');
   document.getElementById('cal-grid').innerHTML=html;
-  document.getElementById('cal-legend').innerHTML=`
-    <div class="cal-legend-item"><span class="cal-dot" style="background:${STATUS_COLOR.resting};"></span>Roast</div>
-    <div class="cal-legend-item"><span class="cal-dot" style="background:${STATUS_COLOR.ready};"></span>Ready</div>
-    <div class="cal-legend-item"><span class="cal-dot" style="background:${STATUS_COLOR.opened};"></span>Opened</div>
-    <div class="cal-legend-item"><span class="cal-dot" style="background:${STATUS_COLOR.bestby};"></span>Best-by</div>`;
+  document.getElementById('cal-legend').innerHTML=activeCoffees.length?activeCoffees.map(c=>
+    `<div class="cal-legend-item"><span class="cal-dot" style="background:${coffeeColor(c)};"></span>${esc(c.name||'Unnamed coffee')}</div>`
+  ).join(''):'';
 }
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function showCalPopup(day){
