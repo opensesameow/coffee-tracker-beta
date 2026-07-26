@@ -36,7 +36,7 @@ button{cursor:pointer;background:none;border:none;}
 
 /* ---------- header / hero ---------- */
 /* Aligned refresh/logout button to the top left side */
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:1.5rem 1.25rem 0;}
+.topbar{display:flex;justify-space-between;align-items:center;padding:1.5rem 1.25rem 0;}
 .topbar-icons{display:flex;align-items:center;gap:16px;}
 .topbar-icons span{cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--faint);}
 .topbar-icons svg{width:18px;height:18px;display:block;}
@@ -1084,7 +1084,7 @@ async function handleAuthSubmit(){
 }
 function handleLogout(){if(!confirm('Log out?'))return;clearSession();coffees=[];showAuthScreen();}
 function showAuthScreen(){document.getElementById('auth-screen').classList.remove('hide');document.getElementById('app').classList.add('hide');}
-function showApp(){document.getElementById('auth-screen').classList.hide;document.getElementById('app').classList.remove('hide');init();}
+function showApp(){document.getElementById('auth-screen').classList.add('hide');document.getElementById('app').classList.remove('hide');init();}
 
 (function bootAuth(){
   const s=getSession();
