@@ -1,188 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Coffee Tracker</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;background:#f5f5f3;}
-    input,select,textarea,button{font-family:inherit;color:#1a1a1a;}
-    html,body{overflow-x:hidden;width:100%;}
-    .app{max-width:680px;margin:0 auto;padding:1.5rem 1rem;width:100%;}
-    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;}
-    .header h1{font-size:22px;font-weight:500;}
-    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.1rem;}
-    .stat{background:#fff;border-radius:10px;padding:.8rem 1rem;border:0.5px solid #e5e5e3;}
-    .stat-label{font-size:12px;color:#888;margin-bottom:2px;}
-    .stat-value{font-size:22px;font-weight:500;}
-    .tabs-main{display:flex;border:0.5px solid #d5d5d3;border-radius:8px;overflow:hidden;margin-bottom:1.1rem;width:fit-content;}
-    .tab-main{padding:6px 18px;font-size:13px;cursor:pointer;background:transparent;border:none;color:#888;}
-    .tab-main.active{background:#1a1a1a;color:#fff;}
-    .add-btn{display:flex;align-items:center;gap:5px;font-size:13px;padding:7px 14px;border-radius:8px;border:0.5px solid #d5d5d3;background:transparent;cursor:pointer;font-weight:500;}
-    .add-btn:hover{background:#f0f0ee;}
-    .coffee-list{display:flex;flex-direction:column;gap:12px;}
-    .ccard{background:#fff;border:0.5px solid #e5e5e3;border-radius:12px;overflow:visible;position:relative;}
-    .ccard-inner{overflow:hidden;border-radius:12px;}
-    .ccard-top{display:flex;min-height:150px;}
-    .ccard-photo-wrap{width:40%;flex-shrink:0;border-right:0.5px solid #e5e5e3;overflow:hidden;display:flex;align-self:stretch;}
-    .ccard-photo-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
-    .ccard-photo-ph{width:100%;display:flex;align-items:center;justify-content:center;font-size:11px;text-align:center;padding:12px;line-height:1.6;color:#aaa;}
-    .ccard-right{display:flex;flex-direction:column;flex:1;min-width:0;}
-    .ccard-info{padding:.75rem 1rem;display:flex;flex-direction:column;gap:3px;flex:1;}
-    .ccard-name-row{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;}
-    .ccard-name{font-size:15px;font-weight:500;flex:1;min-width:0;word-break:break-word;}
-    .ccard-sub{font-size:12px;color:#888;}
-    .ccard-taste{font-size:12px;color:#888;margin-top:3px;line-height:1.4;}
-    .ccard-badge-row{margin-top:6px;}
-    .badge{font-size:11px;padding:2px 9px;border-radius:6px;font-weight:500;white-space:nowrap;display:inline-block;}
-    .badge-resting{background:#FEF9EC;color:#854F0B;}
-    .badge-ready{background:#EAF3DE;color:#3B6D11;}
-    .badge-expired{background:#FCEBEB;color:#A32D2D;}
-    .rest-bar{height:3px;background:#e5e5e3;border-radius:2px;overflow:hidden;margin:.4rem 0 0;}
-    .rest-bar-fill{height:100%;border-radius:2px;}
-    .card-top-actions{display:flex;gap:4px;margin-left:auto;flex-shrink:0;}
-    .btn-icon{width:26px;height:26px;border-radius:6px;border:0.5px solid #d5d5d3;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:#888;}
-    .btn-icon:hover{background:#f0f0ee;}
-    .btn-icon.danger:hover{background:#FCEBEB;color:#A32D2D;}
-    .ccard-dates{display:grid;grid-template-columns:repeat(4,1fr);border-top:0.5px solid #e5e5e3;}
-    .date-cell{padding:.45rem 1rem;}
-    .date-label{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1px;}
-    .date-val{font-size:12px;font-weight:500;}
-    .ccard-brew-section{border-top:0.5px solid #e5e5e3;}
-    .brew-toggle{width:100%;padding:6px 1rem;background:transparent;border:none;font-size:12px;color:#888;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
-    .brew-toggle:hover{background:#f8f8f6;}
-    .brew-body{padding:.75rem 1rem;border-top:0.5px solid #e5e5e3;}
-    .brew-entry{border:0.5px solid #e5e5e3;border-radius:8px;padding:.65rem .9rem;margin-bottom:8px;max-width:100%;box-sizing:border-box;}
-    .brew-entry-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-    .brew-meta-row{display:flex;flex-wrap:wrap;gap:0;margin-bottom:8px;border:0.5px solid #e5e5e3;border-radius:8px;overflow:hidden;}
-    .brew-meta-item{flex:1;min-width:60px;padding:.45rem .75rem;border-right:0.5px solid #e5e5e3;font-size:11px;color:#888;}
-    .brew-meta-item:last-child{border-right:none;}
-    .brew-meta-item span{display:block;font-size:12px;color:#1a1a1a;font-weight:500;margin-top:1px;}
-    .brew-notes{font-size:12px;color:#888;line-height:1.5;}
-    .brew-add-btn{width:100%;padding:7px;border:0.5px dashed #d5d5d3;border-radius:8px;background:transparent;color:#888;font-size:12px;cursor:pointer;}
-    .brew-add-btn:hover{background:#f0f0ee;}
-    .brew-entry-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:0.5px solid #e5e5e3;}
-    .inline-modal{background:#f8f8f6;border-top:0.5px solid #e5e5e3;padding:1.1rem;}
-    .modal-title{font-size:15px;font-weight:500;margin-bottom:.85rem;}
-    .modal-tabs{display:flex;border:0.5px solid #d5d5d3;border-radius:8px;overflow:hidden;margin-bottom:.85rem;width:fit-content;}
-    .modal-tab{padding:5px 16px;font-size:12px;cursor:pointer;background:transparent;border:none;color:#888;}
-    .modal-tab.active{background:#1a1a1a;color:#fff;}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-    .brew-form-grid .brew-full{grid-column:1/-1;}
-    @media (max-width:480px){
-      .form-grid{grid-template-columns:1fr;}
-      .brew-meta-item{border-top:0.5px solid #e5e5e3;}
-      .brew-meta-item:nth-child(-n+2){border-top:none;}
-      .brew-form-grid{grid-template-columns:1fr 1fr;width:100%;max-width:100%;}
-      .brew-form-grid .brew-full{grid-column:1/-1;}
-      .dates-form-grid{grid-template-columns:1fr;}
-      .dates-form-grid .dates-full{grid-column:1/-1;}
-      .ccard-name{padding-right:0;}
-      input[type="date"]{min-width:0;width:100%;font-size:13px;-webkit-appearance:none;appearance:none;}
-      .card-top-actions{position:static;display:flex;justify-content:flex-end;margin-bottom:4px;}
-      .ccard-taste{word-break:break-all;overflow-wrap:break-word;}
-    }
-    .ff{display:flex;flex-direction:column;gap:4px;min-width:0;}
-    .ff.full{grid-column:1/-1;}
-    .ff label{font-size:12px;color:#888;}
-    .ff input,.ff select,.ff textarea{font-size:13px;padding:6px 9px;border-radius:8px;border:0.5px solid #d5d5d3;background:#fff;color:#1a1a1a;width:100%;min-width:0;max-width:100%;}
-    .ff textarea{resize:vertical;min-height:58px;}
-    .ff input[readonly]{background:#f0f0ee;}
-    .ff .hint{font-size:11px;color:#aaa;}
-    .photo-drop{border:0.5px dashed #d5d5d3;border-radius:8px;padding:.65rem;text-align:center;cursor:pointer;color:#888;font-size:12px;background:#fff;}
-    .photo-drop:hover{background:#f0f0ee;}
-    .photo-prev{width:100%;height:140px;object-fit:cover;border-radius:8px;margin-top:6px;display:block;}
-    .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:.9rem;}
-    .btn-primary{font-size:13px;padding:7px 16px;border-radius:8px;border:0.5px solid #d5d5d3;background:#1a1a1a;color:#fff;cursor:pointer;}
-    .btn-cancel{font-size:13px;padding:7px 16px;border-radius:8px;border:0.5px solid #d5d5d3;background:transparent;cursor:pointer;}
-    .cal-wrap{background:#fff;border:0.5px solid #e5e5e3;border-radius:12px;padding:1rem .75rem;overflow:hidden;}
-    .cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;}
-    .cal-nav button{background:transparent;border:0.5px solid #d5d5d3;border-radius:8px;padding:4px 12px;cursor:pointer;font-size:13px;}
-    .cal-nav button:hover{background:#f0f0ee;}
-    .cal-month{font-size:15px;font-weight:500;}
-    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;width:100%;overflow:hidden;}
-    .cal-dow{font-size:10px;color:#aaa;text-align:center;padding:3px 0;text-transform:uppercase;}
-    .cal-day{min-height:64px;padding:3px;border-radius:4px;overflow:hidden;min-width:0;box-sizing:border-box;}
-    .cal-day.has-events{background:#f8f8f6;}
-    .cal-day.today{background:#EEF4FC;}
-    .cal-day.today .cal-day-num{color:#0C447C;font-weight:700;}
-    .cal-day-num{font-size:11px;font-weight:500;color:#aaa;margin-bottom:2px;}
-    .cal-day.other-month .cal-day-num{color:#ddd;}
-    .cal-strip{height:5px;border-radius:2px;margin-bottom:2px;width:100%;}
-    .cal-dot-row{display:flex;align-items:center;gap:3px;margin-bottom:1px;}
-    .cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-    .cal-dot-label{font-size:9px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
-    .cal-clickable{cursor:pointer;}
-    .cal-clickable:hover{background:#f0f0ee !important;}
-    .cal-legend{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px;margin-top:.85rem;padding-top:.75rem;border-top:0.5px solid #e5e5e3;}
-    .cal-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#555;min-width:0;}
-    .cal-legend-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .cal-legend-resting{grid-column:1/-1;display:flex;align-items:center;gap:6px;font-size:11px;color:#888;}
-    @media(max-width:480px){.cal-legend{grid-template-columns:1fr 1fr;}.cal-legend-resting{grid-column:1/-1;}}
-    .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-size:13px;padding:8px 18px;border-radius:8px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
-    .toast.show{opacity:1;}
-    .loading{text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coffee Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F1EF; --surface:#FAFAF9; --surface2:#F8F7F5;
+  --border:#ECEBE7; --text:#1A1917; --muted:#9B9892; --faint:#C5C3BF; --body:#6B6763;
+  --grey:#9B9892; --green:#6E8F5E; --orange:#B8804A; --red:#B15C52;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);width:100%;overflow-x:hidden;}
+body{font-family:'Work Sans',system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;}
+.disp{font-family:'Space Grotesk',system-ui,sans-serif;}
+input,select,textarea,button{font-family:inherit;color:inherit;}
+button{cursor:pointer;background:none;border:none;}
+.app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:76px;}
+.hide{display:none !important;}
+
+/* ---------- auth ---------- */
+#auth-screen{max-width:360px;margin:3.5rem auto;padding:0 1.25rem;}
+.auth-card{background:var(--surface);border-radius:16px;padding:1.75rem;}
+.auth-card h1{font-size:20px;font-weight:600;margin-bottom:.3rem;}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:1.25rem;}
+.auth-field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.auth-field label{font-size:12px;color:var(--muted);}
+.auth-field input{font-size:13px;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:#fff;}
+.auth-err{font-size:12px;color:var(--red);margin-bottom:8px;display:none;}
+.btn-dark{font-size:14px;padding:10px;border-radius:9px;background:var(--text);color:#fff;font-weight:500;width:100%;}
+.btn-text{font-size:12px;padding:8px;color:var(--muted);width:100%;text-align:center;margin-top:2px;}
+
+/* ---------- header / hero ---------- */
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:1.5rem 1.25rem 0;}
+.topbar-icons{display:flex;gap:14px;color:var(--faint);font-size:15px;margin-top:4px;}
+.topbar-icons span{cursor:pointer;}
+.greet-date{font-size:11px;color:var(--muted);padding:0 1.25rem;margin-top:2px;}
+.greet-title{font-size:30px;font-weight:700;line-height:1.1;padding:0 1.25rem;margin:4px 0 18px;}
+
+.coming-card{background:var(--surface);border-radius:14px;padding:16px;margin:0 1.25rem 22px;box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+.coming-eyebrow{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:600;}
+.coming-name{font-size:17px;font-weight:600;margin-bottom:3px;}
+.coming-meta{font-size:12px;color:var(--muted);margin-bottom:6px;}
+.coming-notes{font-size:12px;color:var(--body);line-height:1.5;}
+
+.list-header{display:flex;align-items:flex-end;justify-content:space-between;padding:0 1.25rem;margin-bottom:14px;}
+.list-count{font-size:11px;color:var(--muted);margin-bottom:2px;}
+.list-title{font-size:22px;font-weight:700;}
+.fab-add{width:32px;height:32px;border-radius:50%;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+
+.sort-row{display:flex;gap:6px;padding:0 1.25rem;margin-bottom:18px;overflow-x:auto;}
+.sort-pill{flex-shrink:0;padding:5px 12px;border-radius:20px;font-size:11px;background:#ECEAE7;color:var(--muted);white-space:nowrap;}
+.sort-pill.active{background:var(--text);color:#fff;}
+
+/* ---------- coffee card ---------- */
+.clist{display:flex;flex-direction:column;gap:12px;padding:0 1.25rem;}
+.ccard{display:flex;gap:12px;}
+.cphoto{width:88px;aspect-ratio:1;border-radius:10px;flex-shrink:0;background:var(--border);overflow:hidden;}
+.cphoto img{width:100%;height:100%;object-fit:cover;display:block;}
+.cinfo{flex:1;min-width:0;background:var(--surface);border-radius:10px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;justify-content:space-between;}
+.cname-row{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
+.cdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.cname{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cmeta{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.cnotes{font-size:11px;color:var(--body);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.cpill-wrap{margin-top:8px;}
+.cpill{font-size:10px;padding:2px 10px;border-radius:20px;border:1px solid;font-weight:500;white-space:nowrap;}
+.empty-msg{text-align:center;padding:3rem 1rem;color:var(--faint);font-size:13px;}
+
+/* ---------- bottom tabs ---------- */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:var(--bg);border-top:0.5px solid var(--border);padding-bottom:env(safe-area-inset-bottom,10px);}
+.tabbar button{flex:1;padding:16px 0;font-size:12px;color:var(--faint);}
+.tabbar button.active{color:var(--text);font-weight:500;}
+
+/* ---------- calendar ---------- */
+.cal-wrap{padding:1.5rem 1.25rem 0;}
+.cal-count{font-size:11px;color:var(--muted);margin-bottom:2px;}
+.cal-title{font-size:28px;font-weight:700;margin-bottom:1.5rem;}
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.cal-nav button{color:var(--faint);font-size:18px;padding:4px 8px;}
+.cal-month{font-size:15px;font-weight:600;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;}
+.cal-dow{font-size:10px;color:var(--faint);padding:6px 0;}
+.cal-day{display:flex;flex-direction:column;align-items:center;padding:5px 0;cursor:pointer;border-radius:8px;}
+.cal-daynum{width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:50%;margin-bottom:3px;}
+.cal-daynum.today{background:var(--text);color:#fff;}
+.cal-dots{display:flex;gap:2px;justify-content:center;height:5px;}
+.cal-dot{width:5px;height:5px;border-radius:50%;}
+.cal-legend{display:flex;justify-content:center;gap:18px;padding:1.25rem 0;margin-top:.75rem;border-top:0.5px solid var(--border);}
+.cal-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+.cal-popup-bg{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:300;display:flex;align-items:center;justify-content:center;}
+.cal-popup{background:var(--surface2);border-radius:14px;padding:1.25rem;width:320px;max-width:90vw;max-height:75vh;overflow-y:auto;}
+.cal-popup-date{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.cal-popup-row{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;}
+
+/* ---------- detail / add-coffee / add-brew overlays ---------- */
+.overlay{position:fixed;inset:0;background:var(--surface2);z-index:200;display:flex;flex-direction:column;max-width:480px;margin:0 auto;overflow-y:auto;}
+.detail-hero{position:relative;height:220px;flex-shrink:0;background:var(--border);overflow:hidden;}
+.detail-hero img{width:100%;height:100%;object-fit:cover;display:block;}
+.detail-back{position:absolute;top:16px;left:16px;color:rgba(255,255,255,.9);font-size:20px;background:rgba(0,0,0,.25);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.detail-hero-noimg .detail-back{color:var(--text);background:rgba(255,255,255,.6);}
+.detail-hero-caption{position:absolute;bottom:0;left:0;right:0;padding:16px 20px 18px;background:linear-gradient(to top,rgba(0,0,0,.55),transparent);}
+.detail-hero-caption .origin{color:rgba(255,255,255,.55);font-size:11px;margin-bottom:2px;}
+.detail-hero-caption .name{color:#fff;font-size:20px;font-weight:600;margin-bottom:2px;}
+.detail-hero-caption .roaster{color:rgba(255,255,255,.6);font-size:12px;}
+.detail-hero-noimg .detail-hero-caption{background:none;}
+.detail-hero-noimg .origin{color:var(--muted);}
+.detail-hero-noimg .name{color:var(--text);}
+.detail-hero-noimg .roaster{color:var(--muted);}
+
+.detail-status{padding:18px 20px 6px;font-size:13px;font-weight:500;font-family:'Space Grotesk',sans-serif;}
+.detail-stats{padding:0 20px 18px;border-bottom:0.5px solid var(--border);display:flex;gap:22px;flex-wrap:wrap;}
+.detail-stats.top{padding-top:0;}
+.detail-stats + .detail-stats{padding-top:18px;}
+.stat-lbl{font-size:10px;color:var(--faint);margin-bottom:3px;}
+.stat-val{font-size:13px;color:var(--text);}
+.detail-notes{padding:18px 20px;border-bottom:0.5px solid var(--border);font-size:13px;color:var(--body);line-height:1.6;}
+
+.brew-hdr{padding:18px 20px 8px;display:flex;justify-content:space-between;align-items:center;}
+.brew-hdr .t{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;}
+.brew-hdr .a{font-size:12px;font-weight:500;color:var(--text);}
+.brew-row{padding:14px 20px;border-bottom:0.5px solid var(--border);cursor:pointer;}
+.brew-row-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.brew-row-title{font-size:13px;font-weight:500;}
+.brew-row-date{font-size:11px;color:var(--muted);}
+.brew-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 12px;margin-bottom:8px;}
+.brew-grid-item .l{font-size:9px;color:var(--faint);margin-bottom:2px;}
+.brew-grid-item .v{font-size:12px;color:var(--text);}
+.brew-row-notes{font-size:12px;color:var(--body);line-height:1.5;margin-top:4px;}
+.brew-empty{padding:16px 20px;font-size:12px;color:var(--faint);}
+
+.detail-footer{padding:20px;display:flex;gap:20px;}
+.link-quiet{font-size:12px;color:var(--faint);}
+.link-danger{font-size:12px;color:var(--red);opacity:.7;}
+
+/* ---------- form screens ---------- */
+.form-hdr{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:0.5px solid var(--border);flex-shrink:0;}
+.form-hdr .cancel{font-size:12px;color:var(--muted);}
+.form-hdr .title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;}
+.form-hdr .save{font-size:12px;font-weight:600;color:var(--text);}
+.form-body{padding:0 20px;flex:1;}
+.frow{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-bottom:0.5px solid var(--border);gap:12px;}
+.frow label{font-size:12px;color:var(--muted);flex-shrink:0;}
+.frow input,.frow select{border:none;background:transparent;text-align:right;font-size:13px;color:var(--text);flex:1;min-width:0;}
+.frow input[readonly]{color:var(--muted);}
+.frow input::placeholder{color:var(--faint);}
+.ftextarea-wrap{padding:14px 0;}
+.ftextarea-wrap label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;}
+.ftextarea-wrap textarea{width:100%;border:none;background:transparent;font-size:13px;color:var(--text);resize:vertical;min-height:56px;}
+.ftextarea-wrap textarea::placeholder{color:var(--faint);}
+.fphoto-row{padding:14px 0;border-bottom:0.5px solid var(--border);}
+.fphoto-row label{font-size:12px;color:var(--muted);display:block;margin-bottom:8px;}
+.fphoto-drop{border:1px dashed var(--border);border-radius:10px;padding:.6rem;text-align:center;font-size:12px;color:var(--muted);}
+.fphoto-prev{width:100%;height:140px;object-fit:cover;border-radius:10px;margin-top:8px;display:block;}
+.fsave-space{height:24px;}
+
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:13px;padding:8px 18px;border-radius:8px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;max-width:90%;text-align:center;}
+.toast.show{opacity:1;}
+.loading{text-align:center;padding:3rem 0;color:var(--faint);font-size:14px;}
+.sync-pill{font-size:10px;padding:3px 8px;border-radius:6px;display:none;}
+</style>
 </head>
 <body>
-<div id="auth-screen" style="display:none;max-width:380px;margin:3rem auto;padding:0 1rem;">
-  <div style="background:#fff;border:0.5px solid #e5e5e3;border-radius:12px;padding:1.75rem;">
-    <h1 style="font-size:20px;font-weight:500;margin-bottom:.3rem;">Coffee Tracker</h1>
-    <p id="auth-subtitle" style="font-size:13px;color:#888;margin-bottom:1.25rem;">Sign in to see your coffees.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <div class="ff"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com"></div>
-      <div class="ff"><label>Password</label><input type="password" id="auth-password" placeholder="••••••••"></div>
-      <div id="auth-error" style="display:none;font-size:12px;color:#A32D2D;"></div>
-      <button id="auth-submit-btn" onclick="handleAuthSubmit()" style="margin-top:4px;font-size:14px;padding:9px;border-radius:8px;border:none;background:#1a1a1a;color:#fff;cursor:pointer;font-weight:500;">Sign in</button>
-      <button onclick="toggleAuthMode()" style="font-size:12px;padding:6px;border-radius:8px;border:none;background:transparent;color:#888;cursor:pointer;" id="auth-toggle-btn">Don't have an account? Sign up</button>
-    </div>
+
+<div id="auth-screen">
+  <div class="auth-card">
+    <h1>Coffee Tracker</h1>
+    <p class="auth-sub" id="auth-subtitle">Sign in to see your coffees.</p>
+    <div class="auth-field"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com"></div>
+    <div class="auth-field"><label>Password</label><input type="password" id="auth-password" placeholder="••••••••"></div>
+    <div class="auth-err" id="auth-error"></div>
+    <button class="btn-dark" id="auth-submit-btn" onclick="handleAuthSubmit()">Sign in</button>
+    <button class="btn-text" id="auth-toggle-btn" onclick="toggleAuthMode()">Don't have an account? Sign up</button>
   </div>
 </div>
-<div class="app" id="app" style="display:none;">
-  <div class="header">
-    <h1>Coffee Tracker</h1>
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-      <span id="sync-status" style="display:none;font-size:11px;padding:3px 8px;border-radius:6px;"></span>
-      <button class="btn-icon" title="Sync now" onclick="manualSync()"><i class="ti ti-refresh"></i></button>
-      <button class="btn-icon" title="Log out" onclick="handleLogout()"><i class="ti ti-logout"></i></button>
-      <button class="add-btn" onclick="openAddForm('new')"><i class="ti ti-plus"></i> Add coffee</button>
+
+<div class="app hide" id="app">
+
+  <div class="topbar">
+    <span class="sync-pill" id="sync-status"></span>
+    <div class="topbar-icons">
+      <span onclick="manualSync()" title="Sync">&#8635;</span>
+      <span onclick="handleLogout()" title="Log out">&#9099;</span>
     </div>
   </div>
-  <div class="stats">
-    <div class="stat"><div class="stat-label">Total coffees</div><div class="stat-value" id="stat-total">—</div></div>
-    <div class="stat"><div class="stat-label">Ready</div><div class="stat-value" id="stat-ready">—</div></div>
-    <div class="stat"><div class="stat-label">Still resting</div><div class="stat-value" id="stat-resting">—</div></div>
-  </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;flex-wrap:wrap;gap:8px;">
-    <div class="tabs-main" style="margin-bottom:0;">
-      <button class="tab-main active" onclick="switchMain('list',this)">List</button>
-      <button class="tab-main" onclick="switchMain('calendar',this)">Calendar</button>
-      <button class="tab-main" onclick="switchMain('archive',this)">Archive</button>
+
+  <div id="view-list">
+    <div class="greet-date" id="greet-date"></div>
+    <div class="greet-title disp" id="greet-title">Coffee o'clock.</div>
+    <div id="coming-up-wrap"></div>
+
+    <div class="list-header">
+      <div>
+        <div class="list-count" id="list-count">0 coffees</div>
+        <div class="list-title disp">All Coffees</div>
+      </div>
+      <button class="fab-add" onclick="openAddCoffee('new')">+</button>
     </div>
-    <select id="sort-select" onchange="setSortOrder(this.value)" style="font-size:12px;padding:5px 10px;border-radius:8px;border:0.5px solid #d5d5d3;background:#fff;color:#888;cursor:pointer;">
-      <option value="ready" selected>Ready date ↑</option>
-      <option value="roast">Roast date ↑</option>
-      <option value="name">Name A–Z</option>
-    </select>
+
+    <div class="sort-row" id="sort-row"></div>
+    <div class="clist" id="coffee-list"><div class="loading">Loading your coffees...</div></div>
   </div>
-  <div id="view-list"><div class="coffee-list" id="coffee-list"><div class="loading">Loading your coffees...</div></div></div>
-  <div id="view-archive" style="display:none;"><div class="coffee-list" id="archive-list"></div></div>
-  <div id="view-calendar" style="display:none;">
+
+  <div id="view-archive" class="hide">
+    <div class="cal-wrap" style="padding-bottom:0;">
+      <div class="cal-count" id="archive-count">0 archived</div>
+      <div class="cal-title disp">Archive</div>
+    </div>
+    <div class="sort-row" id="archive-sort-row"></div>
+    <div class="clist" id="archive-list"></div>
+  </div>
+
+  <div id="view-calendar" class="hide">
     <div class="cal-wrap">
+      <div class="cal-count" id="cal-count">0 coffees</div>
+      <div class="cal-title disp">Calendar</div>
       <div class="cal-nav">
-        <button onclick="changeMonth(-1)">&#8592;</button>
-        <span class="cal-month" id="cal-label"></span>
-        <button onclick="changeMonth(1)">&#8594;</button>
+        <button onclick="changeMonth(-1)">&#8249;</button>
+        <span class="cal-month disp" id="cal-month-label"></span>
+        <button onclick="changeMonth(1)">&#8250;</button>
       </div>
       <div class="cal-grid" id="cal-grid"></div>
       <div class="cal-legend" id="cal-legend"></div>
     </div>
   </div>
+
+  <div class="tabbar">
+    <button id="tab-list" class="active" onclick="switchTab('list')">List</button>
+    <button id="tab-calendar" onclick="switchTab('calendar')">Calendar</button>
+    <button id="tab-archive" onclick="switchTab('archive')">Archive <span id="archive-tab-count"></span></button>
+  </div>
 </div>
-<div class="toast" id="toast"></div>
+
+<div id="detail-overlay" class="overlay hide"></div>
+<div id="addcoffee-overlay" class="overlay hide"></div>
+<div id="addbrew-overlay" class="overlay hide"></div>
 <div id="cal-popup"></div>
+<div class="toast" id="toast"></div>
+
 <script>
 const NEON_URL='https://ep-aged-river-aouicmda.apirest.c-2.ap-southeast-1.aws.neon.tech/neondb/rest/v1';
 const NEON_AUTH_URL='https://ep-aged-river-aouicmda.neonauth.c-2.ap-southeast-1.aws.neon.tech/neondb/auth';
@@ -192,33 +248,18 @@ const SESSION_KEY='ct_session';
 function getSession(){try{const d=localStorage.getItem(SESSION_KEY);return d?JSON.parse(d):null;}catch(e){return null;}}
 function saveSession(s){try{localStorage.setItem(SESSION_KEY,JSON.stringify(s));}catch(e){}}
 function clearSession(){try{localStorage.removeItem(SESSION_KEY);}catch(e){}}
-
-// ── Auth headers — always call this fresh so we pick up refreshed tokens ──
-function HEADERS(){
-  const s=getSession();
-  const h={'Content-Type':'application/json'};
-  if(s&&s.token)h['Authorization']='Bearer '+s.token;
-  return h;
-}
-
-function fetchWithTimeout(url,options,ms=8000){
-  return Promise.race([fetch(url,options),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
-}
+function HEADERS(){const s=getSession();const h={'Content-Type':'application/json'};if(s&&s.token)h['Authorization']='Bearer '+s.token;return h;}
+function fetchWithTimeout(url,options,ms=8000){return Promise.race([fetch(url,options),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);}
 
 // ── Data API ops ──────────────────────────────────────────────────
 async function dbGet(){
-  // Exclude photo column to stay under Neon's 10MB response limit
   const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,name,roaster,origin,process,producer,taste_notes,roast_date,rest_days,ready_date,open_date,best_by,brew_log,archived,user_id,created_at&order=created_at.desc',{headers:{...HEADERS(),'Prefer':'return=representation'}});
   if(!r.ok)throw new Error(await r.text());
   return r.json();
 }
 async function dbGetPhoto(id){
-  // Use select=photo only — some RLS setups require explicit column in policy
   const r=await fetchWithTimeout(NEON_URL+'/coffees?select=photo&id=eq.'+id,{headers:{...HEADERS(),'Prefer':'return=representation'}});
-  if(!r.ok){
-    console.warn('dbGetPhoto failed for',id,r.status);
-    return null;
-  }
+  if(!r.ok)return null;
   const rows=await r.json();
   return rows[0]&&rows[0].photo||null;
 }
@@ -229,313 +270,354 @@ async function dbDelete(id){const r=await fetchWithTimeout(NEON_URL+'/coffees?id
 function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',process:row.process||'',producer:row.producer||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',photo:row.photo||null,brewLog:row.brew_log||[],archived:row.archived||false,userId:row.user_id||null};}
 function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false,user_id:c.userId||(getSession()&&getSession().userId)||null};}
 
-// Palette: 14 warm, 6 cool. Exact hex from brand palette + brown/caramel additions.
-// Each entry tagged with taste-note category for soft mapping.
-// Gradient order: chocolate → caramel → orange → red → pink → plum → gold → yellow → lemon → apple → green → teal → blue
-const PALETTE=[
-  {bg:'#F0E4D0',strip:'#7A4C28'},  // 01 chocolate
-  {bg:'#F4EAD8',strip:'#9A6038'},  // 02 hazelnut
-  {bg:'#F8EEE0',strip:'#B8784A'},  // 03 caramel
-  {bg:'#FDE6D4',strip:'#C85A38'},  // 04 terracotta
-  {bg:'#FDEBD0',strip:'#EE7235'},  // 05 orange
-  {bg:'#FDE8D8',strip:'#D4622A'},  // 06 burnt orange
-  {bg:'#FDEAEA',strip:'#E33640'},  // 07 red
-  {bg:'#FAE8EC',strip:'#C4405A'},  // 08 rose red
-  {bg:'#F7E8F0',strip:'#A83870'},  // 09 raspberry
-  {bg:'#F5E6EE',strip:'#7B1753'},  // 10 plum
-  {bg:'#EFE8F2',strip:'#561C51'},  // 11 wine
-  {bg:'#FEF0D4',strip:'#F8B120'},  // 12 gold
-  {bg:'#FEF7D6',strip:'#F9E242'},  // 13 yellow
-  {bg:'#FEF9E8',strip:'#FCEA9B'},  // 14 lemon
-  {bg:'#EEF5E8',strip:'#C6DA8C'},  // 15 apple
-  {bg:'#E8F4EC',strip:'#A7C365'},  // 16 green
-  {bg:'#E4F5EE',strip:'#6FBE98'},  // 17 sea green
-  {bg:'#E2F0F0',strip:'#4DB8B1'},  // 18 turquoise
-  {bg:'#E4EEF8',strip:'#59A7DD'},  // 19 light blue
-  {bg:'#E6EAF2',strip:'#456DB3'},  // 20 blue
-];
-
-const pal=i=>PALETTE[i%PALETTE.length];
-
-// Assign palette slots alphabetically by coffee name → A-Z flows through the warm→cool gradient.
-// No two coffees share a color (wraps if >20).
-let _colorMap={};
-function buildColorMap(coffeeList){
-  _colorMap={};
-  const sorted=[...coffeeList].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-  sorted.forEach((c,i)=>{if(c.id)_colorMap[c.id]=i%PALETTE.length;});
-}
-function palById(id){
-  if(id&&id in _colorMap)return PALETTE[_colorMap[id]];
-  if(!id)return PALETTE[0];
-  let h=0;for(let i=0;i<id.length;i++){h=(h*31+id.charCodeAt(i))>>>0;}
-  return PALETTE[h%PALETTE.length];
-}
-let coffees=[],calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),sortOrder='ready';
-let openBrewIdx={},editingIdx=null,brewEditIdx=null,brewEditEntryIdx=null,photoDataUrl=null;
-
+// ── Date / status helpers ─────────────────────────────────────────
 function today(){return new Date().toISOString().split('T')[0];}
-function addDays(ds,n){if(!ds||n==='')return '';const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+parseInt(n));return d.toISOString().split('T')[0];}
-function fmtShort(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-SG',{day:'numeric',month:'short'});}
-function fmtFull(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});}
-function getStatus(c){const t=today();if(c.archived)return'archived';if(c.bestby&&t>c.bestby)return'expired';if(c.readyDate&&t>=c.readyDate)return'ready';if(c.readyDate&&t<c.readyDate)return'resting';return'ready';}
-function restProg(c){if(!c.roastDate||!c.restDays)return 100;const done=Math.round((new Date(today()+'T12:00:00')-new Date(c.roastDate+'T12:00:00'))/86400000);return Math.min(100,Math.max(0,Math.round(done/parseInt(c.restDays)*100)));}
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
+function addDays(ds,n){if(!ds||n===''||n==null)return '';const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+parseInt(n));return d.toISOString().split('T')[0];}
+function daysBetween(a,b){return Math.ceil((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000);}
+function fmtShort(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function fmtFull(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function getReadyDate(c){return c.roastDate?addDays(c.roastDate,c.restDays||0):'';}
 
-function switchMain(tab,btn){
-  document.querySelectorAll('.tab-main').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-  document.getElementById('view-list').style.display=tab==='list'?'':'none';
-  document.getElementById('view-calendar').style.display=tab==='calendar'?'':'none';
-  document.getElementById('view-archive').style.display=tab==='archive'?'':'none';
-  if(tab==='calendar')renderCalendar();
-  if(tab==='archive'){renderArchive();loadPhotosLazily();}
+const STATUS_COLOR={resting:'#9B9892',ready:'#6E8F5E',opened:'#B8804A',bestby:'#B15C52',archived:'#C5C3BF'};
+
+function getStatus(c){
+  if(c.archived)return'archived';
+  const t=today();
+  if(c.openDate){
+    if(c.bestby){
+      const d=daysBetween(t,c.bestby);
+      if(d<=3)return'bestby';
+    }
+    return'opened';
+  }
+  const ready=getReadyDate(c);
+  if(ready&&t<ready)return'resting';
+  return'ready';
 }
-function renderStats(){
+function statusLabel(c){
+  const s=getStatus(c),t=today();
+  if(s==='resting'){const d=Math.max(0,daysBetween(t,getReadyDate(c)));return`Resting · ${d}d`;}
+  if(s==='ready')return'Ready to brew';
+  if(s==='opened')return`Opened · ${fmtShort(c.openDate)}`;
+  if(s==='bestby'){const d=daysBetween(t,c.bestby);return d<0?'Past best-by':`Best-by · ${d}d left`;}
+  return'';
+}
+function nextUpScore(c){
+  const s=getStatus(c),t=today();
+  if(s==='resting'){const d=daysBetween(t,getReadyDate(c));return d<=3?d:100+d;}
+  if(s==='bestby')return 5;
+  if(s==='ready')return 10;
+  if(s==='opened')return 60;
+  return 999;
+}
+
+// ── Greetings ──────────────────────────────────────────────────────
+const GREETINGS={
+  morning:["Coffee o'clock.","Morning brew.","Early hands, warm cup."],
+  afternoon:["Midday coffee.","Afternoon pour.","A cup, mid-day."],
+  evening:["Evening pour.","Winding down.","Evening."],
+  night:["Late one.","Night brew.","Quiet hours."]
+};
+function pickGreeting(){
+  const h=new Date().getHours();
+  const bucket=h<5?'night':h<11?'morning':h<17?'afternoon':h<21?'evening':'night';
+  const arr=GREETINGS[bucket];
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+// ── State ──────────────────────────────────────────────────────────
+let coffees=[],currentTab='list';
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+let sortOrder='ready',archiveSortOrder='ready';
+let editingCoffeeId=null,photoDataUrl=null;
+let editingBrewCoffeeId=null,editingBrewEntryIdx=null;
+
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
+function findCoffee(id){return coffees.find(c=>c.id===id);}
+
+// ── Rendering: header/greeting ──────────────────────────────────────
+function renderGreeting(){
+  document.getElementById('greet-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('greet-title').textContent=pickGreeting();
+}
+
+function renderComingUp(){
   const active=coffees.filter(c=>!c.archived);
-  const s=active.map(getStatus);
-  document.getElementById('stat-total').textContent=active.length;
-  document.getElementById('stat-ready').textContent=s.filter(x=>x==='ready').length;
-  document.getElementById('stat-resting').textContent=s.filter(x=>x==='resting').length;
+  if(!active.length){document.getElementById('coming-up-wrap').innerHTML='';return;}
+  const best=active.slice().sort((a,b)=>nextUpScore(a)-nextUpScore(b))[0];
+  const color=STATUS_COLOR[getStatus(best)];
+  document.getElementById('coming-up-wrap').innerHTML=`
+    <div class="coming-card" onclick="openDetail('${best.id}')">
+      <div class="coming-eyebrow" style="color:${color};">Coming up</div>
+      <div class="coming-name disp">${esc(best.name||'Unnamed coffee')}</div>
+      <div class="coming-meta">${esc([best.roaster,best.origin].filter(Boolean).join(' · ')||'—')}</div>
+      ${best.tasteNotes?`<div class="coming-notes">${esc(best.tasteNotes)}</div>`:''}
+    </div>`;
 }
-function setSortOrder(v){sortOrder=v;renderList();}
-function sortedActive(){
-  const active=coffees.filter(c=>!c.archived);
-  if(sortOrder==='roast')return active.slice().sort((a,b)=>(a.roastDate||'9999').localeCompare(b.roastDate||'9999'));
-  if(sortOrder==='name')return active.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-  return active.slice().sort((a,b)=>(a.readyDate||'9999').localeCompare(b.readyDate||'9999')); // ready date ascending: default
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+// ── Sort pills ────────────────────────────────────────────────────
+const SORTS=[{key:'added',label:'Recent'},{key:'roast',label:'Roast'},{key:'ready',label:'Ready'},{key:'name',label:'A–Z'}];
+function renderSortRow(elId,current,setter){
+  document.getElementById(elId).innerHTML=SORTS.map(s=>
+    `<span class="sort-pill ${current===s.key?'active':''}" onclick="${setter}('${s.key}')">${s.label}</span>`
+  ).join('');
 }
-function renderList(){
-  const el=document.getElementById('coffee-list');
-  let html='';
-  if(editingIdx==='new')html=`<div class="ccard"><div class="inline-modal">${editFormHtml({})}</div></div>`;
-  const active=sortedActive();
-  if(!active.length){el.innerHTML=html+'<div style="text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;">No coffees yet — add your first bag!</div>';return;}
-  html+=active.map((c,i)=>cardHtml(c,coffees.indexOf(c))).join('');
-  el.innerHTML=html;
+function setSortOrder(k){sortOrder=k;renderList();}
+function setArchiveSortOrder(k){archiveSortOrder=k;renderArchive();}
+
+function sortCoffees(list,key){
+  const arr=list.slice();
+  if(key==='roast')return arr.sort((a,b)=>(b.roastDate||'').localeCompare(a.roastDate||''));
+  if(key==='name')return arr.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  if(key==='ready')return arr.sort((a,b)=>(getReadyDate(a)||'9999').localeCompare(getReadyDate(b)||'9999'));
+  return arr.sort((a,b)=>(b.id||'').localeCompare(a.id||''));
 }
-function renderArchive(){
-  const el=document.getElementById('archive-list');
-  const archived=coffees.filter(c=>c.archived);
-  if(!archived.length){el.innerHTML='<div style="text-align:center;padding:2.5rem 0;color:#aaa;font-size:14px;">No archived coffees yet.</div>';return;}
-  el.innerHTML=archived.map((c,i)=>archiveCardHtml(c,coffees.indexOf(c))).join('');
-}
-function archiveCardHtml(c,i){
-  const p=palById(c.id);
-  const iconHtml=c.photo?`<img src="${c.photo}" alt="">`:(`<div class="ccard-photo-ph" style="color:`+p.strip+`;">Photo / icon</div>`);
-  const brewOpen=!!openBrewIdx['a'+i];
-  const brews=c.brewLog||[];
-  return `<div class="ccard" style="border-top:3px solid ${p.strip};opacity:0.8;" id="ccard-a-${i}">
-    <div class="ccard-inner">
-      <div class="ccard-top">
-        <div class="ccard-photo-wrap" style="background:${p.bg};">${iconHtml}</div>
-        <div class="ccard-right">
-          <div class="ccard-info">
-            <div class="ccard-name-row">
-              <div class="ccard-name">${c.name||'Unnamed coffee'}</div>
-              <div class="card-top-actions">
-                <button class="btn-icon" title="Unarchive" onclick="unarchiveCoffee(${i})"><i class="ti ti-archive-off"></i></button>
-                <button class="btn-icon danger" title="Delete" onclick="deleteCoffee(${i})"><i class="ti ti-trash"></i></button>
-              </div>
-            </div>
-            <div class="ccard-sub">${[c.roaster,c.origin].filter(Boolean).join(' · ')||'—'}</div>
-            ${[c.process,c.producer].filter(Boolean).length?`<div class="ccard-sub">${[c.process,c.producer].filter(Boolean).join(' · ')}</div>`:''}
-            ${c.tasteNotes?`<div class="ccard-taste">${c.tasteNotes}</div>`:''}
-            <div class="ccard-badge-row"><span class="badge badge-expired" style="background:#f0f0ee;color:#aaa;">Archived</span></div>
-          </div>
-          <div class="ccard-dates">
-            <div class="date-cell"><div class="date-label">Roasted</div><div class="date-val">${fmtShort(c.roastDate)}</div></div>
-            <div class="date-cell"><div class="date-label">Ready</div><div class="date-val">${fmtShort(c.readyDate)}</div></div>
-            <div class="date-cell"><div class="date-label">Opened</div><div class="date-val">${fmtShort(c.openDate)}</div></div>
-            <div class="date-cell"><div class="date-label">Best-by</div><div class="date-val">${fmtShort(c.bestby)}</div></div>
-          </div>
+
+// ── Coffee card ───────────────────────────────────────────────────
+function cardHtml(c){
+  const status=getStatus(c),color=STATUS_COLOR[status];
+  const photoHtml=c.photo?`<img src="${c.photo}" alt="">`:'';
+  return `<div class="ccard" onclick="openDetail('${c.id}')">
+    <div class="cphoto">${photoHtml}</div>
+    <div class="cinfo">
+      <div>
+        <div class="cname-row">
+          <span class="cdot" style="background:${color};"></span>
+          <span class="cname disp">${esc(c.name||'Unnamed coffee')}</span>
         </div>
+        <div class="cmeta">${esc([c.roaster,c.origin].filter(Boolean).join(' · ')||'—')}</div>
+        ${c.tasteNotes?`<div class="cnotes">${esc(c.tasteNotes)}</div>`:''}
       </div>
-      <div class="ccard-brew-section">
-        <button class="brew-toggle" onclick="toggleArchiveBrew(${i})">
-          <span>Brew log${brews.length?' ('+brews.length+')':''}</span>
-          <i class="ti ${brewOpen?'ti-chevron-up':'ti-chevron-down'}" style="font-size:13px;"></i>
-        </button>
-        ${brewOpen?`<div class="brew-body">
-          ${brews.length?brews.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(b=>`
-            <div class="brew-entry">
-              <div class="brew-entry-header">
-                <div style="font-size:12px;font-weight:500;">${[b.filter,b.method].filter(Boolean).join(' · ')||'Brew'}</div>
-                <div style="font-size:11px;color:#888;">${fmtFull(b.date)}</div>
-              </div>
-              <div class="brew-meta-row">
-                ${b.temp?`<div class="brew-meta-item">Temp<span>${b.temp}°C</span></div>`:''}
-                ${b.tds?`<div class="brew-meta-item">TDS<span>${b.tds}ppm</span></div>`:''}
-                ${b.dose?`<div class="brew-meta-item">Dose<span>${b.dose}g</span></div>`:''}
-                ${b.grind?`<div class="brew-meta-item">Grind<span>${b.grind}</span></div>`:''}
-                ${b.paper?`<div class="brew-meta-item">Paper<span>${b.paper}</span></div>`:''}
-                ${b.ratio?`<div class="brew-meta-item">Recipe<span>${b.ratio}</span></div>`:''}
-              </div>
-              ${b.notes?`<div class="brew-notes">${b.notes}</div>`:''}
-            </div>`).join(''):'<div style="font-size:13px;color:#aaa;text-align:center;padding:.5rem 0;">No brew entries</div>'}
-        </div>`:''}
-      </div>
+      <div class="cpill-wrap"><span class="cpill" style="color:${color};border-color:${color}55;">${statusLabel(c)}</span></div>
     </div>
   </div>`;
 }
 
-function cardHtml(c,i){
-  const p=palById(c.id),status=getStatus(c),prog=restProg(c);
-  const barCol=status==='ready'?'#639922':status==='expired'?'#E24B4A':'#EF9F27';
-  const badgeCls=status==='ready'?'badge-ready':status==='expired'?'badge-expired':'badge-resting';
-  const daysLeft=c.readyDate?Math.max(0,Math.round((new Date(c.readyDate+'T12:00:00')-new Date(today()+'T12:00:00'))/86400000)):0;
-  const badgeTxt=status==='ready'?'Ready to brew':status==='expired'?'Past best-by':`Resting · ${daysLeft}d left`;
-  const iconHtml=c.photo?`<img src="${c.photo}" alt="">`:(`<div class="ccard-photo-ph" style="color:`+p.strip+`;">Photo / icon</div>`);
-  const brewOpen=!!openBrewIdx[i];
-  const brews=c.brewLog||[];
-  const isEditing=editingIdx===i;
-  const isBrewEditing=brewEditIdx===i;
+function renderList(){
+  renderGreeting();
+  renderComingUp();
+  const active=coffees.filter(c=>!c.archived);
+  document.getElementById('list-count').innerHTML=`${active.length} coffee${active.length===1?'':'s'}${active.filter(c=>getStatus(c)==='ready').length?` · <span style="color:${STATUS_COLOR.ready};">${active.filter(c=>getStatus(c)==='ready').length} ready</span>`:''}`;
+  renderSortRow('sort-row',sortOrder,'setSortOrder');
+  const el=document.getElementById('coffee-list');
+  const sorted=sortCoffees(active,sortOrder);
+  if(!sorted.length){el.innerHTML='<div class="empty-msg">No coffees yet — add your first bag.</div>';return;}
+  el.innerHTML=sorted.map(cardHtml).join('');
+}
 
-  const brewEntriesHtml=brews.length?brews.map((b,bi)=>({b,realIdx:bi}))
-    .sort((x,y)=>y.b.date.localeCompare(x.b.date))
-    .map(({b,realIdx})=>{
-    const isEditingThis=isBrewEditing&&brewEditEntryIdx===realIdx;
-    if(isEditingThis)return brewFormHtml(i,realIdx,b);
-    return `<div class="brew-entry">
-      <div class="brew-entry-header">
-        <div style="font-size:12px;font-weight:500;">${[b.filter,b.method].filter(Boolean).join(' · ')||'Brew'}</div>
-        <div style="font-size:11px;color:#888;">${fmtFull(b.date)}</div>
-      </div>
-      <div class="brew-meta-row">
-        ${b.temp?`<div class="brew-meta-item">Temp<span>${b.temp}°C</span></div>`:''}
-        ${b.tds?`<div class="brew-meta-item">TDS<span>${b.tds}ppm</span></div>`:''}
-        ${b.dose?`<div class="brew-meta-item">Dose<span>${b.dose}g</span></div>`:''}
-        ${b.grind?`<div class="brew-meta-item">Grind<span>${b.grind}</span></div>`:''}
-        ${b.paper?`<div class="brew-meta-item">Paper<span>${b.paper}</span></div>`:''}
-        ${b.ratio?`<div class="brew-meta-item">Recipe<span>${b.ratio}</span></div>`:''}
-      </div>
-      ${b.notes?`<div class="brew-notes">${b.notes}</div>`:''}
-      <div class="brew-entry-actions">
-        <button class="btn-icon" title="Edit brew" onclick="openBrewEdit(${i},${realIdx})"><i class="ti ti-edit"></i></button>
-        <button class="btn-icon danger" title="Delete brew" onclick="deleteBrewEntry(${i},${realIdx})"><i class="ti ti-trash"></i></button>
+function renderArchive(){
+  const archived=coffees.filter(c=>c.archived);
+  document.getElementById('archive-count').textContent=`${archived.length} archived`;
+  document.getElementById('archive-tab-count').textContent=archived.length?`(${archived.length})`:'';
+  renderSortRow('archive-sort-row',archiveSortOrder,'setArchiveSortOrder');
+  const el=document.getElementById('archive-list');
+  const sorted=sortCoffees(archived,archiveSortOrder);
+  if(!sorted.length){el.innerHTML='<div class="empty-msg">No archived coffees.</div>';return;}
+  el.innerHTML=sorted.map(cardHtml).join('');
+}
+
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('view-list').classList.toggle('hide',tab!=='list');
+  document.getElementById('view-calendar').classList.toggle('hide',tab!=='calendar');
+  document.getElementById('view-archive').classList.toggle('hide',tab!=='archive');
+  document.getElementById('tab-list').classList.toggle('active',tab==='list');
+  document.getElementById('tab-calendar').classList.toggle('active',tab==='calendar');
+  document.getElementById('tab-archive').classList.toggle('active',tab==='archive');
+  if(tab==='calendar')renderCalendar();
+  if(tab==='archive')renderArchive();
+  if(tab==='list')renderList();
+  loadPhotosLazily();
+}
+
+function render(){
+  renderList();
+  if(currentTab==='calendar')renderCalendar();
+  if(currentTab==='archive')renderArchive();
+}
+
+// ── Calendar ──────────────────────────────────────────────────────
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const CAL_TYPE_COLOR={roast:STATUS_COLOR.resting,ready:STATUS_COLOR.ready,opened:STATUS_COLOR.opened,bestby:STATUS_COLOR.bestby};
+function renderCalendar(){
+  document.getElementById('cal-count').textContent=`${coffees.filter(c=>!c.archived).length} coffees`;
+  document.getElementById('cal-month-label').textContent=MONTHS[calMonth]+' '+calYear;
+  const t=today();
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const dim=new Date(calYear,calMonth+1,0).getDate();
+  const events={};
+  window._calEvents={};
+  coffees.filter(c=>!c.archived).forEach(c=>{
+    const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'Coffee';
+    const mark=(ds,type,txt)=>{
+      if(!ds)return;
+      const d=new Date(ds+'T12:00:00');
+      if(d.getFullYear()===calYear&&d.getMonth()===calMonth){
+        const day=d.getDate();
+        if(!events[day])events[day]=new Set();
+        events[day].add(type);
+        if(!window._calEvents[day])window._calEvents[day]=[];
+        window._calEvents[day].push({color:CAL_TYPE_COLOR[type],label,type:txt});
+      }
+    };
+    mark(c.roastDate,'roast','Roasted');
+    mark(getReadyDate(c),'ready','Ready');
+    mark(c.openDate,'opened','Opened');
+    if(c.bestby)mark(c.bestby,'bestby','Best-by');
+  });
+  let cells=[];
+  for(let i=0;i<firstDay;i++)cells.push(null);
+  for(let d=1;d<=dim;d++)cells.push(d);
+  const mm=String(calMonth+1).padStart(2,'0');
+  let html=['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  html+=cells.map(day=>{
+    if(!day)return'<div></div>';
+    const ds=`${calYear}-${mm}-${String(day).padStart(2,'0')}`;
+    const isToday=ds===t;
+    const types=events[day]?[...events[day]]:[];
+    const dotsHtml=types.slice(0,3).map(ty=>`<span class="cal-dot" style="background:${CAL_TYPE_COLOR[ty]};"></span>`).join('');
+    const onclick=types.length?`onclick="showCalPopup(${day})"`:'';
+    return `<div class="cal-day" ${onclick}><div class="cal-daynum ${isToday?'today':''}">${day}</div><div class="cal-dots">${dotsHtml}</div></div>`;
+  }).join('');
+  document.getElementById('cal-grid').innerHTML=html;
+  document.getElementById('cal-legend').innerHTML=`
+    <div class="cal-legend-item"><span class="cal-dot" style="background:${STATUS_COLOR.resting};"></span>Roast</div>
+    <div class="cal-legend-item"><span class="cal-dot" style="background:${STATUS_COLOR.ready};"></span>Ready</div>
+    <div class="cal-legend-item"><span class="cal-dot" style="background:${STATUS_COLOR.opened};"></span>Opened</div>
+    <div class="cal-legend-item"><span class="cal-dot" style="background:${STATUS_COLOR.bestby};"></span>Best-by</div>`;
+}
+function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function showCalPopup(day){
+  const evs=(window._calEvents&&window._calEvents[day])||[];
+  if(!evs.length)return;
+  const mm=String(calMonth+1).padStart(2,'0');
+  const dateLabel=fmtFull(`${calYear}-${mm}-${String(day).padStart(2,'0')}`);
+  document.getElementById('cal-popup').innerHTML=`
+    <div class="cal-popup-bg" onclick="closeCalPopup(event)">
+      <div class="cal-popup" onclick="event.stopPropagation()">
+        <div class="cal-popup-date">${dateLabel}</div>
+        ${evs.map(e=>`<div class="cal-popup-row"><span class="cal-dot" style="background:${e.color};"></span><span>${esc(e.label)} · ${esc(e.type)}</span></div>`).join('')}
       </div>
     </div>`;
-  }).join(''):'<div style="font-size:13px;color:#aaa;text-align:center;padding:.5rem 0;">No brew entries yet</div>';
+}
+function closeCalPopup(e){if(!e||e.target.classList.contains('cal-popup-bg'))document.getElementById('cal-popup').innerHTML='';}
 
-  return `<div class="ccard" style="border-top:3px solid ${p.strip};" id="ccard-${i}">
-    <div class="ccard-inner">
-      <div class="ccard-top">
-        <div class="ccard-photo-wrap" style="background:${p.bg};">${iconHtml}</div>
-        <div class="ccard-right">
-          <div class="ccard-info">
-            <div class="ccard-name-row">
-              <div class="ccard-name">${c.name||'Unnamed coffee'}</div>
-              <div class="card-top-actions">
-                <button class="btn-icon" title="Archive" onclick="archiveCoffee(${i})"><i class="ti ti-archive"></i></button>
-                <button class="btn-icon" title="Edit" onclick="openAddForm(${i})"><i class="ti ti-edit"></i></button>
-                <button class="btn-icon danger" title="Delete" onclick="deleteCoffee(${i})"><i class="ti ti-trash"></i></button>
-              </div>
-            </div>
-            <div class="ccard-sub">${[c.roaster,c.origin].filter(Boolean).join(' · ')||'—'}</div>
-            ${[c.process,c.producer].filter(Boolean).length?`<div class="ccard-sub">${[c.process,c.producer].filter(Boolean).join(' · ')}</div>`:''}
-            ${c.tasteNotes?`<div class="ccard-taste">${c.tasteNotes}</div>`:''}
-            <div class="ccard-badge-row"><span class="badge ${badgeCls}">${badgeTxt}</span></div>
-            ${c.roastDate&&c.restDays?`<div class="rest-bar"><div class="rest-bar-fill" style="width:${prog}%;background:${barCol};"></div></div>`:''}
-          </div>
-          <div class="ccard-dates">
-            <div class="date-cell"><div class="date-label">Roasted</div><div class="date-val">${fmtShort(c.roastDate)}</div></div>
-            <div class="date-cell"><div class="date-label">Ready</div><div class="date-val" style="color:${c.readyDate?'#3B6D11':'#aaa'};">${fmtShort(c.readyDate)}</div></div>
-            <div class="date-cell"><div class="date-label">Opened</div><div class="date-val">${fmtShort(c.openDate)}</div></div>
-            <div class="date-cell"><div class="date-label">Best-by</div><div class="date-val" style="color:${c.bestby&&today()>c.bestby?'#A32D2D':'#1a1a1a'};">${fmtShort(c.bestby)}</div></div>
-          </div>
-        </div>
+// ── Detail overlay ────────────────────────────────────────────────
+function openDetail(id){
+  editingCoffeeId=id;
+  renderDetail();
+  document.getElementById('detail-overlay').classList.remove('hide');
+}
+function closeDetail(){document.getElementById('detail-overlay').classList.add('hide');editingCoffeeId=null;render();}
+
+function renderDetail(){
+  const c=findCoffee(editingCoffeeId);
+  if(!c)return;
+  const status=getStatus(c),color=STATUS_COLOR[status];
+  const ready=getReadyDate(c);
+  const hasPhoto=!!c.photo;
+  const brews=(c.brewLog||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+
+  const brewRows=brews.length?brews.map((b,realIdx)=>{
+    const items=[
+      b.filter?{l:'Filter',v:b.filter}:null,
+      b.paper?{l:'Filter paper',v:b.paper}:null,
+      b.temp?{l:'Temp',v:b.temp+'°C'}:null,
+      b.tds?{l:'TDS',v:b.tds+'ppm'}:null,
+      b.dose?{l:'Dose',v:b.dose+'g'}:null,
+      b.grind?{l:'Grind',v:b.grind}:null,
+    ].filter(Boolean);
+    const trueIdx=(c.brewLog||[]).indexOf(b);
+    return `<div class="brew-row" onclick="openBrewForm('${c.id}',${trueIdx})">
+      <div class="brew-row-top">
+        <span class="brew-row-title">${esc([b.filter,b.method].filter(Boolean).join(' · ')||'Brew')}</span>
+        <span class="brew-row-date">${fmtShort(b.date)}</span>
       </div>
-      <div class="ccard-brew-section">
-        <button class="brew-toggle" onclick="toggleBrew(${i})">
-          <span>Brew log${brews.length?' ('+brews.length+')':''}</span>
-          <i class="ti ${brewOpen||isBrewEditing?'ti-chevron-up':'ti-chevron-down'}" style="font-size:13px;"></i>
-        </button>
-        ${(brewOpen||isBrewEditing)?`<div class="brew-body">
-          ${brewEntriesHtml}
-          ${isBrewEditing&&brewEditEntryIdx===null?brewFormHtml(i,null,null):`<button class="brew-add-btn" onclick="openBrewForm(${i})" style="margin-top:8px;"><i class="ti ti-plus"></i> Add brew entry</button>`}
-        </div>`:''}
+      ${items.length?`<div class="brew-grid">${items.map(it=>`<div class="brew-grid-item"><div class="l">${it.l}</div><div class="v">${esc(it.v)}</div></div>`).join('')}</div>`:''}
+      ${b.ratio?`<div class="brew-grid-item" style="margin-bottom:8px;"><div class="l">Recipe</div><div class="v">${esc(b.ratio)}</div></div>`:''}
+      ${b.notes?`<div class="brew-row-notes">${esc(b.notes)}</div>`:''}
+    </div>`;
+  }).join(''):'<div class="brew-empty">No brew entries yet.</div>';
+
+  document.getElementById('detail-overlay').innerHTML=`
+    <div class="detail-hero ${hasPhoto?'':'detail-hero-noimg'}">
+      ${hasPhoto?`<img src="${c.photo}" alt="">`:''}
+      <div class="detail-back" onclick="closeDetail()">&#8592;</div>
+      <div class="detail-hero-caption">
+        <div class="origin">${esc(c.origin||'')}</div>
+        <div class="name disp">${esc(c.name||'Unnamed coffee')}</div>
+        <div class="roaster">${esc(c.roaster||'')}</div>
       </div>
-      ${isEditing?`<div class="inline-modal">${editFormHtml(c)}</div>`:''}
     </div>
-  </div>`;
+    <div class="detail-status disp" style="color:${color};">${statusLabel(c)}</div>
+    <div class="detail-stats top">
+      <div><div class="stat-lbl">Roasted</div><div class="stat-val">${fmtShort(c.roastDate)}</div></div>
+      <div><div class="stat-lbl">Ready</div><div class="stat-val">${fmtShort(ready)}</div></div>
+      <div><div class="stat-lbl">Rest</div><div class="stat-val">${c.restDays?c.restDays+'d':'—'}</div></div>
+    </div>
+    <div class="detail-stats">
+      <div><div class="stat-lbl">Process</div><div class="stat-val">${esc(c.process)||'—'}</div></div>
+      <div><div class="stat-lbl">Producer</div><div class="stat-val">${esc(c.producer)||'—'}</div></div>
+      <div><div class="stat-lbl">Opened</div><div class="stat-val">${fmtShort(c.openDate)}</div></div>
+      <div><div class="stat-lbl">Best-by</div><div class="stat-val">${fmtShort(c.bestby)}</div></div>
+    </div>
+    ${c.tasteNotes?`<div class="detail-notes">${esc(c.tasteNotes)}</div>`:''}
+    <div class="brew-hdr">
+      <span class="t">Brew log</span>
+      <span class="a" onclick="openBrewForm('${c.id}',null)">+ Add entry</span>
+    </div>
+    ${brewRows}
+    <div class="detail-footer">
+      <span class="link-quiet" onclick="editCoffeeFromDetail('${c.id}')">Edit</span>
+      <span class="link-quiet" onclick="${c.archived?`unarchiveFromDetail('${c.id}')`:`archiveFromDetail('${c.id}')`}">${c.archived?'Restore from archive':'Move to archive'}</span>
+      <span class="link-danger" onclick="deleteFromDetail('${c.id}')">Delete</span>
+    </div>`;
 }
 
-function editFormHtml(c){
-  return `<div class="modal-title">${editingIdx==='new'?'Add a coffee':'Edit coffee'}</div>
-  <div class="modal-tabs">
-    <button class="modal-tab active" onclick="showFTab('details',this)">Details</button>
-    <button class="modal-tab" onclick="showFTab('dates',this)">Dates</button>
-  </div>
-  <div id="ftab-details">
-    <div class="form-grid">
-      <div class="ff full">
+function editCoffeeFromDetail(id){closeDetail();openAddCoffee(id);}
+async function archiveFromDetail(id){await archiveCoffee(id,true);renderDetail();}
+async function unarchiveFromDetail(id){await archiveCoffee(id,false);renderDetail();}
+async function deleteFromDetail(id){
+  if(!confirm('Delete this coffee? This cannot be undone.'))return;
+  await deleteCoffee(id);
+  closeDetail();
+}
+
+// ── Add / Edit coffee overlay ─────────────────────────────────────
+function openAddCoffee(idOrNew){
+  editingCoffeeId=idOrNew==='new'?'new':idOrNew;
+  const c=editingCoffeeId==='new'?{}:findCoffee(editingCoffeeId)||{};
+  photoDataUrl=c.photo||null;
+  document.getElementById('addcoffee-overlay').innerHTML=`
+    <div class="form-hdr">
+      <span class="cancel" onclick="closeAddCoffee()">Cancel</span>
+      <span class="title disp">${editingCoffeeId==='new'?'New Coffee':'Edit Coffee'}</span>
+      <span class="save" onclick="saveCoffee()">Save</span>
+    </div>
+    <div class="form-body">
+      <div class="fphoto-row">
         <label>Photo</label>
-        <div class="photo-drop" onclick="document.getElementById('ph-inp').click()"><i class="ti ti-camera"></i> Upload photo or drawing<input type="file" id="ph-inp" accept="image/*" style="display:none;" onchange="handlePhoto(event)"></div>
-        <img id="ph-prev" class="photo-prev" style="${photoDataUrl?'':'display:none;'}" src="${photoDataUrl||''}">
+        <div class="fphoto-drop" onclick="document.getElementById('ph-inp').click()">Upload photo<input type="file" id="ph-inp" accept="image/*" style="display:none;" onchange="handlePhoto(event)"></div>
+        <img id="ph-prev" class="fphoto-prev" style="${photoDataUrl?'':'display:none;'}" src="${photoDataUrl||''}">
       </div>
-      <div class="ff"><label>Coffee name</label><input type="text" id="f-name" value="${c.name||''}" placeholder="Ethiopia Yirgacheffe"></div>
-      <div class="ff"><label>Roaster</label><input type="text" id="f-roaster" value="${c.roaster||''}" placeholder="Ona Coffee"></div>
-      <div class="ff full"><label>Origin</label><input type="text" id="f-origin" value="${c.origin||''}" placeholder="Ethiopia"></div>
-      <div class="ff"><label>Process</label><input type="text" id="f-process" value="${c.process||''}" placeholder="Washed"></div>
-      <div class="ff"><label>Producer</label><input type="text" id="f-producer" value="${c.producer||''}" placeholder="Ninety Plus"></div>
-      <div class="ff full"><label>Taste notes</label><textarea id="f-taste" placeholder="Blueberry, jasmine, bright acidity...">${c.tasteNotes||''}</textarea></div>
-    </div>
-  </div>
-  <div id="ftab-dates" style="display:none;">
-    <div class="form-grid dates-form-grid">
-      <div class="ff dates-full"><label>Roast date</label><input type="date" id="f-roast" value="${c.roastDate||''}" oninput="autoReady()"></div>
-      <div class="ff dates-full"><label>Rest days needed</label><input type="number" id="f-rest" value="${c.restDays||''}" placeholder="e.g. 10" min="0" oninput="autoReady()"></div>
-      <div class="ff full"><label>Ready date <span style="font-weight:400;color:#aaa;">(auto)</span></label><input type="date" id="f-ready" value="${c.readyDate||''}" readonly></div>
-      <div class="ff full" style="border-top:0.5px solid #e5e5e3;padding-top:10px;margin-top:4px;">
-        <label>Open date <span style="font-weight:400;color:#aaa;">(optional — fill in when you open the bag)</span></label>
-        <input type="date" id="f-open" value="${c.openDate||''}" oninput="autoBestBy()">
-      </div>
-      <div class="ff full"><label>Best-by <span style="font-weight:400;color:#aaa;">(auto: open + 14 days)</span></label><input type="date" id="f-bestby" value="${c.bestby||''}" readonly></div>
-      <div class="ff full"><div class="hint">Open date is optional. Fill it in when you actually open the bag.</div></div>
-    </div>
-  </div>
-  <div class="modal-actions">
-    <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
-    <button class="btn-primary" onclick="saveCoffee()">Save coffee</button>
-  </div>`;
+      <div class="frow"><label>Name</label><input id="f-name" placeholder="Coffee name" value="${esc(c.name)}"></div>
+      <div class="frow"><label>Roaster</label><input id="f-roaster" placeholder="Roastery" value="${esc(c.roaster)}"></div>
+      <div class="frow"><label>Origin</label><input id="f-origin" placeholder="Country / region" value="${esc(c.origin)}"></div>
+      <div class="frow"><label>Process</label><input id="f-process" placeholder="Washed" value="${esc(c.process)}"></div>
+      <div class="frow"><label>Producer</label><input id="f-producer" placeholder="Producer" value="${esc(c.producer)}"></div>
+      <div class="frow"><label>Roast date</label><input type="date" id="f-roast" value="${c.roastDate||''}" oninput="autoReady()"></div>
+      <div class="frow"><label>Rest days</label><input type="number" id="f-rest" placeholder="10" value="${esc(c.restDays)}" oninput="autoReady()"></div>
+      <div class="frow"><label>Ready date</label><input id="f-ready" value="${c.readyDate||''}" readonly></div>
+      <div class="frow"><label>Opened</label><input type="date" id="f-open" value="${c.openDate||''}" oninput="autoBestBy()"></div>
+      <div class="frow"><label>Best-by</label><input id="f-bestby" value="${c.bestby||''}" readonly></div>
+      <div class="ftextarea-wrap"><label>Taste notes</label><textarea id="f-taste" placeholder="Blueberry, jasmine, bright acidity...">${esc(c.tasteNotes)}</textarea></div>
+      <div class="fsave-space"></div>
+    </div>`;
+  document.getElementById('addcoffee-overlay').classList.remove('hide');
 }
-
-function brewFormHtml(coffeeIdx,entryIdx,existing){
-  const b=existing||{};
-  const isEdit=entryIdx!==null&&entryIdx!==undefined;
-  return `<div class="brew-entry" style="border:0.5px solid #85B7EB;background:#f8fbff;">
-    <div style="font-size:13px;font-weight:500;margin-bottom:.75rem;">${isEdit?'Edit brew entry':'New brew entry'}</div>
-    <div class="form-grid brew-form-grid">
-      <div class="ff"><label>Date</label><input type="date" id="b-date" value="${b.date||today()}"></div>
-      <div class="ff"><label>Method</label>
-        <select id="b-method"><option value="">Select...</option>${['Espresso','Filter / pour over','French press','AeroPress','Moka pot','Cold brew','Other'].map(m=>`<option ${b.method===m?'selected':''}>${m}</option>`).join('')}</select>
-      </div>
-      <div class="ff"><label>Filter</label>
-        <select id="b-filter" onchange="toggleFilterOther()"><option value="">Select...</option>${['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2','Other'].map(f=>`<option ${b.filter===f?'selected':''}>${f}</option>`).join('')}</select>
-      </div>
-      <div class="ff"><label>Filter paper</label><input type="text" id="b-paper" value="${b.paper||''}" placeholder="e.g. Cafec Abaca"></div>
-      <div class="ff brew-full" id="b-filter-other-wrap" style="display:${b.filter&&!['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2'].includes(b.filter)&&b.filter!==''?'flex':'none'};flex-direction:column;gap:4px;">
-        <label>Specify filter</label><input type="text" id="b-filter-other" value="${b.filter&&!['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2'].includes(b.filter)?b.filter:''}" placeholder="e.g. Kalita Wave">
-      </div>
-      <div class="ff"><label>Water temp (°C)</label><input type="number" id="b-temp" value="${b.temp||''}" placeholder="93" min="50" max="100"></div>
-      <div class="ff"><label>Water TDS (ppm)</label><input type="number" id="b-tds" value="${b.tds||''}" placeholder="150" min="0"></div>
-      <div class="ff"><label>Dose (g)</label><input type="number" id="b-dose" value="${b.dose||''}" placeholder="18" min="1"></div>
-      <div class="ff"><label>Grind</label><input type="text" id="b-grind" value="${b.grind||''}" placeholder="C40 25"></div>
-      <div class="ff brew-full"><label>Recipe</label><input type="text" id="b-ratio" value="${b.ratio||''}" placeholder="e.g. 30/120/225"></div>
-      <div class="ff full"><label>Taste notes</label><textarea id="b-notes" placeholder="Blueberry, bright acidity...">${b.notes||''}</textarea></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="cancelBrewForm(${coffeeIdx})">Cancel</button>
-      <button class="btn-primary" onclick="${isEdit?`saveBrewEdit(${coffeeIdx},${entryIdx})`:`saveBrewEntry(${coffeeIdx})`}">${isEdit?'Update entry':'Save entry'}</button>
-    </div>
-  </div>`;
-}
-
-function toggleFilterOther(){const v=document.getElementById('b-filter').value;document.getElementById('b-filter-other-wrap').style.display=v==='Other'?'flex':'none';}
-function showFTab(tab,btn){
-  document.getElementById('ftab-details').style.display=tab==='details'?'':'none';
-  document.getElementById('ftab-dates').style.display=tab==='dates'?'':'none';
-  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-}
+function closeAddCoffee(){document.getElementById('addcoffee-overlay').classList.add('hide');editingCoffeeId=null;photoDataUrl=null;render();}
 function autoReady(){const r=document.getElementById('f-roast').value;const d=document.getElementById('f-rest').value;document.getElementById('f-ready').value=addDays(r,d);}
 function autoBestBy(){const o=document.getElementById('f-open').value;document.getElementById('f-bestby').value=addDays(o,14);}
 function handlePhoto(e){
@@ -544,11 +626,9 @@ function handlePhoto(e){
   reader.onload=ev=>{
     const img=new Image();
     img.onload=()=>{
-      const MAX=800;
-      let w=img.width,h=img.height;
+      const MAX=800;let w=img.width,h=img.height;
       if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
-      const canvas=document.createElement('canvas');
-      canvas.width=w;canvas.height=h;
+      const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
       canvas.getContext('2d').drawImage(img,0,0,w,h);
       photoDataUrl=canvas.toDataURL('image/jpeg',0.7);
       const prev=document.getElementById('ph-prev');
@@ -558,181 +638,104 @@ function handlePhoto(e){
   };
   reader.readAsDataURL(file);
 }
-function openAddForm(idx){
-  editingIdx=idx==='new'?'new':idx;brewEditIdx=null;brewEditEntryIdx=null;
-  photoDataUrl=editingIdx!=='new'?coffees[editingIdx].photo||null:null;
-  renderList();
-  setTimeout(()=>{const target=editingIdx==='new'?document.querySelector('.coffee-list .ccard'):document.getElementById('ccard-'+editingIdx);if(target)target.scrollIntoView({behavior:'smooth',block:'nearest'});},50);
+async function saveCoffee(){
+  const name=(document.getElementById('f-name').value||'').trim();
+  if(!name){alert('Please enter a coffee name.');return;}
+  const isNew=editingCoffeeId==='new';
+  const existing=isNew?{}:(findCoffee(editingCoffeeId)||{});
+  const c={...existing,name,
+    roaster:(document.getElementById('f-roaster').value||'').trim(),
+    origin:(document.getElementById('f-origin').value||'').trim(),
+    process:(document.getElementById('f-process').value||'').trim(),
+    producer:(document.getElementById('f-producer').value||'').trim(),
+    tasteNotes:(document.getElementById('f-taste').value||'').trim(),
+    roastDate:document.getElementById('f-roast').value||'',
+    restDays:document.getElementById('f-rest').value||'',
+    readyDate:document.getElementById('f-ready').value||'',
+    openDate:document.getElementById('f-open').value||'',
+    bestby:document.getElementById('f-bestby').value||'',
+    photo:photoDataUrl||existing.photo||null,
+    brewLog:existing.brewLog||[],
+    archived:existing.archived||false,
+    id:existing.id||('local-'+Date.now()),
+    userId:existing.userId||(getSession()&&getSession().userId)||null};
+  if(isNew)coffees.unshift(c);else{const idx=coffees.findIndex(x=>x.id===c.id);coffees[idx]=c;}
+  closeAddCoffee();
+  saveLocal();
+  toast(isNew?'Coffee added!':'Coffee updated!');
+  await saveCoffeeToCloud(c,isNew&&!existing.id);
+  render();
 }
-function closeEdit(){editingIdx=null;photoDataUrl=null;renderList();}
 
-function toggleBrew(i){openBrewIdx[i]=!openBrewIdx[i];brewEditIdx=null;brewEditEntryIdx=null;renderList();}
-function toggleArchiveBrew(i){openBrewIdx['a'+i]=!openBrewIdx['a'+i];renderArchive();}
-function openBrewForm(i){brewEditIdx=i;brewEditEntryIdx=null;openBrewIdx[i]=true;renderList();setTimeout(()=>{const c=document.getElementById('ccard-'+i);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
-function openBrewEdit(coffeeIdx,entryIdx){brewEditIdx=coffeeIdx;brewEditEntryIdx=entryIdx;openBrewIdx[coffeeIdx]=true;renderList();setTimeout(()=>{const c=document.getElementById('ccard-'+coffeeIdx);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
-function cancelBrewForm(i){brewEditIdx=null;brewEditEntryIdx=null;renderList();}
-
-function getBrewEntry(){
+// ── Add / Edit brew entry overlay ─────────────────────────────────
+function openBrewForm(coffeeId,entryIdx){
+  editingBrewCoffeeId=coffeeId;editingBrewEntryIdx=entryIdx;
+  const c=findCoffee(coffeeId);
+  const b=(entryIdx!=null&&c.brewLog&&c.brewLog[entryIdx])?c.brewLog[entryIdx]:{};
+  const isEdit=entryIdx!=null;
+  const FILTERS=['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2','Other'];
+  const METHODS=['Espresso','Filter / pour over','French press','AeroPress','Moka pot','Cold brew','Other'];
+  document.getElementById('addbrew-overlay').innerHTML=`
+    <div class="form-hdr">
+      <span class="cancel" onclick="closeBrewForm()">Cancel</span>
+      <span class="title disp">${isEdit?'Edit Entry':'New Brew Entry'}</span>
+      <span class="save" onclick="saveBrewEntry()">Save</span>
+    </div>
+    <div class="form-body">
+      <div class="frow"><label>Date</label><input type="date" id="b-date" value="${b.date||today()}"></div>
+      <div class="frow"><label>Method</label><select id="b-method">${METHODS.map(m=>`<option ${b.method===m?'selected':''}>${m}</option>`).join('')}</select></div>
+      <div class="frow"><label>Filter</label><select id="b-filter" onchange="toggleFilterOther()">${FILTERS.map(f=>`<option ${b.filter===f?'selected':''}>${f}</option>`).join('')}</select></div>
+      <div class="frow" id="b-filter-other-wrap" style="display:${b.filter&&!FILTERS.slice(0,-1).includes(b.filter)&&b.filter!==''?'flex':'none'};">
+        <label>Specify filter</label><input id="b-filter-other" value="${b.filter&&!FILTERS.slice(0,-1).includes(b.filter)?esc(b.filter):''}" placeholder="e.g. Kalita Wave">
+      </div>
+      <div class="frow"><label>Filter paper</label><input id="b-paper" value="${esc(b.paper)}" placeholder="e.g. Cafec Abaca"></div>
+      <div class="frow"><label>Water temp</label><input type="number" id="b-temp" value="${esc(b.temp)}" placeholder="93°C"></div>
+      <div class="frow"><label>Water TDS</label><input type="number" id="b-tds" value="${esc(b.tds)}" placeholder="150ppm"></div>
+      <div class="frow"><label>Dose</label><input type="number" id="b-dose" value="${esc(b.dose)}" placeholder="18g"></div>
+      <div class="frow"><label>Grind</label><input id="b-grind" value="${esc(b.grind)}" placeholder="C40 25"></div>
+      <div class="frow"><label>Recipe</label><input id="b-ratio" value="${esc(b.ratio)}" placeholder="30/120/225"></div>
+      <div class="ftextarea-wrap"><label>Taste notes</label><textarea id="b-notes" placeholder="Bright and floral...">${esc(b.notes)}</textarea></div>
+      ${isEdit?`<div class="fsave-space"></div><div class="link-danger" style="padding-bottom:20px;" onclick="deleteBrewEntry()">Delete this entry</div>`:'<div class="fsave-space"></div>'}
+    </div>`;
+  document.getElementById('addbrew-overlay').classList.remove('hide');
+}
+function toggleFilterOther(){
+  const v=document.getElementById('b-filter').value;
+  document.getElementById('b-filter-other-wrap').style.display=v==='Other'?'flex':'none';
+}
+function closeBrewForm(){document.getElementById('addbrew-overlay').classList.add('hide');editingBrewCoffeeId=null;editingBrewEntryIdx=null;renderDetail();}
+function getBrewEntryFromForm(){
   const filterVal=document.getElementById('b-filter').value;
   const filterOther=document.getElementById('b-filter-other')?document.getElementById('b-filter-other').value:'';
-  return{date:document.getElementById('b-date').value,method:document.getElementById('b-method').value,filter:filterVal==='Other'?filterOther||'Other':filterVal,temp:document.getElementById('b-temp').value,tds:document.getElementById('b-tds').value,dose:document.getElementById('b-dose').value,ratio:document.getElementById('b-ratio').value,grind:document.getElementById('b-grind').value,paper:document.getElementById('b-paper').value,notes:document.getElementById('b-notes').value.trim()};
+  return{date:document.getElementById('b-date').value,method:document.getElementById('b-method').value,
+    filter:filterVal==='Other'?(filterOther||'Other'):filterVal,
+    temp:document.getElementById('b-temp').value,tds:document.getElementById('b-tds').value,
+    dose:document.getElementById('b-dose').value,ratio:document.getElementById('b-ratio').value,
+    grind:document.getElementById('b-grind').value,paper:document.getElementById('b-paper').value,
+    notes:document.getElementById('b-notes').value.trim()};
 }
-
-function renderCalendar(){
-  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('cal-label').textContent=MONTHS[calMonth]+' '+calYear;
-  const grid=document.getElementById('cal-grid');
-  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  let html=dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
-  const t=today(),firstDay=new Date(calYear,calMonth,1).getDay(),dim=new Date(calYear,calMonth+1,0).getDate(),diPrev=new Date(calYear,calMonth,0).getDate();
-  const stripMap={},labelMap={};
-  window._calEvents={};
-  coffees.filter(c=>!c.archived).forEach((c,i)=>{
-    const p=palById(c.id);
-    const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'Coffee '+(i+1);
-    if(c.roastDate&&c.readyDate){
-      let cur=c.roastDate;
-      while(cur<c.readyDate){
-        if(!stripMap[cur])stripMap[cur]=[];
-        stripMap[cur].push(p.strip);
-        if(!window._calEvents[cur])window._calEvents[cur]=[];
-        window._calEvents[cur].push({color:p.strip,label,type:'resting',coffee:c});
-        const d=new Date(cur+'T12:00:00');d.setDate(d.getDate()+1);cur=d.toISOString().split('T')[0];
-      }
-    }
-    [{ds:c.readyDate,lbl:'Ready to brew'},{ds:c.openDate,lbl:'Opened'},{ds:c.bestby,lbl:'Best-by'}].forEach(({ds,lbl})=>{
-      if(ds){
-        if(!labelMap[ds])labelMap[ds]=[];
-        labelMap[ds].push({color:p.strip,label:label+' · '+lbl});
-        if(!window._calEvents[ds])window._calEvents[ds]=[];
-        window._calEvents[ds].push({color:p.strip,label,type:lbl,coffee:c});
-      }
-    });
-  });
-  let cells=[];
-  for(let i=0;i<firstDay;i++)cells.push({day:diPrev-firstDay+1+i,thisMonth:false,ds:null});
-  for(let d=1;d<=dim;d++){const mm=String(calMonth+1).padStart(2,'0'),dd=String(d).padStart(2,'0');cells.push({day:d,thisMonth:true,ds:`${calYear}-${mm}-${dd}`});}
-  let nx=1;while(cells.length%7!==0)cells.push({day:nx++,thisMonth:false,ds:null});
-  html+=cells.map(cell=>{
-    const strips=cell.ds?(stripMap[cell.ds]||[]):[];
-    const hasEvents=cell.ds&&(strips.length||(labelMap[cell.ds]||[]).length);
-    const isToday=cell.ds===t;
-    const cls=['cal-day',!cell.thisMonth?'other-month':'',isToday?'today':'',hasEvents?'has-events':'',hasEvents?'cal-clickable':''].filter(Boolean).join(' ');
-    const stripsHtml=[...new Set(strips)].map(col=>`<div class="cal-strip" style="background:${col}55;"></div>`).join('');
-    const labelsHtml=(labelMap[cell.ds]||[]).map(l=>`<div class="cal-dot-row"><div class="cal-dot" style="background:${l.color};flex-shrink:0;"></div><span class="cal-dot-label">${l.label}</span></div>`).join('');
-    const onclick=hasEvents?`onclick="showCalPopup('${cell.ds}')" `:'';
-    return `<div class="${cls}" ${onclick}><div class="cal-day-num">${cell.day}</div>${stripsHtml}${labelsHtml}</div>`;
-  }).join('');
-  grid.innerHTML=html;
-  const leg=document.getElementById('cal-legend');
-  const activeCoffees=coffees.filter(c=>!c.archived);
-  const sortedLegend=[...activeCoffees].sort((a,b)=>(_colorMap[a.id]??99)-(_colorMap[b.id]??99));
-  leg.innerHTML=sortedLegend.map((c)=>{const p=palById(c.id);const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'?';return`<div class="cal-legend-item"><div style="width:10px;height:10px;border-radius:2px;background:${p.strip};flex-shrink:0;"></div><span>${label}</span></div>`;}).join('')+(activeCoffees.length?`<div class="cal-legend-resting"><div style="width:18px;height:4px;background:#B4B2A9;opacity:.5;border-radius:2px;flex-shrink:0;"></div> Resting</div>`:'');
-}
-
-function showCalPopup(ds){
-  const events=window._calEvents[ds]||[];
-  if(!events.length)return;
-  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const d=new Date(ds+'T12:00:00');
-  const dateLabel=d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();
-  const keyEvents=events.filter(e=>e.type!=='resting');
-  const restingEvents=events.filter(e=>e.type==='resting');
-  const seenResting=new Set();
-  const uniqueResting=restingEvents.filter(e=>{if(seenResting.has(e.label))return false;seenResting.add(e.label);return true;});
-  let inner='';
-  if(keyEvents.length){
-    inner+=keyEvents.map(e=>`
-      <div style="display:flex;align-items:center;gap:10px;padding:.6rem 0;border-bottom:0.5px solid #e5e5e3;">
-        <div style="width:10px;height:10px;border-radius:50%;background:${e.color};flex-shrink:0;"></div>
-        <div>
-          <div style="font-size:13px;font-weight:500;">${e.label}</div>
-          <div style="font-size:12px;color:#888;margin-top:1px;">${e.type}</div>
-        </div>
-      </div>`).join('');
-  }
-  if(uniqueResting.length){
-    inner+=`<div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.05em;padding:.6rem 0 .3rem;">Resting</div>`;
-    inner+=uniqueResting.map(e=>`
-      <div style="display:flex;align-items:center;gap:10px;padding:.4rem 0;">
-        <div style="width:10px;height:10px;border-radius:3px;background:${e.color}66;flex-shrink:0;"></div>
-        <div style="font-size:13px;color:#555;">${e.label}</div>
-      </div>`).join('');
-  }
-  document.getElementById('cal-popup').innerHTML=`
-    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:flex;align-items:center;justify-content:center;" onclick="closeCalPopup(event)">
-      <div style="background:#fff;border-radius:12px;padding:1.25rem;width:340px;max-width:92vw;max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;">
-          <div style="font-size:15px;font-weight:500;">${dateLabel}</div>
-          <button onclick="closeCalPopup()" style="background:transparent;border:none;font-size:18px;cursor:pointer;color:#aaa;line-height:1;">×</button>
-        </div>
-        ${inner}
-      </div>
-    </div>`;
-}
-function closeCalPopup(e){
-  if(!e||e.target===document.querySelector('#cal-popup>div'))
-  document.getElementById('cal-popup').innerHTML='';
-}
-function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
-function render(){buildColorMap(coffees);renderStats();renderList();if(document.getElementById('view-calendar').style.display!=='none')renderCalendar();if(document.getElementById('view-archive').style.display!=='none')renderArchive();}
-async function compressDataUrl(dataUrl){
-  return new Promise(res=>{
-    const img=new Image();
-    img.onload=()=>{
-      const MAX=800;
-      let w=img.width,h=img.height;
-      if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
-      const canvas=document.createElement('canvas');
-      canvas.width=w;canvas.height=h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      res(canvas.toDataURL('image/jpeg',0.7));
-    };
-    img.onerror=()=>res(dataUrl);
-    img.src=dataUrl;
-  });
-}
-async function migratePhotos(){
-  console.log('Starting photo migration for',coffees.length,'coffees');
-  toast('Compressing photos… this may take a moment.');
-  // Fetch photos one at a time to avoid 10MB limit
-  const allIds=coffees.map(c=>c.id).filter(id=>id&&!String(id).startsWith('local-'));
-  let compressed=0,skipped=0,failed=0;
-  for(const id of allIds){
-    try{
-      const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,photo&id=eq.'+id,{headers:{...HEADERS(),'Prefer':'return=representation'}});
-      if(!r.ok){failed++;continue;}
-      const rows=await r.json();
-      const photo=rows[0]&&rows[0].photo;
-      if(!photo){skipped++;continue;}
-      if(photo.length<50000){skipped++;const c=coffees.find(x=>x.id===id);if(c&&!c.photo)c.photo=photo;continue;}
-      const small=await compressDataUrl(photo);
-      await dbUpdate(id,{photo:small});
-      const c=coffees.find(x=>x.id===id);
-      if(c)c.photo=small;
-      compressed++;
-    }catch(e){console.warn('photo compress failed for',id,e);failed++;}
-  }
-  saveLocal();render();
-  toast('Done! '+compressed+' compressed, '+skipped+' skipped, '+failed+' failed.');
-}
-async function loadPhotosLazily(){
-  // Load photos for all coffees (active and archived) that don't have them cached
-  const needPhotos=coffees.filter(c=>c.id&&!String(c.id).startsWith('local-')&&!c.photo);
-  for(const c of needPhotos){
-    try{
-      const photo=await dbGetPhoto(c.id);
-      if(photo){
-        c.photo=photo;
-        const idx=coffees.indexOf(c);
-        // Try active card first, then archive card
-        const wrap=document.querySelector('#ccard-'+idx+' .ccard-photo-wrap')||
-                   document.querySelector('#ccard-a-'+idx+' .ccard-photo-wrap');
-        if(wrap){wrap.innerHTML=`<img src="${photo}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;}
-      }
-    }catch(e){}
-  }
+async function saveBrewEntry(){
+  const c=findCoffee(editingBrewCoffeeId);if(!c)return;
+  if(!c.brewLog)c.brewLog=[];
+  const entry=getBrewEntryFromForm();
+  if(editingBrewEntryIdx!=null)c.brewLog[editingBrewEntryIdx]=entry;else c.brewLog.push(entry);
   saveLocal();
+  toast('Brew entry saved!');
+  closeBrewForm();
+  if(c.id&&!String(c.id).startsWith('local-'))
+    try{await dbUpdate(c.id,{brew_log:c.brewLog});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:c.id,row:{brew_log:c.brewLog}});setSyncStatus('offline');}
+}
+async function deleteBrewEntry(){
+  if(!confirm('Delete this brew entry?'))return;
+  const c=findCoffee(editingBrewCoffeeId);if(!c)return;
+  c.brewLog.splice(editingBrewEntryIdx,1);
+  saveLocal();
+  toast('Brew entry deleted.');
+  closeBrewForm();
+  if(c.id&&!String(c.id).startsWith('local-'))
+    try{await dbUpdate(c.id,{brew_log:c.brewLog});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:c.id,row:{brew_log:c.brewLog}});setSyncStatus('offline');}
 }
 
 // ── Local cache ───────────────────────────────────────────────────
@@ -746,18 +749,13 @@ function loadQueue(){try{const d=localStorage.getItem(Q_KEY);return d?JSON.parse
 function saveQueue(q){try{localStorage.setItem(Q_KEY,JSON.stringify(q));}catch(e){}}
 let syncQueue=loadQueue();
 function queueOp(op){syncQueue.push(op);saveQueue(syncQueue);}
-
-// ── Sync status UI ────────────────────────────────────────────────
 function setSyncStatus(state){
-  const el=document.getElementById('sync-status');
-  if(!el)return;
-  const styles={synced:{text:'✓ Synced',color:'#3B6D11',bg:'#EAF3DE'},syncing:{text:'↻ Syncing…',color:'#633806',bg:'#FEF9EC'},offline:{text:'Offline — changes saved locally',color:'#633806',bg:'#FEF9EC'},error:{text:'⚠ Sync failed — will retry',color:'#A32D2D',bg:'#FCEBEB'}};
+  const el=document.getElementById('sync-status');if(!el)return;
+  const styles={synced:{text:'Synced',color:'#6E8F5E',bg:'#EAF1E5'},syncing:{text:'Syncing…',color:'#B8804A',bg:'#F5EAE0'},offline:{text:'Offline',color:'#B8804A',bg:'#F5EAE0'},error:{text:'Sync failed',color:'#B15C52',bg:'#F5E5E3'}};
   const s=styles[state]||styles.offline;
   el.textContent=s.text;el.style.color=s.color;el.style.background=s.bg;el.style.display='inline-block';
-  if(state==='synced')setTimeout(()=>{if(el.textContent==='✓ Synced')el.style.display='none';},3000);
+  if(state==='synced')setTimeout(()=>{if(el.textContent==='Synced')el.style.display='none';},3000);
 }
-
-// ── Drain sync queue ──────────────────────────────────────────────
 async function drainQueue(){
   if(!syncQueue.length)return;
   setSyncStatus('syncing');
@@ -770,133 +768,107 @@ async function drainQueue(){
     }catch(e){failed.push(op);}
   }
   syncQueue=failed;saveQueue(syncQueue);
-  if(failed.length){setSyncStatus('error');}else{setSyncStatus('synced');}
+  setSyncStatus(failed.length?'error':'synced');
 }
 
-// ── Offline-aware save/delete ─────────────────────────────────────
+// ── Cloud-backed CRUD ──────────────────────────────────────────────
 async function saveCoffeeToCloud(c,isNew){
   setSyncStatus('syncing');
   try{
-    if(isNew){const row=await dbInsert(toDB(c));c.id=row.id;coffees[0]=fromDB(row);}
-    else{const row=await dbUpdate(c.id,toDB(c));coffees[coffees.indexOf(c)]=fromDB(row);}
+    if(isNew){const row=await dbInsert(toDB(c));c.id=row.id;const idx=coffees.findIndex(x=>x===c||x.id===c.id);}
+    else{await dbUpdate(c.id,toDB(c));}
     saveLocal();setSyncStatus('synced');
   }catch(e){
     queueOp(isNew?{type:'insert',row:toDB(c)}:{type:'update',id:c.id,row:toDB(c)});
     saveLocal();setSyncStatus('offline');
   }
 }
-async function deleteCoffeeFromCloud(id){
-  setSyncStatus('syncing');
-  try{await dbDelete(id);setSyncStatus('synced');}
-  catch(e){queueOp({type:'delete',id});setSyncStatus('offline');}
+async function deleteCoffee(id){
+  const idx=coffees.findIndex(c=>c.id===id);if(idx<0)return;
+  coffees.splice(idx,1);saveLocal();render();toast('Coffee removed.');
+  if(id&&!String(id).startsWith('local-')){
+    setSyncStatus('syncing');
+    try{await dbDelete(id);setSyncStatus('synced');}
+    catch(e){queueOp({type:'delete',id});setSyncStatus('offline');}
+  }
 }
-
-// ── Coffee CRUD ───────────────────────────────────────────────────
-async function saveCoffee(){
-  const name=(document.getElementById('f-name').value||'').trim();
-  if(!name){alert('Please enter a coffee name.');return;}
-  const isNew=editingIdx==='new';
-  const existing=!isNew?coffees[editingIdx]:{};
-  const c={...existing,name,roaster:(document.getElementById('f-roaster').value||'').trim(),origin:(document.getElementById('f-origin').value||'').trim(),process:(document.getElementById('f-process').value||'').trim(),producer:(document.getElementById('f-producer').value||'').trim(),tasteNotes:(document.getElementById('f-taste').value||'').trim(),roastDate:document.getElementById('f-roast').value||'',restDays:document.getElementById('f-rest').value||'',readyDate:document.getElementById('f-ready').value||'',openDate:document.getElementById('f-open').value||'',bestby:document.getElementById('f-bestby').value||'',photo:photoDataUrl||existing.photo||null,brewLog:existing.brewLog||[],archived:existing.archived||false,id:existing.id||('local-'+Date.now()),userId:existing.userId||(getSession()&&getSession().userId)||null};
-  if(isNew)coffees.unshift(c);else coffees[editingIdx]=c;
-  editingIdx=null;photoDataUrl=null;saveLocal();render();toast(isNew?'Coffee added!':'Coffee updated!');
-  await saveCoffeeToCloud(c,isNew&&!existing.id);
+async function archiveCoffee(id,val){
+  const c=findCoffee(id);if(!c)return;
+  c.archived=val;saveLocal();render();toast(val?'Coffee archived.':'Coffee restored.');
+  if(c.id&&!String(c.id).startsWith('local-'))
+    try{await dbUpdate(c.id,{archived:val});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:c.id,row:{archived:val}});setSyncStatus('offline');}
 }
-async function deleteCoffee(i){
-  if(!confirm('Remove this coffee?'))return;
-  const id=coffees[i].id;coffees.splice(i,1);saveLocal();render();toast('Coffee removed.');
-  if(id&&!String(id).startsWith('local-'))await deleteCoffeeFromCloud(id);
-}
-async function archiveCoffee(i){
-  coffees[i].archived=true;saveLocal();render();toast('Coffee archived.');
-  if(coffees[i]&&coffees[i].id&&!String(coffees[i].id).startsWith('local-'))
-    try{await dbUpdate(coffees[i].id,{archived:true});setSyncStatus('synced');}
-    catch(e){queueOp({type:'update',id:coffees[i].id,row:{archived:true}});setSyncStatus('offline');}
-}
-async function unarchiveCoffee(i){
-  coffees[i].archived=false;saveLocal();render();renderArchive();toast('Coffee restored.');
-  if(coffees[i]&&coffees[i].id&&!String(coffees[i].id).startsWith('local-'))
-    try{await dbUpdate(coffees[i].id,{archived:false});setSyncStatus('synced');}
-    catch(e){queueOp({type:'update',id:coffees[i].id,row:{archived:false}});setSyncStatus('offline');}
-}
-async function saveBrewEntry(i){
-  const entry=getBrewEntry();if(!coffees[i].brewLog)coffees[i].brewLog=[];coffees[i].brewLog.push(entry);saveLocal();openBrewIdx[i]=true;brewEditIdx=null;brewEditEntryIdx=null;render();toast('Brew entry saved!');
-  if(coffees[i].id&&!String(coffees[i].id).startsWith('local-'))
-    try{await dbUpdate(coffees[i].id,{brew_log:coffees[i].brewLog});setSyncStatus('synced');}
-    catch(e){queueOp({type:'update',id:coffees[i].id,row:{brew_log:coffees[i].brewLog}});setSyncStatus('offline');}
-}
-async function saveBrewEdit(coffeeIdx,entryIdx){
-  const entry=getBrewEntry();coffees[coffeeIdx].brewLog[entryIdx]=entry;saveLocal();openBrewIdx[coffeeIdx]=true;brewEditIdx=null;brewEditEntryIdx=null;render();toast('Brew entry updated!');
-  if(coffees[coffeeIdx].id&&!String(coffees[coffeeIdx].id).startsWith('local-'))
-    try{await dbUpdate(coffees[coffeeIdx].id,{brew_log:coffees[coffeeIdx].brewLog});setSyncStatus('synced');}
-    catch(e){queueOp({type:'update',id:coffees[coffeeIdx].id,row:{brew_log:coffees[coffeeIdx].brewLog}});setSyncStatus('offline');}
-}
-async function deleteBrewEntry(coffeeIdx,entryIdx){
-  if(!confirm('Delete this brew entry?'))return;coffees[coffeeIdx].brewLog.splice(entryIdx,1);saveLocal();openBrewIdx[coffeeIdx]=true;render();toast('Brew entry deleted.');
-  if(coffees[coffeeIdx].id&&!String(coffees[coffeeIdx].id).startsWith('local-'))
-    try{await dbUpdate(coffees[coffeeIdx].id,{brew_log:coffees[coffeeIdx].brewLog});setSyncStatus('synced');}
-    catch(e){queueOp({type:'update',id:coffees[coffeeIdx].id,row:{brew_log:coffees[coffeeIdx].brewLog}});setSyncStatus('offline');}
-}
-
 async function autoArchivePastBestBy(){
-  const toArchive=coffees.filter(c=>!c.archived&&c.bestby&&today()>c.bestby);
+  const toArchive=coffees.filter(c=>!c.archived&&c.bestby&&today()>c.bestby&&daysBetween(today(),c.bestby)<-3);
   for(const c of toArchive){c.archived=true;if(c.id&&!String(c.id).startsWith('local-'))try{await dbUpdate(c.id,{archived:true});}catch(e){queueOp({type:'update',id:c.id,row:{archived:true}});}}
   if(toArchive.length){saveLocal();toast(toArchive.length+' coffee'+(toArchive.length>1?'s':'')+' auto-archived (past best-by).');}
 }
 
-// ── Token refresh ────────────────────────────────────────────────
-// Always refreshes unless token is fresh (>5 min left).
-// Falls back gracefully — if /get-session fails, keeps existing token.
-async function refreshTokenIfNeeded(){
-  const s=getSession();
-  if(!s)return;
-  // Skip only if token is definitely still fresh
-  if(s.tokenExpiry&&(s.tokenExpiry-Date.now())>5*60*1000)return;
-  try{
-    const r=await fetch(NEON_AUTH_URL+'/get-session',{
-      method:'GET',
-      credentials:'include'
-    });
-    const jwt=r.headers.get('set-auth-jwt');
-    if(jwt){
-      const exp=getJwtExpiry(jwt);
-      saveSession({...s,token:jwt,tokenExpiry:exp});
-      console.log('Token refreshed, expires:',new Date(exp).toISOString());
-    }else{
-      console.warn('get-session returned no JWT — session may have expired. Re-login required.');
-    }
-  }catch(e){
-    console.warn('Token refresh failed:',e.message);
+async function migratePhotos(){
+  toast('Compressing photos… this may take a moment.');
+  const allIds=coffees.map(c=>c.id).filter(id=>id&&!String(id).startsWith('local-'));
+  let compressed=0,skipped=0,failed=0;
+  for(const id of allIds){
+    try{
+      const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,photo&id=eq.'+id,{headers:{...HEADERS(),'Prefer':'return=representation'}});
+      if(!r.ok){failed++;continue;}
+      const rows=await r.json();
+      const photo=rows[0]&&rows[0].photo;
+      if(!photo){skipped++;continue;}
+      if(photo.length<50000){skipped++;continue;}
+      const small=await compressDataUrl(photo);
+      await dbUpdate(id,{photo:small});
+      const c=findCoffee(id);if(c)c.photo=small;
+      compressed++;
+    }catch(e){failed++;}
   }
+  saveLocal();render();
+  toast('Done! '+compressed+' compressed, '+skipped+' skipped, '+failed+' failed.');
+}
+async function compressDataUrl(dataUrl){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=800;let w=img.width,h=img.height;
+      if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
+      const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      res(canvas.toDataURL('image/jpeg',0.7));
+    };
+    img.onerror=()=>res(dataUrl);
+    img.src=dataUrl;
+  });
+}
+async function loadPhotosLazily(){
+  const needPhotos=coffees.filter(c=>c.id&&!String(c.id).startsWith('local-')&&!c.photo);
+  for(const c of needPhotos){
+    try{
+      const photo=await dbGetPhoto(c.id);
+      if(photo){c.photo=photo;render();}
+    }catch(e){}
+  }
+  saveLocal();
 }
 
-function getJwtExpiry(jwt){
-  try{
-    const payload=JSON.parse(atob(jwt.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-    return payload.exp?payload.exp*1000:Date.now()+14*60*1000;
-  }catch(e){return Date.now()+14*60*1000;}
-}
+// ── Token refresh ────────────────────────────────────────────────
+function getJwtExpiry(jwt){try{const payload=JSON.parse(atob(jwt.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));return payload.exp?payload.exp*1000:Date.now()+14*60*1000;}catch(e){return Date.now()+14*60*1000;}}
 
 // ── Init ──────────────────────────────────────────────────────────
 async function init(){
   setSyncStatus('syncing');
-  // Always force a fresh token on load — don't trust stored expiry
   const s=getSession();
   if(s){
     try{
       const r=await fetch(NEON_AUTH_URL+'/get-session',{method:'GET',credentials:'include'});
       const jwt=r.headers.get('set-auth-jwt');
       if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}
-    }catch(e){console.warn('Token refresh on init failed:',e.message);}
+    }catch(e){}
   }
   try{
     const rows=await dbGet();
     const newCoffees=rows.map(fromDB);
-    // Preserve cached photos from previous load so they don't vanish on re-render
-    newCoffees.forEach(c=>{
-      const prev=coffees.find(p=>p.id===c.id);
-      if(prev&&prev.photo)c.photo=prev.photo;
-    });
+    newCoffees.forEach(c=>{const prev=coffees.find(p=>p.id===c.id);if(prev&&prev.photo)c.photo=prev.photo;});
     coffees=newCoffees;
     saveLocal();
     await autoArchivePastBestBy();
@@ -904,32 +876,19 @@ async function init(){
     render();setSyncStatus('synced');loadPhotosLazily();
   }catch(e){
     const local=loadLocal();
-    if(local&&local.length){
-      coffees=local;render();setSyncStatus('offline');
-    }else{
-      document.getElementById('coffee-list').innerHTML=`
-        <div style="text-align:center;padding:2rem;">
-          <div style="color:#A32D2D;font-size:14px;margin-bottom:12px;">Could not connect to database.</div>
-          <div style="color:#aaa;font-size:12px;margin-bottom:16px;">No local data available. Try toggling VPN or switching networks.</div>
-          <button onclick="init()" style="font-size:13px;padding:8px 20px;border-radius:8px;border:0.5px solid #d5d5d3;background:#1a1a1a;color:#fff;cursor:pointer;">Try again</button>
-        </div>`;
+    if(local&&local.length){coffees=local;render();setSyncStatus('offline');}
+    else{
+      document.getElementById('coffee-list').innerHTML=`<div class="empty-msg">Could not connect to database.<br>Try again in a moment.<br><br><span class="link-quiet" style="text-decoration:underline;" onclick="init()">Try again</span></div>`;
       setSyncStatus('offline');
     }
-    console.warn('Neon unreachable, working offline:',e.message);
   }
   setTimeout(backgroundSync,5*60*1000);
 }
-
 async function manualSync(){
   setSyncStatus('syncing');
   try{
-    // Force token refresh regardless of expiry before syncing
     const s=getSession();
-    if(s){
-      const r=await fetch(NEON_AUTH_URL+'/get-session',{method:'GET',credentials:'include'});
-      const jwt=r.headers.get('set-auth-jwt');
-      if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}
-    }
+    if(s){const r=await fetch(NEON_AUTH_URL+'/get-session',{method:'GET',credentials:'include'});const jwt=r.headers.get('set-auth-jwt');if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}}
     const rows=await dbGet();
     const newCoffees=rows.map(fromDB);
     newCoffees.forEach(c=>{const prev=coffees.find(p=>p.id===c.id);if(prev&&prev.photo)c.photo=prev.photo;});
@@ -937,40 +896,26 @@ async function manualSync(){
     toast('Synced!');
   }catch(e){
     setSyncStatus('offline');
-    // If it looks like an auth error, prompt re-login
-    if(e.message&&(e.message.includes('401')||e.message.includes('403')||e.message.includes('JWT'))){
-      toast('Session expired — please sign out and sign in again.');
-    }else{
-      toast('Could not reach server.');
-    }
-    console.warn('manualSync failed:',e.message);
+    toast(e.message&&(e.message.includes('401')||e.message.includes('403'))?'Session expired — sign in again.':'Could not reach server.');
   }
 }
 async function backgroundSync(){
   try{
     const s=getSession();
-    if(s){
-      try{
-        const r=await fetch(NEON_AUTH_URL+'/get-session',{method:'GET',credentials:'include'});
-        const jwt=r.headers.get('set-auth-jwt');
-        if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}
-      }catch(e){console.warn('bg token refresh failed:',e.message);}
-    }
+    if(s){try{const r=await fetch(NEON_AUTH_URL+'/get-session',{method:'GET',credentials:'include'});const jwt=r.headers.get('set-auth-jwt');if(jwt){const exp=getJwtExpiry(jwt);saveSession({...s,token:jwt,tokenExpiry:exp});}}catch(e){}}
     const rows=await dbGet();
     const newCoffees=rows.map(fromDB);
     newCoffees.forEach(c=>{const prev=coffees.find(p=>p.id===c.id);if(prev&&prev.photo)c.photo=prev.photo;});
     coffees=newCoffees;saveLocal();await drainQueue();
-    // Don't re-render if user is actively editing something
-    const userEditing=editingIdx!==null||brewEditIdx!==null;
-    if(!userEditing){render();setSyncStatus('synced');}
-    else{setSyncStatus('synced');}
+    const busy=!document.getElementById('detail-overlay').classList.contains('hide')||!document.getElementById('addcoffee-overlay').classList.contains('hide')||!document.getElementById('addbrew-overlay').classList.contains('hide');
+    if(!busy)render();
+    setSyncStatus('synced');
   }catch(e){setSyncStatus('offline');}
-  setTimeout(backgroundSync,5*60*1000); // every 5 minutes instead of 30 seconds
+  setTimeout(backgroundSync,5*60*1000);
 }
 
 // ── Auth ──────────────────────────────────────────────────────────
 let authMode='signin';
-
 function toggleAuthMode(){
   authMode=authMode==='signin'?'signup':'signin';
   document.getElementById('auth-submit-btn').textContent=authMode==='signin'?'Sign in':'Sign up';
@@ -978,98 +923,39 @@ function toggleAuthMode(){
   document.getElementById('auth-subtitle').textContent=authMode==='signin'?'Sign in to see your coffees.':'Create an account to start tracking.';
   document.getElementById('auth-error').style.display='none';
 }
-
 async function handleAuthSubmit(){
   const email=(document.getElementById('auth-email').value||'').trim();
   const password=document.getElementById('auth-password').value||'';
   const errEl=document.getElementById('auth-error');
   errEl.style.display='none';
   if(!email||!password){errEl.textContent='Please fill in both fields.';errEl.style.display='block';return;}
-
   const endpoint=authMode==='signin'?'/sign-in/email':'/sign-up/email';
   const body=authMode==='signin'?{email,password}:{email,password,name:email.split('@')[0]};
-
   try{
-    // Step 1: sign in — this sets the HTTP-only session cookie
-    const r=await fetchWithTimeout(NEON_AUTH_URL+endpoint,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body),
-      credentials:'include'
-    },10000);
-
+    const r=await fetchWithTimeout(NEON_AUTH_URL+endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),credentials:'include'},10000);
     const data=await r.json();
-
-    if(!r.ok){
-      errEl.textContent=data.message||data.error||'Something went wrong. Please try again.';
-      errEl.style.display='block';
-      return;
-    }
-
+    if(!r.ok){errEl.textContent=data.message||data.error||'Something went wrong. Please try again.';errEl.style.display='block';return;}
     const userId=(data.user&&data.user.id)||null;
-
-    // Step 2: wait briefly for the browser to persist the session cookie,
-    // then call /get-session — this is the only place the JWT comes from.
     await new Promise(res=>setTimeout(res,500));
-    const r2=await fetchWithTimeout(NEON_AUTH_URL+'/get-session',{
-      method:'GET',
-      credentials:'include'
-    },8000);
-
-    // Log all response headers so we can see what Neon returns
-    console.log('/get-session status:',r2.status);
-    r2.headers.forEach((v,k)=>console.log('  header:',k,'=',v));
-
+    const r2=await fetchWithTimeout(NEON_AUTH_URL+'/get-session',{method:'GET',credentials:'include'},8000);
     const jwt=r2.headers.get('set-auth-jwt');
     const body2=await r2.text();
-    console.log('/get-session body:',body2.substring(0,400));
-
     if(!jwt){
-      // JWT not in header — check if it's in the body
       let jwtFromBody=null;
-      try{
-        const parsed=JSON.parse(body2);
-        jwtFromBody=
-          (parsed.data&&parsed.data.session&&parsed.data.session.token)||
-          (parsed.session&&parsed.session.token)||
-          (parsed.token)||
-          null;
-      }catch(e){}
-
-      if(!jwtFromBody){
-        errEl.textContent='Signed in but could not get a JWT. Open DevTools → Console and share the "/get-session" log lines.';
-        errEl.style.display='block';
-        return;
-      }
-
-      const exp=getJwtExpiry(jwtFromBody);
-      saveSession({token:jwtFromBody,tokenExpiry:exp,userId,email});
-      showApp();
-      return;
+      try{const parsed=JSON.parse(body2);jwtFromBody=(parsed.data&&parsed.data.session&&parsed.data.session.token)||(parsed.session&&parsed.session.token)||parsed.token||null;}catch(e){}
+      if(!jwtFromBody){errEl.textContent='Signed in but could not get a session. Please try again.';errEl.style.display='block';return;}
+      const exp=getJwtExpiry(jwtFromBody);saveSession({token:jwtFromBody,tokenExpiry:exp,userId,email});showApp();return;
     }
-
-    const exp=getJwtExpiry(jwt);
-    saveSession({token:jwt,tokenExpiry:exp,userId,email});
-    showApp();
-
-  }catch(e){
-    errEl.textContent='Connection failed: '+e.message;
-    errEl.style.display='block';
-  }
+    const exp=getJwtExpiry(jwt);saveSession({token:jwt,tokenExpiry:exp,userId,email});showApp();
+  }catch(e){errEl.textContent='Connection failed: '+e.message;errEl.style.display='block';}
 }
+function handleLogout(){if(!confirm('Log out?'))return;clearSession();coffees=[];showAuthScreen();}
+function showAuthScreen(){document.getElementById('auth-screen').classList.remove('hide');document.getElementById('app').classList.add('hide');}
+function showApp(){document.getElementById('auth-screen').classList.add('hide');document.getElementById('app').classList.remove('hide');init();}
 
-function handleLogout(){
-  if(!confirm('Log out?'))return;
-  clearSession();coffees=[];showAuthScreen();
-}
-function showAuthScreen(){document.getElementById('auth-screen').style.display='block';document.getElementById('app').style.display='none';}
-function showApp(){document.getElementById('auth-screen').style.display='none';document.getElementById('app').style.display='block';init();}
-
-// On load: check session, gate accordingly
 (function bootAuth(){
   const s=getSession();
-  if(s&&s.token){showApp();}
-  else{showAuthScreen();}
+  if(s&&s.token)showApp();else showAuthScreen();
 })();
 </script>
 </body>
