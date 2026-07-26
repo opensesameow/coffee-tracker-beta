@@ -17,7 +17,9 @@ body{font-family:'Work Sans',system-ui,sans-serif;color:var(--text);-webkit-font
 .disp{font-family:'Space Grotesk',system-ui,sans-serif;}
 input,select,textarea,button{font-family:inherit;color:inherit;}
 button{cursor:pointer;background:none;border:none;}
-.app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:76px;}
+
+/* Layout adjustment to prevent laptop left side empty space */
+.app{max-width:1000px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:76px;transition:margin-left 0.3s ease, width 0.3s ease;}
 .hide{display:none !important;}
 
 /* ---------- auth ---------- */
@@ -33,7 +35,8 @@ button{cursor:pointer;background:none;border:none;}
 .btn-text{font-size:12px;padding:8px;color:var(--muted);width:100%;text-align:center;margin-top:2px;}
 
 /* ---------- header / hero ---------- */
-.topbar{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:1.5rem 1.25rem 0;}
+/* Aligned refresh/logout button to the top left side */
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:1.5rem 1.25rem 0;}
 .topbar-icons{display:flex;align-items:center;gap:16px;}
 .topbar-icons span{cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--faint);}
 .topbar-icons svg{width:18px;height:18px;display:block;}
@@ -41,7 +44,7 @@ button{cursor:pointer;background:none;border:none;}
 .greet-title{font-size:30px;font-weight:700;line-height:1.1;padding:0 1.25rem;margin:4px 0 18px;}
 
 .coming-card{background:var(--surface);border-radius:14px;padding:16px;margin:0 1.25rem 22px;box-shadow:0 2px 10px rgba(0,0,0,0.05);}
-.coming-eyebrow{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:600;}
+.coming-eyebrow{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:600;color:var(--orange) !important;}
 .coming-name{font-size:17px;font-weight:600;margin-bottom:3px;}
 .coming-meta{font-size:12px;color:var(--muted);margin-bottom:6px;}
 .coming-notes{font-size:12px;color:var(--body);line-height:1.5;}
@@ -71,7 +74,7 @@ button{cursor:pointer;background:none;border:none;}
 .empty-msg{text-align:center;padding:3rem 1rem;color:var(--faint);font-size:13px;}
 
 /* ---------- bottom tabs ---------- */
-.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:var(--bg);border-top:0.5px solid var(--border);padding-bottom:env(safe-area-inset-bottom,10px);}
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:1000px;display:flex;background:var(--bg);border-top:0.5px solid var(--border);padding-bottom:env(safe-area-inset-bottom,10px);z-index:100;}
 .tabbar button{flex:1;padding:16px 0;font-size:12px;color:var(--faint);}
 .tabbar button.active{color:var(--text);font-weight:500;}
 
@@ -96,11 +99,14 @@ button{cursor:pointer;background:none;border:none;}
 .cal-popup-date{font-size:12px;color:var(--muted);margin-bottom:10px;}
 .cal-popup-row{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;}
 
+/* Highlight for ready dates in calendar popup */
+.cal-popup-row.is-ready {font-weight:600;color:var(--green);}
+
 /* ---------- detail / add-coffee / add-brew overlays ---------- */
 .overlay{position:fixed;inset:0;background:var(--surface2);z-index:200;display:flex;flex-direction:column;max-width:480px;margin:0 auto;overflow-y:auto;}
 .detail-hero{position:relative;aspect-ratio:4/5;flex-shrink:0;background:var(--border);overflow:hidden;}
 .detail-hero img{width:100%;height:100%;object-fit:cover;display:block;}
-.detail-back{position:absolute;top:16px;left:16px;color:rgba(255,255,255,.9);font-size:20px;background:rgba(0,0,0,.25);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.detail-back{position:absolute;top:16px;left:16px;color:rgba(255,255,255,.9);font-size:20px;background:rgba(0,0,0,.25);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .detail-hero-noimg .detail-back{color:var(--text);background:rgba(255,255,255,.6);}
 .detail-hero-caption{position:absolute;bottom:0;left:0;right:0;padding:16px 20px 18px;background:linear-gradient(to top,rgba(0,0,0,.55),transparent);}
 .detail-hero-caption .origin{color:rgba(255,255,255,.55);font-size:11px;margin-bottom:2px;}
@@ -121,7 +127,7 @@ button{cursor:pointer;background:none;border:none;}
 
 .brew-hdr{padding:18px 20px 8px;display:flex;justify-content:space-between;align-items:center;}
 .brew-hdr .t{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;}
-.brew-hdr .a{font-size:12px;font-weight:500;color:var(--text);}
+.brew-hdr .a{font-size:12px;font-weight:500;color:var(--text);cursor:pointer;}
 .brew-row{padding:14px 20px;border-bottom:0.5px solid var(--border);cursor:pointer;}
 .brew-row-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
 .brew-row-title{font-size:13px;font-weight:500;}
@@ -132,15 +138,19 @@ button{cursor:pointer;background:none;border:none;}
 .brew-row-notes{font-size:12px;color:var(--body);line-height:1.5;margin-top:4px;}
 .brew-empty{padding:16px 20px;font-size:12px;color:var(--faint);}
 
+/* Rating field & collapsible notes styling */
+.brew-rating{font-size:12px;letter-spacing:1px;color:var(--text);}
+.brew-notes-toggle{font-size:11px;color:var(--muted);text-decoration:underline;cursor:pointer;margin-top:6px;display:inline-block;}
+
 .detail-footer{padding:20px;display:flex;gap:20px;}
-.link-quiet{font-size:12px;color:var(--faint);}
-.link-danger{font-size:12px;color:var(--red);opacity:.7;}
+.link-quiet{font-size:12px;color:var(--faint);cursor:pointer;}
+.link-danger{font-size:12px;color:var(--red);opacity:.7;cursor:pointer;}
 
 /* ---------- form screens ---------- */
 .form-hdr{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:0.5px solid var(--border);flex-shrink:0;}
-.form-hdr .cancel{font-size:12px;color:var(--muted);}
+.form-hdr .cancel{font-size:12px;color:var(--muted);cursor:pointer;}
 .form-hdr .title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;}
-.form-hdr .save{font-size:12px;font-weight:600;color:var(--text);}
+.form-hdr .save{font-size:12px;font-weight:600;color:var(--text);cursor:pointer;}
 .form-body{padding:0 20px;flex:1;}
 .frow{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-bottom:0.5px solid var(--border);gap:12px;}
 .frow label{font-size:12px;color:var(--muted);flex-shrink:0;}
@@ -153,7 +163,7 @@ button{cursor:pointer;background:none;border:none;}
 .ftextarea-wrap textarea::placeholder{color:var(--faint);}
 .fphoto-row{padding:14px 0;border-bottom:0.5px solid var(--border);}
 .fphoto-row label{font-size:12px;color:var(--muted);display:block;margin-bottom:8px;}
-.fphoto-drop{border:1px dashed var(--border);border-radius:10px;padding:.6rem;text-align:center;font-size:12px;color:var(--muted);}
+.fphoto-drop{border:1px dashed var(--border);border-radius:10px;padding:.6rem;text-align:center;font-size:12px;color:var(--muted);cursor:pointer;}
 .fphoto-prev{width:100%;height:140px;object-fit:cover;border-radius:10px;margin-top:8px;display:block;}
 .fsave-space{height:24px;}
 
@@ -162,10 +172,23 @@ button{cursor:pointer;background:none;border:none;}
 .loading{text-align:center;padding:3rem 0;color:var(--faint);font-size:14px;}
 .sync-pill{font-size:10px;padding:3px 8px;border-radius:6px;display:none;}
 
+/* Responsive Sidebars for Laptop View (Pushing Main Body) */
 @media(min-width:900px){
-  .overlay{left:auto;right:0;margin:0;width:440px;max-width:440px;box-shadow:-12px 0 32px rgba(0,0,0,.10);}
+  .overlay{
+    left:auto;right:0;margin:0;width:440px;max-width:440px;
+    box-shadow:-12px 0 32px rgba(0,0,0,.10);
+    transition:transform 0.3s ease;
+  }
   .cal-popup-bg{justify-content:flex-end;align-items:stretch;background:rgba(0,0,0,.15);}
-  .cal-popup{border-radius:0;height:100vh;max-height:100vh;width:380px;max-width:380px;box-shadow:-12px 0 32px rgba(0,0,0,.10);}
+  /* Both overlay and calendar popup matching exact width */
+  .cal-popup{
+    border-radius:0;height:100vh;max-height:100vh;width:440px;max-width:440px;
+    box-shadow:-12px 0 32px rgba(0,0,0,.10);
+  }
+  /* Push main content to the left when a sidebar is open */
+  body.sidebar-open .app {
+    margin-left: calc(50vw - 500px - 220px);
+  }
 }
 </style>
 </head>
@@ -186,11 +209,12 @@ button{cursor:pointer;background:none;border:none;}
 <div class="app hide" id="app">
 
   <div class="topbar">
-    <span class="sync-pill" id="sync-status"></span>
+    <!-- Refresh & logout top-left alignment -->
     <div class="topbar-icons">
       <span onclick="manualSync()" title="Sync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg></span>
       <span onclick="handleLogout()" title="Log out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
     </div>
+    <span class="sync-pill" id="sync-status"></span>
   </div>
 
   <div id="view-list">
@@ -250,6 +274,27 @@ const NEON_URL='https://ep-aged-river-aouicmda.apirest.c-2.ap-southeast-1.aws.ne
 const NEON_AUTH_URL='https://ep-aged-river-aouicmda.neonauth.c-2.ap-southeast-1.aws.neon.tech/neondb/auth';
 const SESSION_KEY='ct_session';
 
+// Helper to calculate laptop sidebar state and mutual exclusion
+function updateSidebarState(){
+  const detailOpen = !document.getElementById('detail-overlay').classList.contains('hide');
+  const addCoffeeOpen = !document.getElementById('addcoffee-overlay').classList.contains('hide');
+  const addBrewOpen = !document.getElementById('addbrew-overlay').classList.contains('hide');
+  const calPopupOpen = !!document.getElementById('cal-popup').children.length;
+  if(detailOpen || addCoffeeOpen || addBrewOpen || calPopupOpen){
+    document.body.classList.add('sidebar-open');
+  } else {
+    document.body.classList.remove('sidebar-open');
+  }
+}
+
+// Close calendar popup when coffee detail panel opens (and vice-versa)
+function closeOtherSidebars(current) {
+  if (current !== 'cal') document.getElementById('cal-popup').innerHTML = '';
+  if (current !== 'detail') document.getElementById('detail-overlay').classList.add('hide');
+  if (current !== 'addcoffee') document.getElementById('addcoffee-overlay').classList.add('hide');
+  if (current !== 'addbrew') document.getElementById('addbrew-overlay').classList.add('hide');
+}
+
 // ── Session helpers ───────────────────────────────────────────────
 function getSession(){try{const d=localStorage.getItem(SESSION_KEY);return d?JSON.parse(d):null;}catch(e){return null;}}
 function saveSession(s){try{localStorage.setItem(SESSION_KEY,JSON.stringify(s));}catch(e){}}
@@ -286,7 +331,6 @@ function getReadyDate(c){return c.roastDate?addDays(c.roastDate,c.restDays||0):'
 
 const STATUS_COLOR={resting:'#9B9892',ready:'#6E8F5E',opened:'#B8804A',bestby:'#B15C52',archived:'#C5C3BF'};
 
-// Per-coffee identity color (distinguishes coffees from each other; independent of status)
 function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0;}return h;}
 function hslToHex(h,s,l){
   h=((h%360)+360)%360;s/=100;l/=100;
@@ -360,7 +404,6 @@ let editingBrewCoffeeId=null,editingBrewEntryIdx=null;
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
 function findCoffee(id){return coffees.find(c=>c.id===id);}
 
-// ── Rendering: header/greeting ──────────────────────────────────────
 function renderGreeting(){
   document.getElementById('greet-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   document.getElementById('greet-title').textContent=pickGreeting();
@@ -370,17 +413,16 @@ function renderComingUp(){
   const active=coffees.filter(c=>!c.archived);
   if(!active.length){document.getElementById('coming-up-wrap').innerHTML='';return;}
   const best=active.slice().sort((a,b)=>nextUpScore(a)-nextUpScore(b))[0];
-  const color=STATUS_COLOR[getStatus(best)];
   document.getElementById('coming-up-wrap').innerHTML=`
     <div class="coming-card" onclick="openDetail('${best.id}')">
-      <div class="coming-eyebrow" style="color:${color};">Coming up</div>
+      <div class="coming-eyebrow">Coming up</div>
       <div class="coming-name disp">${esc(best.name||'Unnamed coffee')}</div>
       <div class="coming-meta">${esc([best.roaster,best.origin].filter(Boolean).join(' · ')||'—')}</div>
       ${best.tasteNotes?`<div class="coming-notes">${esc(best.tasteNotes)}</div>`:''}
     </div>`;
 }
 
-function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]);}
 
 // ── Sort pills ────────────────────────────────────────────────────
 const SORTS=[{key:'added',label:'Recent'},{key:'roast',label:'Roast'},{key:'ready',label:'Ready'},{key:'name',label:'A–Z'}];
@@ -476,7 +518,8 @@ function renderCalendar(){
   window._calEvents={};
   const activeCoffees=coffees.filter(c=>!c.archived);
   activeCoffees.forEach(c=>{
-    const label=[c.roaster,c.name].filter(Boolean).join(' · ')||'Coffee';
+    // Calendar annotation showing variety (name) and roaster
+    const label=[c.roaster,c.name].filter(Boolean).join(' - ')||'Coffee';
     const idColor=coffeeColor(c);
     const mark=(ds,txt)=>{
       if(!ds)return;
@@ -486,7 +529,7 @@ function renderCalendar(){
         if(!events[day])events[day]=[];
         events[day].push(idColor);
         if(!window._calEvents[day])window._calEvents[day]=[];
-        window._calEvents[day].push({color:idColor,label,type:txt});
+        window._calEvents[day].push({color:idColor,label,type:txt,isReady:txt==='Ready'});
       }
     };
     mark(c.roastDate,'Roasted');
@@ -510,32 +553,72 @@ function renderCalendar(){
   }).join('');
   document.getElementById('cal-grid').innerHTML=html;
   document.getElementById('cal-legend').innerHTML=activeCoffees.length?activeCoffees.map(c=>
-    `<div class="cal-legend-item"><span class="cal-dot" style="background:${coffeeColor(c)};"></span>${esc(c.name||'Unnamed coffee')}</div>`
+    `<div class="cal-legend-item"><span class="cal-dot" style="background:${coffeeColor(c)};"></span>${esc(c.roaster ? `${c.roaster} - ${c.name}` : c.name)}</div>`
   ).join(''):'';
 }
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+
 function showCalPopup(day){
+  closeOtherSidebars('cal');
   const evs=(window._calEvents&&window._calEvents[day])||[];
   if(!evs.length)return;
   const mm=String(calMonth+1).padStart(2,'0');
   const dateLabel=fmtFull(`${calYear}-${mm}-${String(day).padStart(2,'0')}`);
+  
+  // Highlighting ready dates
   document.getElementById('cal-popup').innerHTML=`
     <div class="cal-popup-bg" onclick="closeCalPopup(event)">
       <div class="cal-popup" onclick="event.stopPropagation()">
         <div class="cal-popup-date">${dateLabel}</div>
-        ${evs.map(e=>`<div class="cal-popup-row"><span class="cal-dot" style="background:${e.color};"></span><span>${esc(e.label)} · ${esc(e.type)}</span></div>`).join('')}
+        ${evs.map(e=>`<div class="cal-popup-row ${e.isReady?'is-ready':''}"><span class="cal-dot" style="background:${e.color};"></span><span>${esc(e.label)} (${esc(e.type)})</span></div>`).join('')}
       </div>
     </div>`;
+  updateSidebarState();
 }
-function closeCalPopup(e){if(!e||e.target.classList.contains('cal-popup-bg'))document.getElementById('cal-popup').innerHTML='';}
+function closeCalPopup(e){
+  if(!e||e.target.classList.contains('cal-popup-bg')){
+    document.getElementById('cal-popup').innerHTML='';
+    updateSidebarState();
+  }
+}
+
+// Helper to convert rating integer (1-5) into dot format ●●●○○
+function renderRatingDots(rating){
+  const r = parseInt(rating) || 0;
+  if(!r) return '';
+  let dots = '';
+  for(let i=1; i<=5; i++){
+    dots += i <= r ? '●' : '○';
+  }
+  return `<span class="brew-rating" title="${r}/5 stars">${dots}</span>`;
+}
+
+// Toggle collapsible notes in brew logs
+function toggleBrewNotes(el) {
+  const notesDiv = el.nextElementSibling;
+  if (notesDiv.classList.contains('hide')) {
+    notesDiv.classList.remove('hide');
+    el.textContent = 'Hide notes';
+  } else {
+    notesDiv.classList.add('hide');
+    el.textContent = 'Show notes';
+  }
+}
 
 // ── Detail overlay ────────────────────────────────────────────────
 function openDetail(id){
+  closeOtherSidebars('detail');
   editingCoffeeId=id;
   renderDetail();
   document.getElementById('detail-overlay').classList.remove('hide');
+  updateSidebarState();
 }
-function closeDetail(){document.getElementById('detail-overlay').classList.add('hide');editingCoffeeId=null;render();}
+function closeDetail(){
+  document.getElementById('detail-overlay').classList.add('hide');
+  editingCoffeeId=null;
+  updateSidebarState();
+  render();
+}
 
 function renderDetail(){
   const c=findCoffee(editingCoffeeId);
@@ -545,24 +628,24 @@ function renderDetail(){
   const hasPhoto=!!c.photo;
   const brews=(c.brewLog||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
 
+  // Essential variants only: Method/Filter, Temp, Dose, Ratio, and Rating. Notes collapsible.
   const brewRows=brews.length?brews.map((b,realIdx)=>{
     const items=[
-      b.filter?{l:'Filter',v:b.filter}:null,
-      b.paper?{l:'Filter paper',v:b.paper}:null,
       b.temp?{l:'Temp',v:b.temp+'°C'}:null,
-      b.tds?{l:'TDS',v:b.tds+'ppm'}:null,
       b.dose?{l:'Dose',v:b.dose+'g'}:null,
-      b.grind?{l:'Grind',v:b.grind}:null,
+      b.ratio?{l:'Recipe',v:b.ratio}:null
     ].filter(Boolean);
     const trueIdx=(c.brewLog||[]).indexOf(b);
     return `<div class="brew-row" onclick="openBrewForm('${c.id}',${trueIdx})">
       <div class="brew-row-top">
-        <span class="brew-row-title">${esc([b.filter,b.method].filter(Boolean).join(' · ')||'Brew')}</span>
+        <span class="brew-row-title">${esc([b.filter,b.method].filter(Boolean).join(' · ')||'Brew')} ${renderRatingDots(b.rating)}</span>
         <span class="brew-row-date">${fmtShort(b.date)}</span>
       </div>
       ${items.length?`<div class="brew-grid">${items.map(it=>`<div class="brew-grid-item"><div class="l">${it.l}</div><div class="v">${esc(it.v)}</div></div>`).join('')}</div>`:''}
-      ${b.ratio?`<div class="brew-grid-item" style="margin-bottom:8px;"><div class="l">Recipe</div><div class="v">${esc(b.ratio)}</div></div>`:''}
-      ${b.notes?`<div class="brew-row-notes">${esc(b.notes)}</div>`:''}
+      ${b.notes?`
+        <span class="brew-notes-toggle" onclick="event.stopPropagation(); toggleBrewNotes(this)">Show notes</span>
+        <div class="brew-row-notes hide">${esc(b.notes)}</div>
+      `:''}
     </div>`;
   }).join(''):'<div class="brew-empty">No brew entries yet.</div>';
 
@@ -612,6 +695,7 @@ async function deleteFromDetail(id){
 
 // ── Add / Edit coffee overlay ─────────────────────────────────────
 function openAddCoffee(idOrNew){
+  closeOtherSidebars('addcoffee');
   editingCoffeeId=idOrNew==='new'?'new':idOrNew;
   const c=editingCoffeeId==='new'?{}:findCoffee(editingCoffeeId)||{};
   photoDataUrl=c.photo||null;
@@ -641,8 +725,14 @@ function openAddCoffee(idOrNew){
       <div class="fsave-space"></div>
     </div>`;
   document.getElementById('addcoffee-overlay').classList.remove('hide');
+  updateSidebarState();
 }
-function closeAddCoffee(){document.getElementById('addcoffee-overlay').classList.add('hide');editingCoffeeId=null;photoDataUrl=null;render();}
+function closeAddCoffee(){
+  document.getElementById('addcoffee-overlay').classList.add('hide');
+  editingCoffeeId=null;photoDataUrl=null;
+  updateSidebarState();
+  render();
+}
 function autoReady(){const r=document.getElementById('f-roast').value;const d=document.getElementById('f-rest').value;document.getElementById('f-ready').value=addDays(r,d);}
 function autoBestBy(){const o=document.getElementById('f-open').value;document.getElementById('f-bestby').value=addDays(o,14);}
 function handlePhoto(e){
@@ -694,12 +784,14 @@ async function saveCoffee(){
 
 // ── Add / Edit brew entry overlay ─────────────────────────────────
 function openBrewForm(coffeeId,entryIdx){
+  closeOtherSidebars('addbrew');
   editingBrewCoffeeId=coffeeId;editingBrewEntryIdx=entryIdx;
   const c=findCoffee(coffeeId);
   const b=(entryIdx!=null&&c.brewLog&&c.brewLog[entryIdx])?c.brewLog[entryIdx]:{};
   const isEdit=entryIdx!=null;
   const FILTERS=['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2','Other'];
   const METHODS=['Espresso','Filter / pour over','French press','AeroPress','Moka pot','Cold brew','Other'];
+  
   document.getElementById('addbrew-overlay').innerHTML=`
     <div class="form-hdr">
       <span class="cancel" onclick="closeBrewForm()">Cancel</span>
@@ -713,6 +805,15 @@ function openBrewForm(coffeeId,entryIdx){
       <div class="frow" id="b-filter-other-wrap" style="display:${b.filter&&!FILTERS.slice(0,-1).includes(b.filter)&&b.filter!==''?'flex':'none'};">
         <label>Specify filter</label><input id="b-filter-other" value="${b.filter&&!FILTERS.slice(0,-1).includes(b.filter)?esc(b.filter):''}" placeholder="e.g. Kalita Wave">
       </div>
+      <div class="frow"><label>Rating</label>
+        <select id="b-rating">
+          <option value="5" ${b.rating==='5'||b.rating===5?'selected':''}>●●●●● (5)</option>
+          <option value="4" ${b.rating==='4'||b.rating===4?'selected':''}>●●●●○ (4)</option>
+          <option value="3" ${b.rating==='3'||b.rating===3||!b.rating?'selected':''}>●●●○○ (3)</option>
+          <option value="2" ${b.rating==='2'||b.rating===2?'selected':''}>●●○○○ (2)</option>
+          <option value="1" ${b.rating==='1'||b.rating===1?'selected':''}>●○○○○ (1)</option>
+        </select>
+      </div>
       <div class="frow"><label>Filter paper</label><input id="b-paper" value="${esc(b.paper)}" placeholder="e.g. Cafec Abaca"></div>
       <div class="frow"><label>Water temp</label><input type="number" id="b-temp" value="${esc(b.temp)}" placeholder="93°C"></div>
       <div class="frow"><label>Water TDS</label><input type="number" id="b-tds" value="${esc(b.tds)}" placeholder="150ppm"></div>
@@ -723,17 +824,24 @@ function openBrewForm(coffeeId,entryIdx){
       ${isEdit?`<div class="fsave-space"></div><div class="link-danger" style="padding-bottom:20px;" onclick="deleteBrewEntry()">Delete this entry</div>`:'<div class="fsave-space"></div>'}
     </div>`;
   document.getElementById('addbrew-overlay').classList.remove('hide');
+  updateSidebarState();
 }
 function toggleFilterOther(){
   const v=document.getElementById('b-filter').value;
   document.getElementById('b-filter-other-wrap').style.display=v==='Other'?'flex':'none';
 }
-function closeBrewForm(){document.getElementById('addbrew-overlay').classList.add('hide');editingBrewCoffeeId=null;editingBrewEntryIdx=null;renderDetail();}
+function closeBrewForm(){
+  document.getElementById('addbrew-overlay').classList.add('hide');
+  editingBrewCoffeeId=null;editingBrewEntryIdx=null;
+  updateSidebarState();
+  renderDetail();
+}
 function getBrewEntryFromForm(){
   const filterVal=document.getElementById('b-filter').value;
   const filterOther=document.getElementById('b-filter-other')?document.getElementById('b-filter-other').value:'';
   return{date:document.getElementById('b-date').value,method:document.getElementById('b-method').value,
     filter:filterVal==='Other'?(filterOther||'Other'):filterVal,
+    rating:document.getElementById('b-rating').value,
     temp:document.getElementById('b-temp').value,tds:document.getElementById('b-tds').value,
     dose:document.getElementById('b-dose').value,ratio:document.getElementById('b-ratio').value,
     grind:document.getElementById('b-grind').value,paper:document.getElementById('b-paper').value,
@@ -976,7 +1084,7 @@ async function handleAuthSubmit(){
 }
 function handleLogout(){if(!confirm('Log out?'))return;clearSession();coffees=[];showAuthScreen();}
 function showAuthScreen(){document.getElementById('auth-screen').classList.remove('hide');document.getElementById('app').classList.add('hide');}
-function showApp(){document.getElementById('auth-screen').classList.add('hide');document.getElementById('app').classList.remove('hide');init();}
+function showApp(){document.getElementById('auth-screen').classList.hide;document.getElementById('app').classList.remove('hide');init();}
 
 (function bootAuth(){
   const s=getSession();
