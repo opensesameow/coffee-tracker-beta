@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Coffee Tracker</title>
+<link rel="icon" type="image/svg+xml" href="coffee-tracker-icon.svg?v=2">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -168,13 +169,33 @@ button{cursor:pointer;background:none;border:none;}
 .sync-pill{font-size:10px;padding:3px 8px;border-radius:6px;display:none;}
 
 @media(min-width:900px){
-  :root{--sidebar-width:440px;}
+  :root{--sidebar-width:440px;--frame-max:1320px;--frame-gutter:clamp(32px,6vw,96px);}
   .app{max-width:none;width:100%;margin:0;transition:width .2s ease;}
   body.sidebar-open .app{width:calc(100% - var(--sidebar-width));}
-  .topbar,.greet-title,.list-header,.sort-row,.clist{max-width:620px;margin-left:auto;margin-right:auto;}
-  .greet-title{padding-left:0;padding-right:0;}
-  .coming-card{max-width:620px;margin-left:auto;margin-right:auto;}
-  .cal-wrap{max-width:940px;margin:0 auto;padding-left:2.25rem;padding-right:2.25rem;}
+  .topbar,.greet-title,.coming-card,.list-header,.sort-row,.clist,.cal-wrap{width:min(calc(100% - (var(--frame-gutter) * 2)),var(--frame-max));max-width:none;margin-left:auto;margin-right:auto;padding-left:0;padding-right:0;}
+  .topbar{padding-top:1.5rem;}
+  .greet-title{margin-top:4px;}
+  .coming-card{margin-top:0;margin-bottom:28px;}
+  .cal-wrap{padding-top:1.5rem;}
+  .ccard{gap:18px;}
+  .cphoto{width:168px;border-radius:12px;}
+  .cinfo{padding:20px 22px;border-radius:12px;}
+  .cname-row{gap:8px;margin-bottom:4px;}
+  .cdot{width:8px;height:8px;}
+  .cname{font-size:21px;}
+  .cmeta{font-size:16px;margin-bottom:10px;}
+  .cnotes{font-size:16px;line-height:1.45;}
+  .cpill-wrap{margin-top:14px;}
+  .cpill{font-size:13px;padding:4px 13px;}
+  .list-count,.cal-count{font-size:15px;}
+  .list-title{font-size:34px;}
+  .cal-title{font-size:38px;}
+  .sort-row{gap:10px;margin-bottom:24px;}
+  .sort-pill{font-size:14px;padding:8px 18px;}
+  .fab-add{width:44px;height:44px;font-size:26px;}
+  .tabbar{max-width:none;width:100%;left:0;transform:none;}
+  body.sidebar-open .tabbar{width:calc(100% - var(--sidebar-width));}
+  .tabbar button{font-size:14px;padding:18px 0;}
   .overlay,.cal-popup{left:auto;right:0;margin:0;width:var(--sidebar-width);max-width:var(--sidebar-width);box-shadow:-12px 0 32px rgba(0,0,0,.10);}
   .cal-popup-bg{justify-content:flex-end;align-items:stretch;background:rgba(0,0,0,.15);}
   .cal-popup{border-radius:0;height:100vh;max-height:100vh;}
