@@ -169,7 +169,7 @@ button{cursor:pointer;background:none;border:none;}
 .sync-pill{font-size:10px;padding:3px 8px;border-radius:6px;display:none;}
 
 @media(min-width:900px){
-  :root{--sidebar-width:440px;--frame-max:1320px;--frame-gutter:clamp(32px,6vw,96px);}
+  :root{--sidebar-width:440px;--frame-max:760px;--frame-gutter:clamp(32px,6vw,96px);}
   .app{max-width:none;width:100%;margin:0;transition:width .2s ease;}
   body.sidebar-open .app{width:calc(100% - var(--sidebar-width));}
   .topbar,.greet-title,.coming-card,.list-header,.sort-row,.clist,.cal-wrap{width:min(calc(100% - (var(--frame-gutter) * 2)),var(--frame-max));max-width:none;margin-left:auto;margin-right:auto;padding-left:0;padding-right:0;}
@@ -178,15 +178,15 @@ button{cursor:pointer;background:none;border:none;}
   .coming-card{margin-top:0;margin-bottom:28px;}
   .cal-wrap{padding-top:1.5rem;}
   .ccard{gap:18px;}
-  .cphoto{width:168px;border-radius:12px;}
-  .cinfo{padding:20px 22px;border-radius:12px;}
+  .cphoto{width:128px;border-radius:12px;}
+  .cinfo{padding:18px 20px;border-radius:12px;}
   .cname-row{gap:8px;margin-bottom:4px;}
   .cdot{width:8px;height:8px;}
-  .cname{font-size:21px;}
-  .cmeta{font-size:16px;margin-bottom:10px;}
-  .cnotes{font-size:16px;line-height:1.45;}
-  .cpill-wrap{margin-top:14px;}
-  .cpill{font-size:13px;padding:4px 13px;}
+  .cname{font-size:18px;}
+  .cmeta{font-size:14px;margin-bottom:8px;}
+  .cnotes{font-size:14px;line-height:1.45;}
+  .cpill-wrap{margin-top:10px;}
+  .cpill{font-size:12px;padding:3px 12px;}
   .list-count,.cal-count{font-size:15px;}
   .list-title{font-size:34px;}
   .cal-title{font-size:38px;}
