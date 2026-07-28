@@ -535,7 +535,13 @@ function renderArchive(){
   document.getElementById('archive-count').textContent=`${archived.length} archived`;
   document.getElementById('archive-tab-count').textContent=archived.length?`(${archived.length})`:'';
   const el=document.getElementById('archive-list');
-  const sorted=archived.slice().sort((a,b)=>(b.openDate||b.roastDate||'').localeCompare(a.openDate||a.roastDate||''));
+  const sorted=archived.slice().sort((a,b)=>{
+    // Open date desc; coffees with no open date go to bottom
+    if(!a.openDate&&!b.openDate)return(b.roastDate||'').localeCompare(a.roastDate||'');
+    if(!a.openDate)return 1;
+    if(!b.openDate)return -1;
+    return b.openDate.localeCompare(a.openDate);
+  });
   if(!sorted.length){el.innerHTML='<div class="empty-msg">No archived coffees.</div>';return;}
   el.innerHTML=sorted.map(c=>cardHtml(c,{archive:true})).join('');
 }
