@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Coffee Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#F2F1EF; --surface:#FAFAF9; --surface2:#F8F7F5;
@@ -16,6 +16,8 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:var(--bg);width:100%;overflow-x:hidden;}
 body{font-family:'Work Sans',system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;}
+.zh{font-family:'Noto Serif SC','Work Sans',system-ui,sans-serif;}
+:lang(zh),.zh{font-family:'Noto Serif SC',serif;}
 .disp{font-family:'Space Grotesk',system-ui,sans-serif;}
 input,select,textarea,button{font-family:inherit;color:inherit;}
 button{cursor:pointer;background:none;border:none;}
@@ -73,7 +75,7 @@ button{cursor:pointer;background:none;border:none;}
 .empty-msg{text-align:center;padding:3rem 1rem;color:var(--faint);font-size:14px;}
 
 /* ---------- bottom tabs — full width, bold ---------- */
-.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;display:flex;background:var(--bg);border-top:0.5px solid var(--border);padding-bottom:env(safe-area-inset-bottom,10px);transition:max-width .25s ease;}
+.tabbar{position:fixed;bottom:0;left:0;right:0;width:100%;display:flex;background:var(--bg);border-top:0.5px solid var(--border);padding-bottom:env(safe-area-inset-bottom,10px);z-index:100;}
 .tabbar button{flex:1;padding:18px 0;font-size:14px;font-weight:600;color:var(--faint);letter-spacing:.01em;}
 .tabbar button.active{color:var(--text);}
 
@@ -81,15 +83,18 @@ button{cursor:pointer;background:none;border:none;}
 .cal-wrap{padding:1.5rem 1.5rem 0;}
 .cal-count{font-size:12px;color:var(--muted);margin-bottom:2px;}
 .cal-title{font-size:29px;font-weight:700;margin-bottom:1.5rem;}
+.cal-card{background:#fff;border-radius:14px;padding:1rem 1rem .75rem;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
 .cal-nav button{color:var(--faint);font-size:20px;padding:4px 8px;}
 .cal-month-label{font-size:16px;font-weight:600;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;}
 .cal-dow{font-size:11px;color:var(--faint);padding:6px 0;}
-.cal-day{display:flex;flex-direction:column;align-items:center;padding:5px 0;cursor:pointer;border-radius:8px;}
-.cal-day-ready{background:#6E8F5E1c;}
+.cal-day{display:flex;flex-direction:column;align-items:center;padding:4px 0;cursor:pointer;border-radius:8px;}
+/* day number: round bubble when events exist */
 .cal-daynum{width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;border-radius:50%;margin-bottom:3px;}
 .cal-daynum.today{background:var(--text);color:#fff;}
+.cal-daynum.has-event{background:#F0ECEC;}
+.cal-daynum.today.has-event{background:var(--text);color:#fff;}
 .cal-dots{display:flex;gap:2px;justify-content:center;height:5px;}
 .cal-dot{width:5px;height:5px;border-radius:50%;}
 .cal-legend{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:10px 18px;padding:1.25rem 0;margin-top:.75rem;border-top:0.5px solid var(--border);}
@@ -105,10 +110,12 @@ button{cursor:pointer;background:none;border:none;}
 .archive-title{font-size:29px;font-weight:700;margin-bottom:1.25rem;}
 
 /* ---------- overlay / sidebar ---------- */
-.overlay{position:fixed;inset:0;background:var(--surface2);z-index:200;display:flex;flex-direction:column;max-width:480px;margin:0 auto;overflow-y:auto;}
+.overlay{position:fixed;inset:0;background:var(--surface2);z-index:200;display:flex;flex-direction:column;max-width:480px;margin:0 auto;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom,0);}
 /* backdrop for closing sidebar on outside click */
 .overlay-backdrop{position:fixed;inset:0;z-index:199;display:none;}
 .overlay-backdrop.active{display:block;}
+/* hide tabbar when overlay open on mobile */
+body.has-sidebar .tabbar{display:none;}
 
 .detail-hero{position:relative;aspect-ratio:4/5;flex-shrink:0;background:var(--border);overflow:hidden;}
 .detail-hero img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -139,7 +146,7 @@ button{cursor:pointer;background:none;border:none;}
 .brew-row-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
 .brew-row-title{font-size:14px;font-weight:500;}
 .brew-row-date{font-size:12px;color:var(--muted);}
-.brew-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 14px;margin-bottom:10px;}
+.brew-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px 12px;margin-bottom:10px;}
 .brew-grid-item .l{font-size:10px;color:var(--faint);margin-bottom:3px;}
 .brew-grid-item .v{font-size:13px;color:var(--text);}
 /* recipe + rating row */
@@ -151,7 +158,7 @@ button{cursor:pointer;background:none;border:none;}
 .brew-rating-dots{display:flex;gap:5px;}
 .brew-rating-dot{width:9px;height:9px;border-radius:50%;}
 .brew-row-notes{font-size:13px;color:var(--body);line-height:1.5;margin-top:6px;}
-.brew-notes-toggle{font-size:12px;color:var(--muted);padding-top:8px;cursor:pointer;}
+.brew-notes-toggle{font-size:13px;color:var(--muted);padding-top:8px;cursor:pointer;display:flex;align-items:center;gap:6px;}
 .brew-empty{padding:18px 22px;font-size:13px;color:var(--faint);}
 
 .detail-footer{padding:22px;display:flex;gap:22px;}
@@ -186,14 +193,14 @@ button{cursor:pointer;background:none;border:none;}
 
 /* ---------- desktop ---------- */
 @media(min-width:900px){
-  :root{--sidebar-w:480px;--gap:40px;}
+  :root{--sidebar-w:480px;--gap:56px;}
 
   /* main content: fixed width, pushed left when sidebar opens */
   .app{max-width:560px;margin-left:auto;margin-right:auto;}
   body.has-sidebar .app{margin-right:calc(var(--sidebar-w) + var(--gap));margin-left:auto;}
 
-  .tabbar{max-width:560px;}
-  body.has-sidebar .tabbar{margin-right:calc(var(--sidebar-w) + var(--gap));}
+  /* tabbar stays full width always on desktop, always visible */
+  .tabbar{max-width:100%;display:flex !important;}
 
   /* sidebar: fixed to right edge */
   .overlay{
@@ -209,7 +216,7 @@ button{cursor:pointer;background:none;border:none;}
   }
 
   /* calendar: two months side by side */
-  .cal-two-months{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
+  .cal-two-months{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
   .cal-two-months .cal-nav{margin-bottom:.75rem;}
 
   /* popup: full-height right panel */
@@ -218,8 +225,9 @@ button{cursor:pointer;background:none;border:none;}
 }
 
 @media(max-width:899px){
-  .cal-two-months{display:block;}
+  .cal-two-months{display:flex;flex-direction:column;gap:16px;}
   .cal-month-2{display:none;}
+  .cal-card{margin:0;}
 }
 </style>
 </head>
@@ -274,7 +282,7 @@ button{cursor:pointer;background:none;border:none;}
       <div class="cal-count" id="cal-count">0 coffees</div>
       <div class="cal-title disp">Calendar</div>
       <div class="cal-two-months">
-        <div class="cal-month-1">
+        <div class="cal-month-1 cal-card">
           <div class="cal-nav">
             <button onclick="changeMonth(-1)">&#8249;</button>
             <span class="cal-month-label disp" id="cal-month-label"></span>
@@ -282,7 +290,7 @@ button{cursor:pointer;background:none;border:none;}
           </div>
           <div class="cal-grid" id="cal-grid"></div>
         </div>
-        <div class="cal-month-2">
+        <div class="cal-month-2 cal-card">
           <div class="cal-nav" style="visibility:hidden;">
             <button>&#8249;</button>
             <span class="cal-month-label disp" id="cal-month-label-2"></span>
@@ -349,29 +357,33 @@ function getReadyDate(c){return c.roastDate?addDays(c.roastDate,c.restDays||0):'
 
 const STATUS_COLOR={resting:'#9B9892',ready:'#6E8F5E',opened:'#B8804A',bestby:'#B15C52',archived:'#C5C3BF'};
 
-// ── Muted pastel palette (warm-heavy, no blues) ───────────────────
-// Gradient: red-pink → mauve → dusty orange → warm sand → sage → muted teal
+// ── Palette: low-sat pastels, light green → orange → red → pink → purple ──
+// 24 colors for max distinction, no blues
 const PALETTE=[
-  '#C8837A',  // 01 dusty rose-red
-  '#C47D8A',  // 02 muted rose
-  '#B87898',  // 03 mauve-pink
-  '#A87890',  // 04 dusty mauve
-  '#9B7898',  // 05 muted plum
-  '#8878A0',  // 06 dusty purple
-  '#B87860',  // 07 terracotta
-  '#C08858',  // 08 warm amber
-  '#B89060',  // 09 golden sand
-  '#A89068',  // 10 warm olive-sand
-  '#98906A',  // 11 sage-khaki
-  '#889068',  // 12 warm sage
-  '#789070',  // 13 muted sage green
-  '#688870',  // 14 dusty green
-  '#608878',  // 15 muted teal-green
-  '#609880',  // 16 soft teal
-  '#B07858',  // 17 warm sienna
-  '#A08060',  // 18 tan
-  '#907868',  // 19 warm taupe
-  '#887070',  // 20 dusty rose-brown
+  '#A8B898',  // 01 sage green (lightest, most muted)
+  '#9AAE88',  // 02 soft moss green
+  '#B8B878',  // 03 warm olive
+  '#C8C070',  // 04 yellow-green
+  '#D4C068',  // 05 muted gold-yellow
+  '#D8B860',  // 06 warm straw
+  '#D8A858',  // 07 soft amber
+  '#D09858',  // 08 muted orange
+  '#C88858',  // 09 dusty terracotta-orange
+  '#C07860',  // 10 terracotta
+  '#C06858',  // 11 warm sienna
+  '#B85C58',  // 12 muted red
+  '#C06870',  // 13 dusty rose-red
+  '#C07888',  // 14 rose
+  '#C07898',  // 15 warm pink
+  '#B878A0',  // 16 dusty pink
+  '#A870A0',  // 17 muted magenta-pink
+  '#9868A0',  // 18 soft purple-pink
+  '#8868A8',  // 19 dusty mauve
+  '#8070A8',  // 20 muted violet
+  '#7870A0',  // 21 dusty purple
+  '#906888',  // 22 plum-mauve
+  '#A07080',  // 23 antique rose
+  '#987078',  // 24 dusty berry
 ];
 
 let _colorMap={};
@@ -458,7 +470,7 @@ function renderComingUp(){
       <div class="coming-eyebrow" style="color:var(--orange);">Coming up</div>
       <div class="coming-name disp">${esc(best.name||'Unnamed coffee')}</div>
       <div class="coming-meta">${esc([best.roaster,best.origin].filter(Boolean).join(' · ')||'—')}</div>
-      ${best.tasteNotes?`<div class="coming-notes">${esc(best.tasteNotes)}</div>`:''}
+      ${best.tasteNotes?`<div class="coming-notes zh">${esc(best.tasteNotes)}</div>`:''}
     </div>`;
 }
 
@@ -488,8 +500,8 @@ function cardHtml(c,opts){
     <div class="cinfo">
       <div>
         <div class="cname-row"><span class="cdot" style="background:${idColor};"></span><span class="cname disp">${esc(c.name||'Unnamed coffee')}</span></div>
-        <div class="cmeta">${esc([c.roaster,c.origin].filter(Boolean).join(' · ')||'—')}</div>
-        ${c.tasteNotes?`<div class="cnotes">${esc(c.tasteNotes)}</div>`:''}
+        <div class="cmeta">${esc([c.roaster,c.origin,c.process].filter(Boolean).join(' · ')||'—')}</div>
+        ${c.tasteNotes?`<div class="cnotes zh">${esc(c.tasteNotes)}</div>`:''}
       </div>
       <div class="cpill-wrap"><span class="cpill" style="color:${pillColor};border-color:${pillColor}55;">${pillText}</span></div>
     </div>
@@ -513,7 +525,7 @@ function renderArchive(){
   document.getElementById('archive-count').textContent=`${archived.length} archived`;
   document.getElementById('archive-tab-count').textContent=archived.length?`(${archived.length})`:'';
   const el=document.getElementById('archive-list');
-  const sorted=sortCoffees(archived,'name');
+  const sorted=archived.slice().sort((a,b)=>(b.openDate||b.roastDate||'').localeCompare(a.openDate||a.roastDate||''));
   if(!sorted.length){el.innerHTML='<div class="empty-msg">No archived coffees.</div>';return;}
   el.innerHTML=sorted.map(c=>cardHtml(c,{archive:true})).join('');
 }
@@ -555,11 +567,12 @@ function buildCalendarMonth(year,month,eventsMap,readyDaysSet){
     if(!day)return'<div></div>';
     const ds=`${year}-${mm}-${String(day).padStart(2,'0')}`;
     const isToday=ds===t;
-    const isReady=readyDaysSet&&readyDaysSet.has(ds);
     const colors=[...new Set((eventsMap[ds]||[]).map(e=>e.color))];
+    const hasEv=colors.length>0;
     const dotsHtml=colors.slice(0,4).map(col=>`<span class="cal-dot" style="background:${col};"></span>`).join('');
-    const onclick=colors.length?`onclick="showCalPopup('${ds}')"`:'';
-    return `<div class="cal-day ${isReady?'cal-day-ready':''}" ${onclick}><div class="cal-daynum ${isToday?'today':''}">${day}</div><div class="cal-dots">${dotsHtml}</div></div>`;
+    const onclick=hasEv?`onclick="showCalPopup('${ds}')"`:'';
+    const dayCls=['cal-daynum',isToday?'today':'',hasEv?'has-event':''].filter(Boolean).join(' ');
+    return `<div class="cal-day" ${onclick}><div class="${dayCls}">${day}</div><div class="cal-dots">${dotsHtml}</div></div>`;
   }).join('');
   return html;
 }
@@ -683,7 +696,7 @@ function renderDetail(){
           ${hasRating?`<div class="brew-rating-col"><div class="l">Rating</div><div class="brew-rating-dots">${ratingDots(b.rating)}</div></div>`:''}
         </div></div>`:''}
       </div>
-      ${b.notes?`<div class="brew-notes-toggle" onclick="toggleBrewNotes(event,'${c.id}',${trueIdx})">Notes ${notesOpen?'&#8963;':'&#8964;'}</div>${notesOpen?`<div class="brew-row-notes">${esc(b.notes)}</div>`:''}`:''}
+      ${b.notes?`<div class="brew-notes-toggle" onclick="toggleBrewNotes(event,'${c.id}',${trueIdx})"><span>Notes</span><span style="font-size:16px;line-height:1;">${notesOpen?'⌃':'⌄'}</span></div>${notesOpen?`<div class="brew-row-notes zh">${esc(b.notes)}</div>`:''}`:''}
     </div>`;
   }).join(''):'<div class="brew-empty">No brew entries yet.</div>';
 
@@ -709,7 +722,7 @@ function renderDetail(){
       <div><div class="stat-lbl">Opened</div><div class="stat-val">${fmtShort(c.openDate)}</div></div>
       <div><div class="stat-lbl">Best-by</div><div class="stat-val">${fmtShort(c.bestby)}</div></div>
     </div>
-    ${c.tasteNotes?`<div class="detail-notes">${esc(c.tasteNotes)}</div>`:''}
+    ${c.tasteNotes?`<div class="detail-notes zh">${esc(c.tasteNotes)}</div>`:''}
     <div class="brew-hdr"><span class="t">Brew log</span><span class="a" onclick="openBrewForm('${c.id}',null)">+ Add entry</span></div>
     ${brewRows}
     <div class="detail-footer">
