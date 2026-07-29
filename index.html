@@ -61,7 +61,7 @@ button{cursor:pointer;background:none;border:none;}
 /* ---------- coffee card ---------- */
 .clist{display:flex;flex-direction:column;gap:10px;padding:0 1.35rem;}
 .ccard{display:flex;gap:10px;cursor:pointer;}
-.cphoto{width:74px;height:99px;border-radius:10px;flex-shrink:0;background:var(--border);overflow:hidden;align-self:flex-start;}
+.cphoto{aspect-ratio:3/4;height:100%;min-height:92px;border-radius:10px;flex-shrink:0;background:var(--border);overflow:hidden;align-self:stretch;}
 .cphoto img{width:100%;height:100%;object-fit:cover;display:block;}
 .cinfo{flex:1;min-width:0;background:var(--surface);border-radius:10px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;justify-content:space-between;}
 .cname-row{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
@@ -152,14 +152,14 @@ body.has-sidebar .tabbar{display:none;}
 .brew-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px 12px;margin-bottom:9px;}
 .brew-grid-item .l{font-size:15px;color:var(--faint);margin-bottom:3px;}
 .brew-grid-item .v{font-size:15px;color:var(--text);}
-/* recipe + rating row */
+/* recipe + rating row — 2-col grid so rating sits left beside recipe */
 .brew-recipe-section{margin-bottom:6px;}
-.brew-recipe-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
-.brew-recipe-col .l{font-size:15px;color:var(--faint);margin-bottom:3px;}
-.brew-recipe-col .v{font-size:15px;color:var(--text);}
-.brew-rating-col .l{font-size:15px;color:var(--faint);margin-bottom:6px;}
-.brew-rating-dots{display:flex;gap:5px;}
-.brew-rating-dot{width:9px;height:9px;border-radius:50%;}
+.brew-recipe-rating-row{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin-bottom:2px;}
+.brew-recipe-col .l{font-size:12px;color:var(--faint);margin-bottom:3px;}
+.brew-recipe-col .v{font-size:14px;color:var(--text);}
+.brew-rating-col .l{font-size:12px;color:var(--faint);margin-bottom:5px;}
+.brew-rating-dots{display:flex;gap:4px;}
+.brew-rating-dot{width:8px;height:8px;border-radius:50%;}
 .brew-row-notes{font-size:15px;color:var(--body);line-height:1.55;margin-top:6px;}
 .brew-notes-toggle{font-size:15px;color:var(--muted);padding-top:8px;cursor:pointer;display:flex;align-items:center;gap:6px;}
 .brew-empty{padding:16px 20px;font-size:15px;color:var(--faint);}
@@ -249,7 +249,7 @@ body.has-sidebar .tabbar{display:none;}
 }
 
 /* Chinese text: slightly smaller */
-.zh-text{font-size:0.94em;line-height:1.55;}
+.zh-text{font-size:0.88em;line-height:1.72;letter-spacing:0.02em;}
 </style>
 </head>
 <body>
@@ -522,11 +522,12 @@ function cardHtml(c,opts){
   const isArchiveView=opts&&opts.archive;
   const pillText=isArchiveView?((c.brewLog||[]).length?`${c.brewLog.length} brew${c.brewLog.length===1?'':'s'}`:'No brews yet'):statusLabel(c);
   const pillColor=isArchiveView?'#9B9892':statusColor;
+  const dotColor=isArchiveView?'var(--faint)':idColor;
   return `<div class="ccard" onclick="openDetail('${c.id}')">
     <div class="cphoto">${photoHtml}</div>
     <div class="cinfo">
       <div>
-        <div class="cname-row"><span class="cdot" style="background:${idColor};"></span><span class="cname disp">${esc(c.name||'Unnamed coffee')}</span></div>
+        <div class="cname-row"><span class="cdot" style="background:${dotColor};"></span><span class="cname disp">${esc(c.name||'Unnamed coffee')}</span></div>
         <div class="cmeta">${esc([c.roaster,c.origin,c.process].filter(Boolean).join(' · ')||'—')}</div>
         ${c.tasteNotes?`<div class="cnotes zh-text">${esc(c.tasteNotes)}</div>`:''}
       </div>
@@ -743,12 +744,14 @@ function renderDetail(){
   const brews=(c.brewLog||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
 
   const brewRows=brews.length?brews.map((b)=>{
+    // Pack items: filter → temp → tds → dose → paper → grind
+    // This way paper/grind slide into any empty 4th slot rather than always starting a new row
     const items=[
       b.filter?{l:'Filter',v:b.filter}:null,
-      b.paper?{l:'Filter paper',v:b.paper}:null,
       b.temp?{l:'Temp',v:b.temp+'°C'}:null,
       b.tds?{l:'TDS',v:b.tds+'ppm'}:null,
       b.dose?{l:'Dose',v:b.dose+'g'}:null,
+      b.paper?{l:'Filter paper',v:b.paper}:null,
       b.grind?{l:'Grind',v:b.grind}:null,
     ].filter(Boolean);
     const trueIdx=(c.brewLog||[]).indexOf(b);
@@ -763,7 +766,7 @@ function renderDetail(){
           <span class="brew-row-date">${fmtShort(b.date)}</span>
         </div>
         ${items.length?`<div class="brew-grid">${items.map(it=>`<div class="brew-grid-item"><div class="l">${it.l}</div><div class="v">${esc(it.v)}</div></div>`).join('')}</div>`:''}
-        ${hasRecipeOrRating?`<div class="brew-recipe-section"><div class="brew-recipe-row">
+        ${hasRecipeOrRating?`<div class="brew-recipe-section"><div class="brew-recipe-rating-row">
           ${b.ratio?`<div class="brew-recipe-col"><div class="l">Recipe</div><div class="v">${esc(b.ratio)}</div></div>`:''}
           ${hasRating?`<div class="brew-rating-col"><div class="l">Rating</div><div class="brew-rating-dots">${ratingDots(b.rating)}</div></div>`:''}
         </div></div>`:''}
