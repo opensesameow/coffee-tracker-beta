@@ -61,7 +61,7 @@ button{cursor:pointer;background:none;border:none;}
 /* ---------- coffee card ---------- */
 .clist{display:flex;flex-direction:column;gap:10px;padding:0 1.35rem;}
 .ccard{display:flex;gap:10px;cursor:pointer;}
-.cphoto{aspect-ratio:3/4;height:100%;min-height:92px;border-radius:10px;flex-shrink:0;background:var(--border);overflow:hidden;align-self:stretch;}
+.cphoto{width:80px;height:107px;border-radius:10px;flex-shrink:0;background:var(--border);overflow:hidden;align-self:flex-start;}
 .cphoto img{width:100%;height:100%;object-fit:cover;display:block;}
 .cinfo{flex:1;min-width:0;background:var(--surface);border-radius:10px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;justify-content:space-between;}
 .cname-row{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
@@ -128,11 +128,11 @@ body.has-sidebar .tabbar{display:none;}
 .detail-hero-caption{position:absolute;bottom:0;left:0;right:0;padding:16px 20px 20px;background:linear-gradient(to top,rgba(0,0,0,.55),transparent);}
 .detail-hero-caption .origin{color:rgba(255,255,255,.55);font-size:15px;margin-bottom:2px;}
 .detail-hero-caption .name{color:#fff;font-size:20px;font-weight:600;margin-bottom:2px;}
-.detail-hero-caption .roaster{color:rgba(255,255,255,.6);font-size:15px;}
+.detail-hero-caption .roaster{color:rgba(255,255,255,.6);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .detail-hero-noimg .detail-hero-caption{background:none;}
 .detail-hero-noimg .origin{color:var(--muted);}
 .detail-hero-noimg .name{color:var(--text);}
-.detail-hero-noimg .roaster{color:var(--muted);}
+.detail-hero-noimg .roaster{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 .detail-status{padding:16px 20px 6px;font-size:15px;font-weight:500;font-family:'Space Grotesk',sans-serif;}
 .detail-stats{padding:0 22px 20px;border-bottom:0.5px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;}
