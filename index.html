@@ -384,33 +384,33 @@ function getReadyDate(c){return c.roastDate?addDays(c.roastDate,c.restDays||0):'
 
 const STATUS_COLOR={resting:'#9B9892',ready:'#6E8F5E',opened:'#B8804A',bestby:'#B15C52',archived:'#C5C3BF'};
 
-// ── Palette: low-sat pastels, light green → orange → red → pink → purple ──
-// 24 colors for max distinction, no blues
+// ── Palette: curated from reference palettes ──
+// 24 distinct pastels with clear hue separation
 const PALETTE=[
-  '#A8B898',  // 01 sage green (lightest, most muted)
-  '#9AAE88',  // 02 soft moss green
-  '#B8B878',  // 03 warm olive
-  '#C8C070',  // 04 yellow-green
-  '#D4C068',  // 05 muted gold-yellow
-  '#D8B860',  // 06 warm straw
-  '#D8A858',  // 07 soft amber
-  '#D09858',  // 08 muted orange
-  '#C88858',  // 09 dusty terracotta-orange
-  '#C07860',  // 10 terracotta
-  '#C06858',  // 11 warm sienna
-  '#B85C58',  // 12 muted red
-  '#C06870',  // 13 dusty rose-red
-  '#C07888',  // 14 rose
-  '#C07898',  // 15 warm pink
-  '#B878A0',  // 16 dusty pink
-  '#A870A0',  // 17 muted magenta-pink
-  '#9868A0',  // 18 soft purple-pink
-  '#8868A8',  // 19 dusty mauve
-  '#8070A8',  // 20 muted violet
-  '#7870A0',  // 21 dusty purple
-  '#906888',  // 22 plum-mauve
-  '#A07080',  // 23 antique rose
-  '#987078',  // 24 dusty berry
+  '#F3D17C',  // 01 mango yellow         (Sherbet Dream #F3D17C)
+  '#FFDCA9',  // 02 warm peach-yellow     (Sherbet Dream #FFDCA9)
+  '#FEC89A',  // 03 soft amber-orange     (Mango Smoothie #FEC89A)
+  '#FFDAB9',  // 04 light peach           (Mango Smoothie #FFDAB9)
+  '#FFDFC8',  // 05 pale apricot          (Canvas Tote #FFDFC8)
+  '#FDBA90',  // 06 warm orange           (Peach Rose #FDBA90)
+  '#F7D9C4',  // 07 dusty peach           (Sherbet Dream #F7D9C4)
+  '#F49595',  // 08 coral-red             (Mango Smoothie #F49595)
+  '#FEC5BB',  // 09 salmon pink           (Canvas Tote / Embroidery #FEC5BB)
+  '#FCD5CE',  // 10 blush                 (Mango Smoothie #FCD5CE)
+  '#F8C8C8',  // 11 soft pink             (Sherbet Dream #F8C8C8)
+  '#FFCAD4',  // 12 baby pink             (Ballerina #FFCAD4)
+  '#FADDE1',  // 13 petal pink            (Ballerina #FADDE1)
+  '#EAC7C7',  // 14 dusty rose            (Faded Glory #EAC7C7)
+  '#E8A2A2',  // 15 muted rose-red        (Faded Glory #E8A2A2)
+  '#D28A8C',  // 16 antique rose          (Peach Rose #D28A8C)
+  '#EEBEC6',  // 17 warm mauve-pink       (Peach Rose #EEBEC6)
+  '#EADBDD',  // 18 dusty lavender-pink   (Ballerina #EADBDD)
+  '#EEDBE6',  // 19 soft mauve            (purple ref #EEDBE6)
+  '#D2C8D9',  // 20 dusty purple          (purple ref #D2C8D9)
+  '#E1BDE3',  // 21 lilac                 (Lavender Haze #E1BDE3)
+  '#CCC6D9',  // 22 muted violet          (Lavender Haze #CCC6D9)
+  '#DFE1BE',  // 23 sage yellow-green     (Spring Kiss #DFE1BE)
+  '#CCD5AE',  // 24 herb sage green       (Herb Garden #CCD5AE)
 ];
 
 let _colorMap={};
