@@ -147,7 +147,7 @@ body.has-sidebar .tabbar{display:none;}
 .detail-hero-noimg .roaster{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 .detail-status{padding:16px 20px 6px;font-size:15px;font-weight:500;font-family:'Space Grotesk',sans-serif;}
-.detail-stats{padding:0 22px 20px;border-bottom:0.5px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;}
+.detail-stats{padding:0 22px 20px;border-bottom:0.5px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 .detail-stats.top{padding-top:0;}
 .detail-stats+.detail-stats{padding-top:20px;}
 .stat-lbl{font-size:15px;color:var(--faint);margin-bottom:3px;}
@@ -165,12 +165,11 @@ body.has-sidebar .tabbar{display:none;}
 .brew-grid-item .l{font-size:15px;color:var(--faint);margin-bottom:3px;}
 .brew-grid-item .v{font-size:15px;color:var(--text);}
 /* recipe + rating row — 2-col grid so rating sits left beside recipe */
-.brew-rating-section{display:flex;align-items:center;gap:10px;margin-top:2px;}
-.brew-rating-section .l{font-size:15px;color:var(--faint);}
 .brew-rating-dots{display:flex;gap:4px;}
 .brew-rating-dot{width:8px;height:8px;border-radius:50%;}
 .brew-row-notes{font-size:15px;color:var(--body);line-height:1.55;margin-top:6px;}
-.brew-notes-toggle{font-size:15px;color:var(--muted);padding-top:8px;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.brew-footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.brew-notes-toggle{font-size:15px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;}
 .brew-empty{padding:16px 20px;font-size:15px;color:var(--faint);}
 
 .detail-footer{padding:18px;display:flex;gap:10px;}
@@ -265,7 +264,7 @@ body.has-sidebar .tabbar{display:none;}
 
 <div id="auth-screen">
   <div class="auth-card">
-    <h1>Coffee Tracker</h1>
+    <h1 class="disp">Coffee Tracker</h1>
     <p class="auth-sub" id="auth-subtitle">Sign in to see your coffees.</p>
     <div class="auth-field"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com"></div>
     <div class="auth-field"><label>Password</label><input type="password" id="auth-password" placeholder="••••••••"></div>
@@ -776,9 +775,12 @@ function renderDetail(){
           <span class="brew-row-date">${fmtShort(b.date)}</span>
         </div>
         ${items.length?`<div class="brew-grid">${items.map(it=>`<div class="brew-grid-item"><div class="l">${it.l}</div><div class="v">${esc(it.v)}</div></div>`).join('')}</div>`:''}
-        ${hasRating?`<div class="brew-rating-section"><div class="l">Rating</div><div class="brew-rating-dots">${ratingDots(b.rating)}</div></div>`:''}
       </div>
-      ${b.notes?`<div class="brew-notes-toggle" onclick="toggleBrewNotes(event,'${c.id}',${trueIdx})"><span>Notes</span><span style="font-size:16px;line-height:1;">${notesOpen?'⌃':'⌄'}</span></div>${notesOpen?`<div class="brew-row-notes zh-text">${esc(b.notes)}</div>`:''}`:''}
+      ${(b.notes||hasRating)?`<div class="brew-footer-row">
+        ${b.notes?`<div class="brew-notes-toggle" onclick="toggleBrewNotes(event,'${c.id}',${trueIdx})"><span>Notes</span><span style="font-size:16px;line-height:1;">${notesOpen?'⌃':'⌄'}</span></div>`:'<div></div>'}
+        ${hasRating?`<div class="brew-rating-dots">${ratingDots(b.rating)}</div>`:''}
+      </div>`:''}
+      ${(b.notes&&notesOpen)?`<div class="brew-row-notes zh-text">${esc(b.notes)}</div>`:''}
     </div>`;
   }).join(''):'<div class="brew-empty">No brew entries yet.</div>';
 
