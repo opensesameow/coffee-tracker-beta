@@ -149,7 +149,7 @@ body.has-sidebar .tabbar{display:none;}
 
 .detail-status{padding:16px 20px 6px;font-size:15px;font-weight:500;font-family:'Space Grotesk',sans-serif;}
 .detail-stats{padding:0 22px 20px;border-bottom:0.5px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-.detail-stats.dates{grid-template-columns:repeat(5,1fr);}
+.detail-stats.dates{display:grid;grid-auto-flow:column;grid-auto-columns:max-content;column-gap:28px;}
 .detail-stats.top{padding-top:0;}
 .detail-stats+.detail-stats{padding-top:20px;}
 .stat-lbl{font-size:15px;color:var(--faint);margin-bottom:3px;}
@@ -172,6 +172,8 @@ body.has-sidebar .tabbar{display:none;}
 .brew-row-notes{font-size:15px;color:var(--body);line-height:1.55;margin-top:6px;}
 .brew-footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
 .brew-notes-toggle{font-size:15px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;}
+.notes-chevron{width:18px;height:18px;flex-shrink:0;transition:transform .15s ease;}
+.notes-chevron.open{transform:rotate(180deg);}
 .brew-empty{padding:16px 20px;font-size:15px;color:var(--faint);}
 
 .detail-footer{padding:18px;display:flex;gap:10px;}
@@ -217,6 +219,7 @@ body.has-sidebar .tabbar{display:none;}
   /* tabbar: full width bar, tabs centered to page content width */
   .tabbar{
     max-width:100%;
+    width:auto;
     display:flex !important;
     justify-content:center;
     padding-left:0;
@@ -767,7 +770,7 @@ function renderDetail(){
       b.temp?{l:'Temp',v:b.temp+'°C'}:null,
       b.tds?{l:'TDS',v:b.tds+'ppm'}:null,
       b.dose?{l:'Dose',v:b.dose+'g'}:null,
-      b.paper?{l:'Filter paper',v:b.paper}:null,
+      b.paper?{l:'Paper',v:b.paper}:null,
       b.grind?{l:'Grind',v:b.grind}:null,
       b.ratio?{l:'Recipe',v:b.ratio}:null,
     ].filter(Boolean);
@@ -784,7 +787,7 @@ function renderDetail(){
         ${items.length?`<div class="brew-grid">${items.map(it=>`<div class="brew-grid-item"><div class="l">${it.l}</div><div class="v">${esc(it.v)}</div></div>`).join('')}</div>`:''}
       </div>
       ${(b.notes||hasRating)?`<div class="brew-footer-row">
-        ${b.notes?`<div class="brew-notes-toggle" onclick="toggleBrewNotes(event,'${c.id}',${trueIdx})"><span>Notes</span><span style="font-size:16px;line-height:1;">${notesOpen?'⌃':'⌄'}</span></div>`:'<div></div>'}
+        ${b.notes?`<div class="brew-notes-toggle" onclick="toggleBrewNotes(event,'${c.id}',${trueIdx})"><span>Notes</span><svg class="notes-chevron${notesOpen?' open':''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>`:'<div></div>'}
         ${hasRating?`<div class="brew-rating-dots">${ratingDots(b.rating)}</div>`:''}
       </div>`:''}
       ${(b.notes&&notesOpen)?`<div class="brew-row-notes zh-text">${esc(b.notes)}</div>`:''}
@@ -809,10 +812,7 @@ function renderDetail(){
       <div><div class="stat-lbl">Opened</div><div class="stat-val">${fmtShort(c.openDate)}</div></div>
       <div><div class="stat-lbl">Best-by</div><div class="stat-val">${fmtShort(c.bestby)}</div></div>
     </div>
-    <div class="detail-stats">
-      <div><div class="stat-lbl">Process</div><div class="stat-val">${esc(c.process)||'—'}</div></div>
-      <div><div class="stat-lbl">Producer</div><div class="stat-val">${esc(c.producer)||'—'}</div></div>
-    </div>
+
     ${c.tasteNotes?`<div class="detail-notes zh-text">${esc(c.tasteNotes)}</div>`:''}
     <div class="brew-hdr"><span class="t">Brew log</span><span class="a" onclick="openBrewForm('${c.id}',null)">+ Add entry</span></div>
     ${brewRows}
@@ -919,8 +919,8 @@ function openBrewForm(coffeeId,entryIdx){
   const c=findCoffee(coffeeId);
   const b=(entryIdx!=null&&c.brewLog&&c.brewLog[entryIdx])?c.brewLog[entryIdx]:{};
   const isEdit=entryIdx!=null;
-  const FILTERS=['V60','Neo','Switch','Torch','Origami','Pinn','Orea O1','Orea O2','Other'];
-  const METHODS=['Espresso','Filter / pour over','French press','AeroPress','Moka pot','Cold brew','Other'];
+  const FILTERS=['Neo','Orea O1','Orea O2','Origami','Pinn','Switch','Torch','V60','Other'];
+  const METHODS=['AeroPress','Cold brew','Espresso','Filter / pour over','French press','Moka pot','Other'];
   document.getElementById('addbrew-overlay').innerHTML=`
     <div class="form-hdr">
       <span class="cancel" onclick="closeBrewForm()">Cancel</span>
@@ -934,7 +934,7 @@ function openBrewForm(coffeeId,entryIdx){
       <div class="frow" id="b-filter-other-wrap" style="display:${b.filter&&!FILTERS.slice(0,-1).includes(b.filter)&&b.filter!==''?'flex':'none'};">
         <label>Specify filter</label><input id="b-filter-other" value="${b.filter&&!FILTERS.slice(0,-1).includes(b.filter)?esc(b.filter):''}" placeholder="e.g. Kalita Wave">
       </div>
-      <div class="frow"><label>Filter paper</label><input id="b-paper" value="${esc(b.paper||'')}" placeholder="e.g. Cafec Abaca"></div>
+      <div class="frow"><label>Paper</label><input id="b-paper" value="${esc(b.paper||'')}" placeholder="e.g. Cafec Abaca"></div>
       <div class="frow"><label>Water temp</label><input type="number" id="b-temp" value="${esc(b.temp||'')}" placeholder="93°C"></div>
       <div class="frow"><label>Water TDS</label><input type="number" id="b-tds" value="${esc(b.tds||'')}" placeholder="150ppm"></div>
       <div class="frow"><label>Dose</label><input type="number" id="b-dose" value="${esc(b.dose||'')}" placeholder="18g"></div>
