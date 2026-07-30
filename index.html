@@ -116,7 +116,7 @@ button{cursor:pointer;background:none;border:none;}
 .cal-legend-name{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cal-legend-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cal-popup-bg{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:300;display:flex;align-items:center;justify-content:center;}
-.cal-popup{background:var(--surface2);border-radius:12px;padding:0.8rem;width:320px;max-width:90vw;max-height:75vh;overflow-y:auto;}
+.cal-popup{background:var(--surface2);border-radius:12px;padding:0.8rem;width:100%;max-width:480px;max-height:75vh;overflow-y:auto;margin:0 16px;}
 .cal-popup-date{font-size:15px;color:var(--muted);margin-bottom:9px;}
 .cal-popup-row{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:15px;}
 
@@ -221,11 +221,16 @@ body.has-sidebar .tabbar{display:none;}
     justify-content:center;
     padding-left:0;
     padding-right:0;
+    transition:margin-right .25s ease;
   }
   .tabbar button{
     flex:none;
     width:calc(560px / 3);
     max-width:180px;
+  }
+  body.has-sidebar .tabbar{
+    display:flex;
+    margin-right:calc(var(--sidebar-w) + var(--gap));
   }
 
   /* sidebar: fixed to right edge */
@@ -247,7 +252,7 @@ body.has-sidebar .tabbar{display:none;}
 
   /* popup: full-height right panel */
   .cal-popup-bg{justify-content:flex-end;align-items:stretch;background:rgba(0,0,0,.15);}
-  .cal-popup{border-radius:0;height:100vh;max-height:100vh;width:var(--sidebar-w);max-width:var(--sidebar-w);box-shadow:-12px 0 32px rgba(0,0,0,.10);}
+  .cal-popup{border-radius:0;height:100vh;max-height:100vh;width:var(--sidebar-w);max-width:var(--sidebar-w);margin:0;box-shadow:-12px 0 32px rgba(0,0,0,.10);}
 }
 
 @media(max-width:899px){
@@ -725,7 +730,7 @@ function showCalPopup(ds){
   }).join('');
   document.getElementById('cal-popup').innerHTML=`
     <div class="cal-popup-bg" onclick="closeCalPopup(event)">
-      <div class="cal-popup" onclick="event.stopPropagation()" style="width:380px;max-width:92vw;padding:1.25rem;">
+      <div class="cal-popup" onclick="event.stopPropagation()" style="padding:1.25rem;">
         <div class="cal-popup-date" style="margin-bottom:14px;">${dateLabel}</div>
         ${cards.length?cardsHtml:'<div style="color:var(--faint);font-size:14px;">No events</div>'}
       </div>
