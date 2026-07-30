@@ -164,10 +164,9 @@ body.has-sidebar .tabbar{display:none;}
 .brew-row-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;}
 .brew-row-title{font-size:15px;font-weight:500;}
 .brew-row-date{font-size:15px;color:var(--muted);}
-.brew-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 8px;margin-bottom:9px;}
-.brew-grid.secondary{gap:10px 12px;}
-.brew-grid-item .l{font-size:15px;color:var(--faint);margin-bottom:3px;}
-.brew-grid-item .v{font-size:15px;color:var(--text);overflow-wrap:anywhere;}
+.brew-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:9px;}
+.brew-chip{background:var(--surface2);border-radius:20px;padding:5px 12px;font-size:14px;white-space:nowrap;color:var(--text);}
+.brew-chip .l{color:var(--faint);}
 /* recipe + rating row — 2-col grid so rating sits left beside recipe */
 .brew-rating-dots{display:flex;gap:4px;}
 .brew-rating-dot{width:8px;height:8px;border-radius:50%;}
@@ -771,14 +770,11 @@ function renderDetail(){
   const brews=(c.brewLog||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
 
   const brewRows=brews.length?brews.map((b)=>{
-    // Primary fields pack into their own row (tight gap); secondary fields pack into a second row (looser gap, room for a wrapping Recipe)
-    const primaryItems=[
+    const items=[
       b.filter?{l:'Filter',v:b.filter}:null,
       b.temp?{l:'Temp',v:b.temp+'°C'}:null,
       b.tds?{l:'TDS',v:b.tds+'ppm'}:null,
       b.dose?{l:'Dose',v:b.dose+'g'}:null,
-    ].filter(Boolean);
-    const secondaryItems=[
       b.paper?{l:'Paper',v:b.paper}:null,
       b.grind?{l:'Grind',v:b.grind}:null,
       b.ratio?{l:'Recipe',v:b.ratio}:null,
@@ -787,15 +783,13 @@ function renderDetail(){
     const notesKey=c.id+'-'+trueIdx;
     const notesOpen=expandedNotes.has(notesKey);
     const hasRating=b.rating&&parseInt(b.rating)>0;
-    const gridHtml=(items,extraClass)=>`<div class="brew-grid${extraClass?' '+extraClass:''}">${items.map(it=>`<div class="brew-grid-item"><div class="l">${it.l}</div><div class="v">${esc(it.v)}</div></div>`).join('')}</div>`;
     return `<div class="brew-row">
       <div onclick="openBrewForm('${c.id}',${trueIdx})">
         <div class="brew-row-top">
           <span class="brew-row-title">${esc([b.filter,b.method].filter(Boolean).join(' · ')||'Brew')}</span>
           <span class="brew-row-date">${fmtShort(b.date)}</span>
         </div>
-        ${primaryItems.length?gridHtml(primaryItems):''}
-        ${secondaryItems.length?gridHtml(secondaryItems,'secondary'):''}
+        ${items.length?`<div class="brew-chips">${items.map(it=>`<span class="brew-chip"><span class="l">${it.l} </span>${esc(it.v)}</span>`).join('')}</div>`:''}
       </div>
       ${(b.notes||hasRating)?`<div class="brew-footer-row">
         ${b.notes?`<div class="brew-notes-toggle" onclick="toggleBrewNotes(event,'${c.id}',${trueIdx})"><span>Notes</span><svg class="notes-chevron${notesOpen?' open':''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>`:'<div></div>'}
