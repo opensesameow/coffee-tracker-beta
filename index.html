@@ -55,7 +55,7 @@ button{cursor:pointer;background:none;border:none;}
 .list-title{font-size:22px;font-weight:700;}
 .fab-add{width:30px;height:30px;border-radius:50%;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 
-.sort-row{display:flex;gap:6px;padding:0 1.35rem;margin-bottom:12px;overflow-x:auto;}
+.sort-row{display:flex;gap:6px;padding:0 1.35rem;margin-bottom:16px;overflow-x:auto;}
 .sort-pill{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:15px;background:#ECEAE7;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;line-height:1;}
 .sort-pill.active{background:var(--text);color:#fff;}
 
@@ -164,9 +164,10 @@ body.has-sidebar .tabbar{display:none;}
 .brew-row-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;}
 .brew-row-title{font-size:15px;font-weight:500;}
 .brew-row-date{font-size:15px;color:var(--muted);}
-.brew-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px 8px;margin-bottom:9px;}
+.brew-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 8px;margin-bottom:9px;}
+.brew-grid.secondary{gap:10px 12px;}
 .brew-grid-item .l{font-size:15px;color:var(--faint);margin-bottom:3px;}
-.brew-grid-item .v{font-size:15px;color:var(--text);}
+.brew-grid-item .v{font-size:15px;color:var(--text);overflow-wrap:anywhere;}
 /* recipe + rating row — 2-col grid so rating sits left beside recipe */
 .brew-rating-dots{display:flex;gap:4px;}
 .brew-rating-dot{width:8px;height:8px;border-radius:50%;}
@@ -770,13 +771,14 @@ function renderDetail(){
   const brews=(c.brewLog||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
 
   const brewRows=brews.length?brews.map((b)=>{
-    // Pack items: filter → temp → tds → dose → paper → grind
-    // This way paper/grind slide into any empty 4th slot rather than always starting a new row
-    const items=[
+    // Primary fields pack into their own row (tight gap); secondary fields pack into a second row (looser gap, room for a wrapping Recipe)
+    const primaryItems=[
       b.filter?{l:'Filter',v:b.filter}:null,
       b.temp?{l:'Temp',v:b.temp+'°C'}:null,
       b.tds?{l:'TDS',v:b.tds+'ppm'}:null,
       b.dose?{l:'Dose',v:b.dose+'g'}:null,
+    ].filter(Boolean);
+    const secondaryItems=[
       b.paper?{l:'Paper',v:b.paper}:null,
       b.grind?{l:'Grind',v:b.grind}:null,
       b.ratio?{l:'Recipe',v:b.ratio}:null,
@@ -785,13 +787,15 @@ function renderDetail(){
     const notesKey=c.id+'-'+trueIdx;
     const notesOpen=expandedNotes.has(notesKey);
     const hasRating=b.rating&&parseInt(b.rating)>0;
+    const gridHtml=(items,extraClass)=>`<div class="brew-grid${extraClass?' '+extraClass:''}">${items.map(it=>`<div class="brew-grid-item"><div class="l">${it.l}</div><div class="v">${esc(it.v)}</div></div>`).join('')}</div>`;
     return `<div class="brew-row">
       <div onclick="openBrewForm('${c.id}',${trueIdx})">
         <div class="brew-row-top">
           <span class="brew-row-title">${esc([b.filter,b.method].filter(Boolean).join(' · ')||'Brew')}</span>
           <span class="brew-row-date">${fmtShort(b.date)}</span>
         </div>
-        ${items.length?`<div class="brew-grid">${items.map(it=>`<div class="brew-grid-item"><div class="l">${it.l}</div><div class="v">${esc(it.v)}</div></div>`).join('')}</div>`:''}
+        ${primaryItems.length?gridHtml(primaryItems):''}
+        ${secondaryItems.length?gridHtml(secondaryItems,'secondary'):''}
       </div>
       ${(b.notes||hasRating)?`<div class="brew-footer-row">
         ${b.notes?`<div class="brew-notes-toggle" onclick="toggleBrewNotes(event,'${c.id}',${trueIdx})"><span>Notes</span><svg class="notes-chevron${notesOpen?' open':''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>`:'<div></div>'}
