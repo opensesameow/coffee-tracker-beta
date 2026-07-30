@@ -88,6 +88,7 @@ button{cursor:pointer;background:none;border:none;}
 
 /* ---------- bottom tabs — full width, bold ---------- */
 .tabbar{position:fixed;bottom:0;left:0;right:0;width:100%;display:flex;background:var(--bg);border-top:0.5px solid var(--border);padding-bottom:env(safe-area-inset-bottom,10px);z-index:100;}
+.tabbar-inner{display:flex;width:100%;}
 .tabbar button{flex:1;padding:13px 0;font-size:15px;font-weight:600;color:var(--faint);letter-spacing:.01em;}
 .tabbar button.active{color:var(--text);}
 
@@ -149,7 +150,7 @@ body.has-sidebar .tabbar{display:none;}
 
 .detail-status{padding:16px 20px 6px;font-size:15px;font-weight:500;font-family:'Space Grotesk',sans-serif;}
 .detail-stats{padding:0 22px 20px;border-bottom:0.5px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-.detail-stats.dates{display:grid;grid-auto-flow:column;grid-auto-columns:max-content;column-gap:28px;}
+.detail-stats.dates{display:grid;grid-auto-flow:column;grid-auto-columns:max-content;column-gap:18px;}
 .detail-stats.top{padding-top:0;}
 .detail-stats+.detail-stats{padding-top:20px;}
 .stat-lbl{font-size:15px;color:var(--faint);margin-bottom:3px;}
@@ -216,14 +217,15 @@ body.has-sidebar .tabbar{display:none;}
 
   .cal-nav-mobile{display:none !important;}
   .cal-nav-desktop{display:flex !important;}
-  /* tabbar: full width bar, tabs centered to page content width */
+  /* tabbar: bar stays full width (background only); inner group mirrors .app's sizing/shift exactly */
   .tabbar{
     max-width:100%;
-    width:auto;
-    display:flex !important;
+  }
+  .tabbar-inner{
+    max-width:560px;
+    margin-left:auto;
+    margin-right:auto;
     justify-content:center;
-    padding-left:0;
-    padding-right:0;
     transition:margin-right .25s ease;
   }
   .tabbar button{
@@ -233,7 +235,10 @@ body.has-sidebar .tabbar{display:none;}
   }
   body.has-sidebar .tabbar{
     display:flex;
+  }
+  body.has-sidebar .tabbar-inner{
     margin-right:calc(var(--sidebar-w) + var(--gap));
+    margin-left:auto;
   }
 
   /* sidebar: fixed to right edge */
@@ -349,9 +354,11 @@ body.has-sidebar .tabbar{display:none;}
   </div>
 
   <div class="tabbar">
-    <button id="tab-list" class="active" onclick="switchTab('list')">List</button>
-    <button id="tab-calendar" onclick="switchTab('calendar')">Calendar</button>
-    <button id="tab-archive" onclick="switchTab('archive')">Archive <span id="archive-tab-count"></span></button>
+    <div class="tabbar-inner">
+      <button id="tab-list" class="active" onclick="switchTab('list')">List</button>
+      <button id="tab-calendar" onclick="switchTab('calendar')">Calendar</button>
+      <button id="tab-archive" onclick="switchTab('archive')">Archive <span id="archive-tab-count"></span></button>
+    </div>
   </div>
 </div>
 
