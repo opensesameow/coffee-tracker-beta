@@ -269,6 +269,14 @@ body.has-sidebar .tabbar{display:none;}
   .cal-card{margin:0;}
   .cal-nav-desktop{display:none !important;}
   .cal-nav-mobile{display:flex !important;}
+
+  /* mobile can't gain extra width like desktop sidebars can, so tighten
+     text/line-spacing on coffee cards to reduce clipping under the fixed card height */
+  .cinfo{gap:6px;}
+  .cname{font-size:13.5px;}
+  .cmeta{font-size:13.5px;margin-bottom:5px;}
+  .cnotes{font-size:13.5px;line-height:1.4;}
+  .cpill{font-size:13.5px;padding:3px 10px;}
 }
 
 /* Chinese text: slightly smaller */
