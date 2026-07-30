@@ -63,7 +63,7 @@ button{cursor:pointer;background:none;border:none;}
 .ccard{display:flex;gap:10px;cursor:pointer;height:136px;align-items:stretch;}
 .cphoto{width:auto;aspect-ratio:3/4;height:100%;border-radius:10px;flex-shrink:0;background:var(--border);overflow:hidden;}
 .cphoto img{width:100%;height:100%;object-fit:cover;display:block;}
-.cinfo{flex:1;min-width:0;background:var(--surface);border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;justify-content:center;gap:9px;overflow:hidden;}
+.cinfo{flex:1;min-width:0;background:var(--surface);border-radius:10px;padding:12px 14px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;justify-content:center;gap:8px;overflow:hidden;}
 .cname-row{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
 .cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .cname{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase;letter-spacing:.02em;}
@@ -72,6 +72,18 @@ button{cursor:pointer;background:none;border:none;}
 .cpill-wrap{}
 .cpill{font-size:15px;padding:3px 11px;border-radius:20px;border:1px solid;font-weight:500;white-space:nowrap;}
 .empty-msg{text-align:center;padding:2.45rem 0.8rem;color:var(--faint);font-size:15px;}
+
+/* ---------- calendar popup card — 90% scale variant of .ccard ---------- */
+.ccard-sm{display:flex;gap:9px;cursor:pointer;height:122px;align-items:stretch;}
+.ccard-sm .cphoto{width:auto;aspect-ratio:3/4;height:100%;border-radius:9px;flex-shrink:0;background:var(--border);overflow:hidden;}
+.ccard-sm .cinfo{flex:1;min-width:0;background:var(--surface);border-radius:9px;padding:11px 13px 13px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;}
+.ccard-sm .cname-row{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
+.ccard-sm .cdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.ccard-sm .cname{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase;letter-spacing:.02em;}
+.ccard-sm .cmeta{font-size:13px;color:var(--muted);}
+.ccard-sm .cmeta-process{font-size:13px;color:var(--muted);}
+.ccard-sm .cnotes{font-size:13px;color:var(--body);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.ccard-sm .cpill{font-size:13px;padding:2px 10px;border-radius:20px;border:1px solid;font-weight:500;white-space:nowrap;}
 
 /* ---------- bottom tabs — full width, bold ---------- */
 .tabbar{position:fixed;bottom:0;left:0;right:0;width:100%;display:flex;background:var(--bg);border-top:0.5px solid var(--border);padding-bottom:env(safe-area-inset-bottom,10px);z-index:100;}
@@ -700,12 +712,13 @@ function showCalPopup(ds){
     const idColor=coffeeColor(c);
     const photoHtml=c.photo?`<img src="${c.photo}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`:'';
     const typeLabel=types.join(', ');
-    return `<div class="ccard" onclick="openDetail('${c.id}')" style="margin-bottom:14px;">
+    return `<div class="ccard ccard-sm" onclick="openDetail('${c.id}')" style="margin-bottom:12px;">
       <div class="cphoto">${photoHtml}</div>
       <div class="cinfo">
         <div>
           <div class="cname-row"><span class="cdot" style="background:${idColor};"></span><span class="cname disp">${esc(c.name||'Unnamed coffee')}</span></div>
-          <div class="cmeta">${esc([c.roaster,c.origin,c.process].filter(Boolean).join(' · ')||'—')}</div>
+          <div class="cmeta">${esc([c.roaster,c.origin].filter(Boolean).join(' · ')||'—')}</div>
+          ${c.process?`<div class="cmeta-process">${esc(c.process)}</div>`:''}
           ${c.tasteNotes?`<div class="cnotes zh-text">${esc(c.tasteNotes)}</div>`:''}
         </div>
         <div class="cpill-wrap"><span class="cpill" style="color:${statusColor};border-color:${statusColor}55;">${typeLabel}</span></div>
