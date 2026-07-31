@@ -139,6 +139,7 @@ body.has-sidebar .tabbar{display:none;}
 .detail-hero img{width:100%;height:100%;object-fit:cover;display:block;}
 /* back button — plain chevron */
 .detail-back{position:absolute;top:18px;left:18px;color:rgba(255,255,255,.9);font-size:22px;line-height:1;background:none;border:none;cursor:pointer;padding:4px 8px;}
+.detail-hero-status{position:absolute;top:18px;right:18px;}
 .detail-hero-noimg .detail-back{color:var(--text);}
 .detail-hero-caption{position:absolute;bottom:0;left:0;right:0;padding:16px 20px 20px;background:linear-gradient(to top,rgba(0,0,0,.55),transparent);}
 .detail-hero-caption .origin{color:rgba(255,255,255,.55);font-size:15px;margin-bottom:2px;}
@@ -149,10 +150,9 @@ body.has-sidebar .tabbar{display:none;}
 .detail-hero-noimg .name{color:var(--text);}
 .detail-hero-noimg .roaster{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-.detail-status{padding:16px 20px 6px;font-size:15px;font-weight:500;font-family:'Space Grotesk',sans-serif;}
 .detail-stats{padding:0 20px 20px;border-bottom:0.5px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 .detail-stats.dates{display:grid;column-gap:20px;}
-.detail-stats.top{padding-top:0;}
+.detail-stats.top{padding-top:16px;}
 .detail-stats+.detail-stats{padding-top:20px;}
 .stat-lbl{font-size:15px;color:var(--faint);margin-bottom:3px;}
 .stat-val{font-size:15px;color:var(--text);}
@@ -193,6 +193,13 @@ body.has-sidebar .tabbar{display:none;}
 .frow input,.frow select{border:none;background:transparent;text-align:right;font-size:15px;color:var(--text);flex:1;min-width:0;}
 .frow input[type="date"]::-webkit-date-and-time-value{text-align:right;}
 .frow input[type="date"]::-webkit-datetime-edit{text-align:right;}
+.date-field{flex:1;text-align:right;font-size:15px;color:var(--text);cursor:pointer;}
+.date-field.placeholder{color:var(--faint);}
+.dp-panel{background:var(--surface2);border-radius:12px;padding:1rem;width:320px;max-width:90vw;}
+.dp-panel .cal-nav{margin-bottom:0.8rem;}
+.dp-footer{display:flex;justify-content:space-between;padding-top:0.7rem;margin-top:0.3rem;border-top:0.5px solid var(--border);}
+.dp-footer span{font-size:14px;color:var(--muted);cursor:pointer;}
+.cal-daynum.selected{background:var(--orange);color:#fff;}
 .frow input[readonly]{color:var(--muted);}
 .frow input::placeholder{color:var(--faint);}
 .ftextarea-wrap{padding:13px 0;}
@@ -208,6 +215,11 @@ body.has-sidebar .tabbar{display:none;}
 .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:15px;padding:9px 20px;border-radius:8px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;max-width:90%;text-align:center;}
 .toast.show{opacity:1;}
 .loading{text-align:center;padding:2.45rem 0;color:var(--faint);font-size:15px;}
+.skeleton-block{background:var(--border);}
+.skeleton-line{background:var(--border);border-radius:6px;}
+.skeleton-card{cursor:default;}
+.skeleton-card *{animation:skeleton-pulse 1.3s ease-in-out infinite;}
+@keyframes skeleton-pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
 .sync-pill{font-size:15px;padding:3px 9px;border-radius:6px;display:none;}
 
 /* ---------- desktop ---------- */
@@ -337,7 +349,11 @@ body.has-sidebar .tabbar{display:none;}
       <button class="fab-add" onclick="openAddCoffee('new')">+</button>
     </div>
     <div class="sort-row" id="sort-row"></div>
-    <div class="clist" id="coffee-list"><div class="loading">Loading your coffees...</div></div>
+    <div class="clist" id="coffee-list">
+      <div class="ccard skeleton-card"><div class="cphoto skeleton-block"></div><div class="cinfo"><div><div class="skeleton-line" style="width:55%;height:15px;margin-bottom:8px;"></div><div class="skeleton-line" style="width:70%;height:11px;margin-bottom:8px;"></div><div class="skeleton-line" style="width:85%;height:11px;"></div></div><div class="skeleton-line" style="width:40%;height:20px;border-radius:20px;"></div></div></div>
+      <div class="ccard skeleton-card"><div class="cphoto skeleton-block"></div><div class="cinfo"><div><div class="skeleton-line" style="width:45%;height:15px;margin-bottom:8px;"></div><div class="skeleton-line" style="width:65%;height:11px;margin-bottom:8px;"></div><div class="skeleton-line" style="width:75%;height:11px;"></div></div><div class="skeleton-line" style="width:35%;height:20px;border-radius:20px;"></div></div></div>
+      <div class="ccard skeleton-card"><div class="cphoto skeleton-block"></div><div class="cinfo"><div><div class="skeleton-line" style="width:60%;height:15px;margin-bottom:8px;"></div><div class="skeleton-line" style="width:55%;height:11px;margin-bottom:8px;"></div><div class="skeleton-line" style="width:80%;height:11px;"></div></div><div class="skeleton-line" style="width:45%;height:20px;border-radius:20px;"></div></div></div>
+    </div>
   </div>
 
   <div id="view-archive" class="hide">
@@ -396,6 +412,7 @@ body.has-sidebar .tabbar{display:none;}
 <div id="addcoffee-overlay" class="overlay hide"></div>
 <div id="addbrew-overlay" class="overlay hide"></div>
 <div id="cal-popup"></div>
+<div id="date-picker-popup"></div>
 <div class="toast" id="toast"></div>
 <button class="scroll-top-btn" id="scroll-top-btn" onclick="scrollActiveToTop()" title="Back to top">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
@@ -734,6 +751,76 @@ function markSidebarOpen(){
 
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 
+// ── Custom date picker (replaces native <input type="date">) ──────
+let _dpState={targetId:null,onChange:null,year:0,month:0};
+function openDatePicker(targetId,onChange){
+  const input=document.getElementById(targetId);
+  const val=input?input.value:'';
+  const d=val?new Date(val+'T12:00:00'):new Date();
+  _dpState={targetId,onChange,year:d.getFullYear(),month:d.getMonth()};
+  renderDatePicker();
+}
+function dpChangeMonth(dir){
+  _dpState.month+=dir;
+  if(_dpState.month>11){_dpState.month=0;_dpState.year++;}
+  if(_dpState.month<0){_dpState.month=11;_dpState.year--;}
+  renderDatePicker();
+}
+function buildDatePickerGrid(year,month,selectedDs){
+  const t=today();
+  const firstDay=new Date(year,month,1).getDay();
+  const dim=new Date(year,month+1,0).getDate();
+  const mm=String(month+1).padStart(2,'0');
+  let html=['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  let cells=[];
+  for(let i=0;i<firstDay;i++)cells.push(null);
+  for(let d=1;d<=dim;d++)cells.push(d);
+  html+=cells.map(day=>{
+    if(!day)return'<div></div>';
+    const ds=`${year}-${mm}-${String(day).padStart(2,'0')}`;
+    const cls=['cal-daynum',ds===t?'today':'',ds===selectedDs?'selected':''].filter(Boolean).join(' ');
+    return `<div class="cal-day" onclick="selectDpDate('${ds}')"><div class="${cls}">${day}</div></div>`;
+  }).join('');
+  return html;
+}
+function renderDatePicker(){
+  const input=document.getElementById(_dpState.targetId);
+  const selectedDs=input?input.value:'';
+  document.getElementById('date-picker-popup').innerHTML=`
+    <div class="cal-popup-bg" onclick="closeDatePicker(event)">
+      <div class="dp-panel" onclick="event.stopPropagation()">
+        <div class="cal-nav">
+          <button onclick="dpChangeMonth(-1)">&#8249;</button>
+          <span class="cal-month-label disp">${MONTHS[_dpState.month]} ${_dpState.year}</span>
+          <button onclick="dpChangeMonth(1)">&#8250;</button>
+        </div>
+        <div class="cal-grid">${buildDatePickerGrid(_dpState.year,_dpState.month,selectedDs)}</div>
+        <div class="dp-footer">
+          <span onclick="dpClear()">Clear</span>
+          <span onclick="dpToday()">Today</span>
+        </div>
+      </div>
+    </div>`;
+}
+function applyDpValue(ds){
+  const input=document.getElementById(_dpState.targetId);
+  if(!input)return;
+  input.value=ds;
+  const disp=document.getElementById(_dpState.targetId+'-display');
+  if(disp){
+    if(ds){disp.textContent=fmtFull(ds);disp.classList.remove('placeholder');}
+    else{disp.textContent='Select date';disp.classList.add('placeholder');}
+  }
+  if(_dpState.onChange)_dpState.onChange();
+}
+function selectDpDate(ds){applyDpValue(ds);closeDatePicker();}
+function dpClear(){applyDpValue('');closeDatePicker();}
+function dpToday(){selectDpDate(today());}
+function closeDatePicker(e){
+  if(e&&e.target&&!e.target.classList.contains('cal-popup-bg'))return;
+  document.getElementById('date-picker-popup').innerHTML='';
+}
+
 function showCalPopup(ds){
   const evs=(window._calEvents&&window._calEvents[ds])||[];
   if(!evs.length)return;
@@ -833,13 +920,13 @@ function renderDetail(){
     <div class="detail-hero ${hasPhoto?'':'detail-hero-noimg'}">
       ${hasPhoto?`<img src="${c.photo}" alt="">`:''}
       <button class="detail-back" onclick="closeDetail()">&#8249;</button>
+      <div class="detail-hero-status"><span class="cpill disp" style="color:${color};border-color:${color}66;background:${color}2A;">${statusLabel(c)}</span></div>
       <div class="detail-hero-caption">
         <div class="origin">${esc([c.roaster,c.origin].filter(Boolean).join(' · '))}</div>
         <div class="name disp">${esc(c.name||'Unnamed coffee')}</div>
         <div class="roaster">${esc([c.process,c.producer].filter(Boolean).join(' · '))}</div>
       </div>
     </div>
-    <div class="detail-status disp" style="color:${color};">${statusLabel(c)}</div>
     <div class="detail-stats top dates">
       <div><div class="stat-lbl">Roasted</div><div class="stat-val">${fmtShort(c.roastDate)}</div></div>
       <div><div class="stat-lbl">Ready</div><div class="stat-val">${fmtShort(ready)}</div></div>
@@ -904,10 +991,10 @@ function openAddCoffee(idOrNew){
       <div class="frow"><label>Origin</label><input id="f-origin" placeholder="Country / region" value="${esc(c.origin||'')}"></div>
       <div class="frow"><label>Process</label><input id="f-process" placeholder="Washed" value="${esc(c.process||'')}"></div>
       <div class="frow"><label>Producer</label><input id="f-producer" placeholder="Producer" value="${esc(c.producer||'')}"></div>
-      <div class="frow"><label>Roast date</label><input type="date" id="f-roast" value="${c.roastDate||''}" oninput="autoReady()"></div>
+      <div class="frow"><label>Roast date</label><div class="date-field${c.roastDate?'':' placeholder'}" id="f-roast-display" onclick="openDatePicker('f-roast',autoReady)">${c.roastDate?fmtFull(c.roastDate):'Select date'}</div><input type="hidden" id="f-roast" value="${c.roastDate||''}"></div>
       <div class="frow"><label>Rest days</label><input type="number" id="f-rest" placeholder="10" value="${esc(c.restDays||'')}" oninput="autoReady()"></div>
       <div class="frow"><label>Ready date</label><input id="f-ready" value="${c.readyDate||''}" readonly></div>
-      <div class="frow"><label>Opened</label><input type="date" id="f-open" value="${c.openDate||''}" oninput="autoBestBy()"></div>
+      <div class="frow"><label>Opened</label><div class="date-field${c.openDate?'':' placeholder'}" id="f-open-display" onclick="openDatePicker('f-open',autoBestBy)">${c.openDate?fmtFull(c.openDate):'Select date'}</div><input type="hidden" id="f-open" value="${c.openDate||''}"></div>
       <div class="frow"><label>Best-by</label><input id="f-bestby" value="${c.bestby||''}" readonly></div>
       <div class="ftextarea-wrap"><label>Taste notes</label><textarea id="f-taste" placeholder="Blueberry, jasmine, bright acidity...">${esc(c.tasteNotes||'')}</textarea></div>
       <div class="fsave-space"></div>
@@ -978,7 +1065,7 @@ function openBrewForm(coffeeId,entryIdx){
       <span class="save" onclick="saveBrewEntry()">Save</span>
     </div>
     <div class="form-body">
-      <div class="frow"><label>Date</label><input type="date" id="b-date" value="${b.date||today()}"></div>
+      <div class="frow"><label>Date</label><div class="date-field" id="b-date-display" onclick="openDatePicker('b-date',null)">${fmtFull(b.date||today())}</div><input type="hidden" id="b-date" value="${b.date||today()}"></div>
       <div class="frow"><label>Method</label><select id="b-method">${METHODS.map(m=>`<option ${b.method===m?'selected':''}>${m}</option>`).join('')}</select></div>
       <div class="frow"><label>Filter</label><select id="b-filter" onchange="toggleFilterOther()">${FILTERS.map(f=>`<option ${b.filter===f?'selected':''}>${f}</option>`).join('')}</select></div>
       <div class="frow" id="b-filter-other-wrap" style="display:${b.filter&&!FILTERS.slice(0,-1).includes(b.filter)&&b.filter!==''?'flex':'none'};">
