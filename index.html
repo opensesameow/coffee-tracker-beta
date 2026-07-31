@@ -44,7 +44,7 @@ button{cursor:pointer;background:none;border:none;}
 .greet-title{font-size:29px;font-weight:700;line-height:1.1;padding:0 1.35rem;margin:4px 0 20px;}
 
 .coming-card{position:relative;background:var(--surface);border-radius:4px 12px 12px 12px;padding:26px 16px 16px;margin:0 1.35rem 24px;box-shadow:0 2px 10px rgba(0,0,0,0.05);cursor:pointer;}
-.coming-bookmark{position:absolute;top:-14px;left:16px;background:#ECEAE7;color:var(--orange);border-radius:8px 8px 0 0;padding:6px 14px 8px;font-size:13px;font-weight:600;letter-spacing:.03em;}
+.coming-bookmark{position:absolute;top:-20px;left:16px;background:#ECEAE7;color:var(--orange);border-radius:8px 8px 0 0;padding:8px 14px 10px;font-size:13px;font-weight:600;letter-spacing:.03em;line-height:1;box-shadow:none;}
 .coming-name{font-size:17px;font-weight:600;margin-bottom:3px;}
 .coming-meta{font-size:15px;color:var(--muted);margin-bottom:6px;}
 .coming-notes{font-size:15px;color:var(--body);line-height:1.55;}
@@ -271,7 +271,7 @@ body.has-sidebar .tabbar{display:none;}
   box-shadow:0 2px 10px rgba(0,0,0,0.18);
   opacity:0;pointer-events:none;transform:translateY(6px);
   transition:opacity .2s ease,transform .2s ease;
-  z-index:90;
+  z-index:250;
 }
 .scroll-top-btn svg{width:18px;height:18px;}
 .scroll-top-btn.show{opacity:1;pointer-events:auto;transform:translateY(0);}
@@ -284,8 +284,8 @@ body.has-sidebar .tabbar{display:none;}
   .cal-nav-mobile{display:flex !important;}
 
   /* mobile: taller fixed card; name group top-aligned, status pill bottom-anchored (symmetric top/bottom padding); process hidden */
-  .ccard{height:158px;}
-  .cinfo{display:flex;flex-direction:column;justify-content:space-between;gap:5px;padding:10px 14px;}
+  .ccard{height:134px;}
+  .cinfo{display:flex;flex-direction:column;justify-content:space-between;gap:5px;padding:8px 14px 16px;}
   .cmeta{font-size:12px;margin-bottom:4px;}
   .cmeta-process-span{display:none;}
 
@@ -391,7 +391,7 @@ body.has-sidebar .tabbar{display:none;}
 <div id="addbrew-overlay" class="overlay hide"></div>
 <div id="cal-popup"></div>
 <div class="toast" id="toast"></div>
-<button class="scroll-top-btn" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">
+<button class="scroll-top-btn" id="scroll-top-btn" onclick="scrollActiveToTop()" title="Back to top">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
 </button>
 
@@ -1222,11 +1222,35 @@ async function handleAuthSubmit(){
 function handleLogout(){if(!confirm('Log out?'))return;clearSession();coffees=[];showAuthScreen();}
 function showAuthScreen(){document.getElementById('auth-screen').classList.remove('hide');document.getElementById('app').classList.add('hide');}
 function showApp(){document.getElementById('auth-screen').classList.add('hide');document.getElementById('app').classList.remove('hide');init();}
-window.addEventListener('scroll',()=>{
+function getActiveOverlayEl(){
+  if(!document.body.classList.contains('has-sidebar'))return null;
+  const ids=['detail-overlay','addcoffee-overlay','addbrew-overlay'];
+  for(const id of ids){
+    const el=document.getElementById(id);
+    if(el&&!el.classList.contains('hide'))return el;
+  }
+  const calPopup=document.querySelector('#cal-popup .cal-popup');
+  if(calPopup)return calPopup;
+  return null;
+}
+function scrollActiveToTop(){
+  const el=getActiveOverlayEl();
+  if(el)el.scrollTo({top:0,behavior:'smooth'});
+  else window.scrollTo({top:0,behavior:'smooth'});
+}
+// capture phase: scroll doesn't bubble, but capturing catches it from any scrollable descendant (overlays included)
+document.addEventListener('scroll',(e)=>{
   const btn=document.getElementById('scroll-top-btn');
   if(!btn)return;
-  btn.classList.toggle('show',window.scrollY>400);
-},{passive:true});
+  const activeOverlay=getActiveOverlayEl();
+  if(activeOverlay){
+    if(e.target!==activeOverlay)return;
+    btn.classList.toggle('show',activeOverlay.scrollTop>400);
+  }else{
+    if(e.target!==document)return;
+    btn.classList.toggle('show',window.scrollY>400);
+  }
+},true);
 (function bootAuth(){const s=getSession();if(s&&s.token)showApp();else showAuthScreen();})();
 </script>
 </body>
