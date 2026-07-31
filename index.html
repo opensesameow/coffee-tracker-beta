@@ -139,7 +139,7 @@ body.has-sidebar .tabbar{display:none;}
 .detail-hero img{width:100%;height:100%;object-fit:cover;display:block;}
 /* back button — plain chevron */
 .detail-back{position:absolute;top:18px;left:18px;color:rgba(255,255,255,.9);font-size:22px;line-height:1;background:none;border:none;cursor:pointer;padding:4px 8px;}
-.detail-hero-status{position:absolute;top:18px;right:18px;}
+.detail-hero-status{margin-bottom:6px;}
 .detail-hero-noimg .detail-back{color:var(--text);}
 .detail-hero-caption{position:absolute;bottom:0;left:0;right:0;padding:16px 20px 20px;background:linear-gradient(to top,rgba(0,0,0,.55),transparent);}
 .detail-hero-caption .origin{color:rgba(255,255,255,.55);font-size:15px;margin-bottom:2px;}
@@ -151,7 +151,7 @@ body.has-sidebar .tabbar{display:none;}
 .detail-hero-noimg .roaster{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 .detail-stats{padding:0 20px 20px;border-bottom:0.5px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-.detail-stats.dates{display:grid;column-gap:20px;}
+.detail-stats.dates{display:grid;column-gap:26px;}
 .detail-stats.top{padding-top:16px;}
 .detail-stats+.detail-stats{padding-top:20px;}
 .stat-lbl{font-size:15px;color:var(--faint);margin-bottom:3px;}
@@ -195,6 +195,7 @@ body.has-sidebar .tabbar{display:none;}
 .frow input[type="date"]::-webkit-datetime-edit{text-align:right;}
 .date-field{flex:1;text-align:right;font-size:15px;color:var(--text);cursor:pointer;}
 .date-field.placeholder{color:var(--faint);}
+.dp-popup-bg{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:300;display:flex;align-items:center;justify-content:center;}
 .dp-panel{background:var(--surface2);border-radius:12px;padding:1rem;width:320px;max-width:90vw;}
 .dp-panel .cal-nav{margin-bottom:0.8rem;}
 .dp-footer{display:flex;justify-content:space-between;padding-top:0.7rem;margin-top:0.3rem;border-top:0.5px solid var(--border);}
@@ -220,7 +221,7 @@ body.has-sidebar .tabbar{display:none;}
 .skeleton-card{cursor:default;}
 .skeleton-card *{animation:skeleton-pulse 1.3s ease-in-out infinite;}
 @keyframes skeleton-pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
-.sync-pill{font-size:15px;padding:3px 9px;border-radius:6px;display:none;}
+.sync-pill{font-size:11px;padding:3px 9px;border-radius:6px;display:none;}
 
 /* ---------- desktop ---------- */
 @media(min-width:900px){
@@ -305,7 +306,7 @@ body.has-sidebar .tabbar{display:none;}
   .cinfo{display:flex;flex-direction:column;justify-content:space-between;gap:5px;padding:8px 14px 16px;}
   .cmeta{font-size:12px;margin-bottom:4px;}
   .cmeta-process-span{display:none;}
-  .cnotes{line-height:0.45;}
+  .cnotes{-webkit-line-clamp:1;line-height:1.3;}
 
   .scroll-top-btn{display:flex;}
 }
@@ -787,7 +788,7 @@ function renderDatePicker(){
   const input=document.getElementById(_dpState.targetId);
   const selectedDs=input?input.value:'';
   document.getElementById('date-picker-popup').innerHTML=`
-    <div class="cal-popup-bg" onclick="closeDatePicker(event)">
+    <div class="dp-popup-bg" onclick="closeDatePicker(event)">
       <div class="dp-panel" onclick="event.stopPropagation()">
         <div class="cal-nav">
           <button onclick="dpChangeMonth(-1)">&#8249;</button>
@@ -817,7 +818,7 @@ function selectDpDate(ds){applyDpValue(ds);closeDatePicker();}
 function dpClear(){applyDpValue('');closeDatePicker();}
 function dpToday(){selectDpDate(today());}
 function closeDatePicker(e){
-  if(e&&e.target&&!e.target.classList.contains('cal-popup-bg'))return;
+  if(e&&e.target&&!e.target.classList.contains('dp-popup-bg'))return;
   document.getElementById('date-picker-popup').innerHTML='';
 }
 
@@ -920,8 +921,8 @@ function renderDetail(){
     <div class="detail-hero ${hasPhoto?'':'detail-hero-noimg'}">
       ${hasPhoto?`<img src="${c.photo}" alt="">`:''}
       <button class="detail-back" onclick="closeDetail()">&#8249;</button>
-      <div class="detail-hero-status"><span class="cpill disp" style="color:${color};border-color:${color}66;background:${color}2A;">${statusLabel(c)}</span></div>
       <div class="detail-hero-caption">
+        ${(!c.archived&&statusLabel(c))?`<div class="detail-hero-status"><span class="cpill disp" style="color:${color};border-color:${color}66;background:${color}2A;">${statusLabel(c)}</span></div>`:''}
         <div class="origin">${esc([c.roaster,c.origin].filter(Boolean).join(' · '))}</div>
         <div class="name disp">${esc(c.name||'Unnamed coffee')}</div>
         <div class="roaster">${esc([c.process,c.producer].filter(Boolean).join(' · '))}</div>
