@@ -1090,7 +1090,7 @@ function openBrewForm(coffeeId,entryIdx){
   const c=findCoffee(coffeeId);
   const b=(entryIdx!=null&&c.brewLog&&c.brewLog[entryIdx])?c.brewLog[entryIdx]:{};
   const isEdit=entryIdx!=null;
-  const FILTERS=['Neo','Orea O1','Orea O2','Origami','Pinn','Switch','Torch','V60','Other'];
+  const FILTERS=['CT62','Neo','Orea O1','Orea O2','Origami','Pinn','Switch','Torch','V60','Other'];
   const METHODS=['AeroPress','Cold brew','Espresso','Filter / pour over','French press','Moka pot','Other'];
   document.getElementById('addbrew-overlay').innerHTML=`
     <div class="form-hdr">
