@@ -435,7 +435,7 @@ function HEADERS(){const s=getSession();const h={'Content-Type':'application/jso
 function fetchWithTimeout(url,options,ms=8000){return Promise.race([fetch(url,options),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);}
 
 async function dbGet(){
-  const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,name,roaster,origin,process,producer,taste_notes,roast_date,rest_days,ready_date,open_date,best_by,brew_log,archived,user_id,created_at&order=created_at.desc',{headers:{...HEADERS(),'Prefer':'return=representation'}});
+  const r=await fetchWithTimeout(NEON_URL+'/coffees?select=id,name,roaster,origin,process,producer,taste_notes,roast_date,rest_days,ready_date,open_date,best_by,bag_size_g,remaining_g,brew_log,archived,user_id,created_at&order=created_at.desc',{headers:{...HEADERS(),'Prefer':'return=representation'}});
   if(!r.ok)throw new Error(await r.text());
   return r.json();
 }
@@ -449,8 +449,8 @@ async function dbInsert(row){const r=await fetchWithTimeout(NEON_URL+'/coffees',
 async function dbUpdate(id,row){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'PATCH',headers:{...HEADERS(),'Prefer':'return=representation'},body:JSON.stringify(row)});if(!r.ok)throw new Error(await r.text());return(await r.json())[0];}
 async function dbDelete(id){const r=await fetchWithTimeout(NEON_URL+'/coffees?id=eq.'+id,{method:'DELETE',headers:HEADERS()});if(!r.ok)throw new Error(await r.text());}
 
-function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',process:row.process||'',producer:row.producer||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',photo:row.photo||null,brewLog:row.brew_log||[],archived:row.archived||false,userId:row.user_id||null};}
-function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false,user_id:c.userId||(getSession()&&getSession().userId)||null};}
+function fromDB(row){return{id:row.id,name:row.name||'',roaster:row.roaster||'',origin:row.origin||'',process:row.process||'',producer:row.producer||'',tasteNotes:row.taste_notes||'',roastDate:row.roast_date||'',restDays:row.rest_days?String(row.rest_days):'',readyDate:row.ready_date||'',openDate:row.open_date||'',bestby:row.best_by||'',bagSize:row.bag_size_g!=null?String(row.bag_size_g):'',remaining:row.remaining_g!=null?String(row.remaining_g):'',photo:row.photo||null,brewLog:row.brew_log||[],archived:row.archived||false,userId:row.user_id||null};}
+function toDB(c){return{name:c.name||null,roaster:c.roaster||null,origin:c.origin||null,process:c.process||null,producer:c.producer||null,taste_notes:c.tasteNotes||null,roast_date:c.roastDate||null,rest_days:c.restDays?parseInt(c.restDays):null,ready_date:c.readyDate||null,open_date:c.openDate||null,best_by:c.bestby||null,bag_size_g:c.bagSize!==''&&c.bagSize!=null?parseFloat(c.bagSize):null,remaining_g:c.remaining!==''&&c.remaining!=null?parseFloat(c.remaining):null,photo:c.photo||null,brew_log:c.brewLog||[],archived:c.archived||false,user_id:c.userId||(getSession()&&getSession().userId)||null};}
 
 function today(){return new Date().toISOString().split('T')[0];}
 function addDays(ds,n){if(!ds||n===''||n==null)return '';const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+parseInt(n));return d.toISOString().split('T')[0];}
@@ -938,6 +938,7 @@ function renderDetail(){
       <div><div class="stat-lbl">Rest</div><div class="stat-val">${c.restDays?c.restDays+'d':'—'}</div></div>
       <div><div class="stat-lbl">Opened</div><div class="stat-val">${fmtShort(c.openDate)}</div></div>
       <div><div class="stat-lbl">Best-by</div><div class="stat-val">${fmtShort(c.bestby)}</div></div>
+      ${c.bagSize?`<div><div class="stat-lbl">Remaining</div><div class="stat-val" id="remaining-val" onclick="editRemaining('${c.id}')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${c.remaining!=null&&c.remaining!==''?Math.round(parseFloat(c.remaining))+'g':'—'}</div></div>`:''}
     </div>
 
     ${c.tasteNotes?`<div class="detail-notes zh-text">${esc(c.tasteNotes)}</div>`:''}
@@ -965,6 +966,26 @@ function sizeDatesGrid(){
   grid.style.gridTemplateColumns=widths.map(w=>w+'px').join(' ');
 }
 
+function editRemaining(id){
+  const el=document.getElementById('remaining-val');
+  const c=findCoffee(id);
+  if(!el||!c)return;
+  const current=c.remaining!=null&&c.remaining!==''?Math.round(parseFloat(c.remaining)):'';
+  el.outerHTML=`<input type="number" id="remaining-input" value="${current}" style="width:60px;text-align:right;border:none;border-bottom:1px solid var(--faint);background:transparent;font-size:15px;color:var(--text);padding:0;" onblur="saveRemaining('${id}')" onkeydown="if(event.key==='Enter')this.blur()">`;
+  const inp=document.getElementById('remaining-input');
+  if(inp){inp.focus();inp.select();}
+}
+async function saveRemaining(id){
+  const c=findCoffee(id);
+  const inp=document.getElementById('remaining-input');
+  if(!c||!inp)return;
+  const val=inp.value;
+  c.remaining=val===''?'':String(parseFloat(val));
+  saveLocal();renderDetail();
+  if(c.id&&!String(c.id).startsWith('local-'))
+    try{await dbUpdate(c.id,{remaining_g:c.remaining!==''?parseFloat(c.remaining):null});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:c.id,row:{remaining_g:c.remaining!==''?parseFloat(c.remaining):null}});setSyncStatus('offline');}
+}
 function editCoffeeFromDetail(id){closeDetail();openAddCoffee(id);}
 async function archiveFromDetail(id){await archiveCoffee(id,true);renderDetail();}
 async function unarchiveFromDetail(id){await archiveCoffee(id,false);renderDetail();}
@@ -1001,6 +1022,7 @@ function openAddCoffee(idOrNew){
       <div class="frow"><label>Ready date</label><input id="f-ready" value="${c.readyDate||''}" readonly></div>
       <div class="frow"><label>Opened</label><div class="date-field${c.openDate?'':' placeholder'}" id="f-open-display" onclick="openDatePicker('f-open',autoBestBy)">${c.openDate?fmtFull(c.openDate):'Select date'}</div><input type="hidden" id="f-open" value="${c.openDate||''}"></div>
       <div class="frow"><label>Best-by</label><input id="f-bestby" value="${c.bestby||''}" readonly></div>
+      <div class="frow"><label>Bag size (g)</label><input type="number" id="f-bagsize" placeholder="227" value="${esc(c.bagSize||'')}"></div>
       <div class="ftextarea-wrap"><label>Taste notes</label><textarea id="f-taste" placeholder="Blueberry, jasmine, bright acidity...">${esc(c.tasteNotes||'')}</textarea></div>
       <div class="fsave-space"></div>
     </div>`;
@@ -1033,6 +1055,7 @@ async function saveCoffee(){
   if(!name){alert('Please enter a coffee name.');return;}
   const isNew=editingCoffeeId==='new';
   const existing=isNew?{}:(findCoffee(editingCoffeeId)||{});
+  const bagSize=document.getElementById('f-bagsize').value||'';
   const c={...existing,name,
     roaster:(document.getElementById('f-roaster').value||'').trim(),
     origin:(document.getElementById('f-origin').value||'').trim(),
@@ -1044,6 +1067,8 @@ async function saveCoffee(){
     readyDate:document.getElementById('f-ready').value||'',
     openDate:document.getElementById('f-open').value||'',
     bestby:document.getElementById('f-bestby').value||'',
+    bagSize:bagSize,
+    remaining:(existing.remaining==null||existing.remaining==='')&&bagSize?bagSize:existing.remaining,
     photo:photoDataUrl||existing.photo||null,
     brewLog:existing.brewLog||[],
     archived:existing.archived||false,
@@ -1121,24 +1146,34 @@ function getBrewEntryFromForm(){
     grind:document.getElementById('b-grind').value,paper:document.getElementById('b-paper').value,
     notes:document.getElementById('b-notes').value.trim()};
 }
+function adjustRemaining(c,grams){
+  if(!c.bagSize)return; // not tracking weight for this coffee
+  const base=(c.remaining!==''&&c.remaining!=null)?parseFloat(c.remaining):parseFloat(c.bagSize);
+  c.remaining=String(base+grams);
+}
 async function saveBrewEntry(){
   const c=findCoffee(editingBrewCoffeeId);if(!c)return;
   if(!c.brewLog)c.brewLog=[];
   const entry=getBrewEntryFromForm();
+  const oldDose=(editingBrewEntryIdx!=null&&c.brewLog[editingBrewEntryIdx])?parseFloat(c.brewLog[editingBrewEntryIdx].dose)||0:0;
+  const newDose=parseFloat(entry.dose)||0;
   if(editingBrewEntryIdx!=null)c.brewLog[editingBrewEntryIdx]=entry;else c.brewLog.push(entry);
+  adjustRemaining(c,oldDose-newDose);
   saveLocal();toast('Brew entry saved!');closeBrewForm();
   if(c.id&&!String(c.id).startsWith('local-'))
-    try{await dbUpdate(c.id,{brew_log:c.brewLog});setSyncStatus('synced');}
-    catch(e){queueOp({type:'update',id:c.id,row:{brew_log:c.brewLog}});setSyncStatus('offline');}
+    try{await dbUpdate(c.id,{brew_log:c.brewLog,remaining_g:c.bagSize?parseFloat(c.remaining):null});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:c.id,row:{brew_log:c.brewLog,remaining_g:c.bagSize?parseFloat(c.remaining):null}});setSyncStatus('offline');}
 }
 async function deleteBrewEntry(){
   if(!confirm('Delete this brew entry?'))return;
   const c=findCoffee(editingBrewCoffeeId);if(!c)return;
+  const removedDose=parseFloat(c.brewLog[editingBrewEntryIdx]&&c.brewLog[editingBrewEntryIdx].dose)||0;
   c.brewLog.splice(editingBrewEntryIdx,1);
+  adjustRemaining(c,removedDose);
   saveLocal();toast('Brew entry deleted.');closeBrewForm();
   if(c.id&&!String(c.id).startsWith('local-'))
-    try{await dbUpdate(c.id,{brew_log:c.brewLog});setSyncStatus('synced');}
-    catch(e){queueOp({type:'update',id:c.id,row:{brew_log:c.brewLog}});setSyncStatus('offline');}
+    try{await dbUpdate(c.id,{brew_log:c.brewLog,remaining_g:c.bagSize?parseFloat(c.remaining):null});setSyncStatus('synced');}
+    catch(e){queueOp({type:'update',id:c.id,row:{brew_log:c.brewLog,remaining_g:c.bagSize?parseFloat(c.remaining):null}});setSyncStatus('offline');}
 }
 
 // ── Local cache + queue ───────────────────────────────────────────
