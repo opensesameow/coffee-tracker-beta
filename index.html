@@ -518,7 +518,10 @@ function statusLabel(c){
   const s=getStatus(c),t=today();
   if(s==='resting'){const d=Math.max(0,daysBetween(t,getReadyDate(c)));return`Resting · ${d}d`;}
   if(s==='ready')return'Ready to brew';
-  if(s==='opened')return`Opened · ${fmtShort(c.openDate)}`;
+  if(s==='opened'){
+    if(c.bagSize&&c.remaining!=null&&c.remaining!=='')return`Opened · ${Math.round(parseFloat(c.remaining))}g left`;
+    return`Opened · ${fmtShort(c.openDate)}`;
+  }
   if(s==='bestby'){const d=daysBetween(t,c.bestby);return d<0?'Past best-by':`Best-by · ${d}d left`;}
   return'';
 }
@@ -926,7 +929,7 @@ function renderDetail(){
       ${hasPhoto?`<img src="${c.photo}" alt="">`:''}
       <button class="detail-back" onclick="closeDetail()">&#8249;</button>
       <div class="detail-hero-caption">
-        ${(!c.archived&&statusLabel(c))?`<div class="detail-hero-status"><span class="cpill disp" style="color:${color};border-color:${color}66;background:linear-gradient(${color}33,${color}33),rgba(255,255,255,0.88);">${statusLabel(c)}</span></div>`:''}
+        ${(!c.archived&&statusLabel(c))?`<div class="detail-hero-status"><span class="cpill disp" id="hero-status-pill" ${(!c.archived&&c.bagSize&&(status==='opened'||status==='bestby'))?`onclick="editRemainingPill(event,'${c.id}')" style="color:${color};border-color:${color}66;background:linear-gradient(${color}33,${color}33),rgba(255,255,255,0.88);cursor:pointer;"`:`style="color:${color};border-color:${color}66;background:linear-gradient(${color}33,${color}33),rgba(255,255,255,0.88);"`}>${statusLabel(c)}</span></div>`:''}
         <div class="origin">${esc([c.roaster,c.origin].filter(Boolean).join(' · '))}</div>
         <div class="name disp">${esc(c.name||'Unnamed coffee')}</div>
         <div class="roaster">${esc([c.process,c.producer].filter(Boolean).join(' · '))}</div>
@@ -938,7 +941,6 @@ function renderDetail(){
       <div><div class="stat-lbl">Rest</div><div class="stat-val">${c.restDays?c.restDays+'d':'—'}</div></div>
       <div><div class="stat-lbl">Opened</div><div class="stat-val">${fmtShort(c.openDate)}</div></div>
       <div><div class="stat-lbl">Best-by</div><div class="stat-val">${fmtShort(c.bestby)}</div></div>
-      ${c.bagSize?`<div><div class="stat-lbl">Remaining</div><div class="stat-val" id="remaining-val" onclick="editRemaining('${c.id}')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${c.remaining!=null&&c.remaining!==''?Math.round(parseFloat(c.remaining))+'g':'—'}</div></div>`:''}
     </div>
 
     ${c.tasteNotes?`<div class="detail-notes zh-text">${esc(c.tasteNotes)}</div>`:''}
@@ -966,12 +968,13 @@ function sizeDatesGrid(){
   grid.style.gridTemplateColumns=widths.map(w=>w+'px').join(' ');
 }
 
-function editRemaining(id){
-  const el=document.getElementById('remaining-val');
+function editRemainingPill(e,id){
+  if(e)e.stopPropagation();
   const c=findCoffee(id);
+  const el=document.getElementById('hero-status-pill');
   if(!el||!c)return;
   const current=c.remaining!=null&&c.remaining!==''?Math.round(parseFloat(c.remaining)):'';
-  el.outerHTML=`<input type="number" id="remaining-input" value="${current}" style="width:60px;text-align:right;border:none;border-bottom:1px solid var(--faint);background:transparent;font-size:15px;color:var(--text);padding:0;" onblur="saveRemaining('${id}')" onkeydown="if(event.key==='Enter')this.blur()">`;
+  el.outerHTML=`<span id="remaining-pill-wrap" style="display:inline-flex;align-items:center;gap:3px;padding:3px 12px;border-radius:20px;background:rgba(255,255,255,0.92);"><input type="number" id="remaining-input" value="${current}" style="width:44px;border:none;background:transparent;font-size:15px;color:var(--text);padding:0;" onblur="saveRemaining('${id}')" onkeydown="if(event.key==='Enter')this.blur()"><span style="font-size:15px;color:var(--text);">g</span></span>`;
   const inp=document.getElementById('remaining-input');
   if(inp){inp.focus();inp.select();}
 }
@@ -1050,6 +1053,7 @@ function handlePhoto(e){
   };
   reader.readAsDataURL(file);
 }
+function sumDoses(brewLog){return(brewLog||[]).reduce((sum,b)=>sum+(parseFloat(b.dose)||0),0);}
 async function saveCoffee(){
   const name=(document.getElementById('f-name').value||'').trim();
   if(!name){alert('Please enter a coffee name.');return;}
@@ -1068,7 +1072,7 @@ async function saveCoffee(){
     openDate:document.getElementById('f-open').value||'',
     bestby:document.getElementById('f-bestby').value||'',
     bagSize:bagSize,
-    remaining:(existing.remaining==null||existing.remaining==='')&&bagSize?bagSize:existing.remaining,
+    remaining:(existing.remaining==null||existing.remaining==='')&&bagSize?String(parseFloat(bagSize)-sumDoses(existing.brewLog)):existing.remaining,
     photo:photoDataUrl||existing.photo||null,
     brewLog:existing.brewLog||[],
     archived:existing.archived||false,
